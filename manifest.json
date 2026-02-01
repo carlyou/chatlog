@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "ChatLog",
+  "version": "0.1.0",
+  "description": "Enhanced navigation and organization for AI chat conversations",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chatgpt.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*"
+      ],
+      "js": ["src/content.js"],
+      "css": ["styles/chatlog.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["styles/*"],
+      "matches": ["https://claude.ai/*", "https://chatgpt.com/*"]
+    }
+  ]
+}

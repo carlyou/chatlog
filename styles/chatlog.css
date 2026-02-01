@@ -1,0 +1,361 @@
+/* ChatLog - Native Theme Matching */
+
+/* Sidebars with glass effect */
+.chatlog-sidebar {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-family: anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: rgba(0, 0, 0, 0.95);
+}
+
+/* Dark mode glass */
+@media (prefers-color-scheme: dark) {
+  .chatlog-sidebar {
+    background: rgba(10, 10, 10, 0.25);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+.chatlog-sidebar-right {
+  right: 0;
+  width: 320px;
+  transform: translateX(100%);
+}
+
+.chatlog-sidebar.pinned {
+  transform: translateX(0) !important;
+}
+
+/* Hover zones */
+.chatlog-hover-zone {
+  position: fixed;
+  top: 0;
+  width: 20px;
+  height: 100vh;
+  z-index: 999998;
+}
+
+.chatlog-hover-right {
+  right: 0;
+}
+
+.chatlog-hover-zone.hidden {
+  display: none;
+}
+
+/* Show on hover */
+.chatlog-hover-left:hover ~ .chatlog-sidebar-left:not(.pinned),
+.chatlog-sidebar-left:not(.pinned):hover {
+  transform: translateX(0);
+}
+
+.chatlog-hover-right:hover ~ .chatlog-sidebar-right:not(.pinned),
+.chatlog-sidebar-right:not(.pinned):hover {
+  transform: translateX(0);
+}
+
+/* Toggle buttons */
+.chatlog-toggle {
+  height: 36px;
+  width: 36px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgb(255, 255, 255);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.6);
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-toggle {
+    background: rgb(33, 33, 33);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.chatlog-toggle:hover {
+  background: rgb(248, 248, 248);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-toggle:hover {
+    background: rgb(44, 44, 44);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.chatlog-toggle.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: rgb(59, 130, 246);
+}
+
+
+/* Pin button in header */
+.chatlog-pin-btn {
+  background: transparent;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: rgba(0, 0, 0, 0.5);
+  padding: 4px;
+}
+
+.chatlog-pin-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.chatlog-pin-btn.pinned {
+  color: rgba(59, 130, 246, 0.8);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-pin-btn {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .chatlog-pin-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .chatlog-pin-btn.pinned {
+    color: rgba(59, 130, 246, 0.9);
+    background: rgba(59, 130, 246, 0.15);
+  }
+}
+
+/* Adjust main content when sidebar is pinned */
+/* Claude.ai */
+body.chatlog-right-pinned #main-content {
+  margin-right: 320px;
+}
+
+/* ChatGPT */
+body.chatlog-right-pinned main {
+  margin-right: 320px;
+}
+
+/* Outline */
+.chatlog-outline-header {
+  height: 44px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-outline-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.chatlog-outline-count {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-outline-count {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.chatlog-outline-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Message layout - minimal style */
+.chatlog-message {
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-align: left;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+}
+
+.chatlog-message:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-message:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+.chatlog-message-assistant {
+  display: block;
+  width: 100%;
+}
+
+.chatlog-bubble {
+  width: 100%;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  position: relative;
+}
+
+/* User messages - minimal with background, right-aligned */
+.chatlog-message-user {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.chatlog-bubble-user {
+  text-align: right;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 85%;
+}
+
+/* Assistant messages - minimal with background */
+.chatlog-bubble-assistant {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* Claude.ai - use native theme colors */
+body[class*="claude"] .chatlog-bubble-user,
+[data-testid*="claude"] ~ * .chatlog-bubble-user {
+  background: var(--bg-300, rgba(0, 0, 0, 0.05));
+  color: var(--text-primary, rgba(0, 0, 0, 0.85));
+}
+
+body[class*="claude"] .chatlog-bubble-assistant,
+[data-testid*="claude"] ~ * .chatlog-bubble-assistant {
+  background: var(--bg-200, rgba(0, 0, 0, 0.03));
+  color: var(--text-primary, rgba(0, 0, 0, 0.85));
+}
+
+/* ChatGPT - use native theme colors */
+[data-theme="dark"] .chatlog-bubble-user {
+  background: rgb(52, 53, 65);
+  color: rgb(236, 236, 241);
+}
+
+[data-theme="light"] .chatlog-bubble-user {
+  background: rgb(247, 247, 248);
+  color: rgb(52, 53, 65);
+}
+
+[data-theme="dark"] .chatlog-bubble-assistant {
+  background: rgb(68, 70, 84);
+  color: rgb(236, 236, 241);
+}
+
+[data-theme="light"] .chatlog-bubble-assistant {
+  background: rgb(255, 255, 255);
+  color: rgb(52, 53, 65);
+}
+
+/* Fallback for providers without specific theme attributes */
+.chatlog-bubble-user {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.chatlog-bubble-assistant {
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-bubble-user {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .chatlog-bubble-assistant {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* Scrollbar */
+.chatlog-sidebar::-webkit-scrollbar,
+.chatlog-chat-list::-webkit-scrollbar,
+.chatlog-outline-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatlog-sidebar::-webkit-scrollbar-track,
+.chatlog-chat-list::-webkit-scrollbar-track,
+.chatlog-outline-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatlog-sidebar::-webkit-scrollbar-thumb,
+.chatlog-chat-list::-webkit-scrollbar-thumb,
+.chatlog-outline-messages::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-sidebar::-webkit-scrollbar-thumb,
+  .chatlog-chat-list::-webkit-scrollbar-thumb,
+  .chatlog-outline-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.chatlog-sidebar::-webkit-scrollbar-thumb:hover,
+.chatlog-chat-list::-webkit-scrollbar-thumb:hover,
+.chatlog-outline-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-sidebar::-webkit-scrollbar-thumb:hover,
+  .chatlog-chat-list::-webkit-scrollbar-thumb:hover,
+  .chatlog-outline-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
