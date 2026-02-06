@@ -202,7 +202,7 @@ body.chatlog-right-pinned main {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 /* Message layout - minimal style */
@@ -211,7 +211,7 @@ body.chatlog-right-pinned main {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 0px;
   text-align: left;
   transition: all 0.15s ease;
   border-radius: 4px;
@@ -248,7 +248,7 @@ body.chatlog-right-pinned main {
 }
 
 .chatlog-bubble-user {
-  text-align: right;
+  text-align: left;
   padding: 8px 12px;
   border-radius: 6px;
   max-width: 85%;
@@ -359,3 +359,4 @@ body[class*="claude"] .chatlog-bubble-assistant,
     background: rgba(255, 255, 255, 0.3);
   }
 }
+

@@ -218,6 +218,19 @@
     `;
   }
 
+  // Setup message clicks
+  function setupMessageClicks(messages) {
+    document.querySelectorAll('.chatlog-message').forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        const msg = messages[idx];
+        if (msg && msg.element) {
+          msg.element.style.scrollMarginTop = '80px';
+          msg.element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
   // Create hover zone
   function createHoverZone() {
     return `
@@ -297,21 +310,6 @@
         }
       });
     }
-  }
-
-  // Setup message clicks
-  function setupMessageClicks(messages) {
-    document.querySelectorAll('.chatlog-message').forEach((btn, idx) => {
-      btn.addEventListener('click', () => {
-        const msg = messages[idx];
-        if (msg && msg.element) {
-          // Add scroll margin for breathing room
-          msg.element.style.scrollMarginTop = '80px';
-          msg.element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // console.log('[ChatLog] Scrolled to message', idx);
-        }
-      });
-    });
   }
 
 
