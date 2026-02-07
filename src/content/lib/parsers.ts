@@ -1,4 +1,4 @@
-import type { Message, Platform, StructuredContent, ContentBlock, RichText, RichSegment } from '../../types';
+import type { Message, Platform, StructuredContent, ContentBlock, RichText, RichSegment, BranchInfo } from '../../types';
 import { getSelectors } from './selectors';
 
 // Walk inline child nodes of an element and produce RichText segments
@@ -339,6 +339,38 @@ export function extractStructuredContent(element: Element): StructuredContent {
   return { blocks };
 }
 
+/** Search a DOM container for branch navigation (e.g. "2 / 3" with prev/next buttons). */
+function extractBranchInfo(container: Element): BranchInfo | undefined {
+  // Look for a text node matching "N / N" or "N/N"
+  const candidates = container.querySelectorAll('span, div');
+  for (const el of candidates) {
+    const text = el.textContent?.trim() || '';
+    const match = text.match(/^(\d+)\s*\/\s*(\d+)$/);
+    if (!match) continue;
+
+    const current = parseInt(match[1], 10);
+    const total = parseInt(match[2], 10);
+    if (total < 2) continue;
+
+    // Find nearby prev/next buttons by walking up to a common parent
+    const parent = el.parentElement?.parentElement || el.parentElement;
+    if (!parent) continue;
+
+    const buttons = parent.querySelectorAll('button');
+    let prevButton: Element | null = null;
+    let nextButton: Element | null = null;
+
+    for (const btn of buttons) {
+      const label = (btn.getAttribute('aria-label') || '').toLowerCase();
+      if (label.includes('previous')) prevButton = btn;
+      else if (label.includes('next')) nextButton = btn;
+    }
+
+    return { current, total, prevButton, nextButton };
+  }
+  return undefined;
+}
+
 function parseClaudeMessages(container: Element): Message[] {
   const messages: Message[] = [];
   const allGroups = container.querySelectorAll('div.group.relative');
@@ -355,24 +387,31 @@ function parseClaudeMessages(container: Element): Message[] {
       const grandparent = group.parentElement?.parentElement;
       const searchScope = grandparent || group;
       const structured = extractStructuredContent(searchScope);
+      // Branch nav lives in the render-count wrapper or grandparent
+      const branchScope = group.closest('[data-test-render-count]') || grandparent;
+      const branchInfo = branchScope ? extractBranchInfo(branchScope) : undefined;
       messages.push({
         id: `msg-${messages.length}`,
         type: 'user',
         text,
         element: group,
         ...(structured.blocks.length > 0 && { structured }),
+        ...(branchInfo && { branchInfo }),
       });
     } else if (hasStreaming) {
       const responseContainer = group.querySelector('[class*="row-start-2"]');
       if (responseContainer) {
         const responseText = responseContainer.textContent?.trim();
         if (responseText) {
+          const branchScope = group.closest('[data-test-render-count]') || group;
+          const branchInfo = extractBranchInfo(branchScope);
           messages.push({
             id: `msg-${messages.length}`,
             type: 'assistant',
             text: responseText,
             element: responseContainer,
             structured: extractStructuredContent(responseContainer),
+            ...(branchInfo && { branchInfo }),
           });
         }
       }
@@ -393,20 +432,26 @@ function parseChatGPTMessages(container: Element): Message[] {
 
     if (role === 'user') {
       const structured = extractStructuredContent(msg);
+      const article = msg.closest('article');
+      const branchInfo = article ? extractBranchInfo(article) : undefined;
       messages.push({
         id: `msg-${messages.length}`,
         type: 'user',
         text,
         element: msg,
         ...(structured.blocks.length > 0 && { structured }),
+        ...(branchInfo && { branchInfo }),
       });
     } else if (role === 'assistant') {
+      const article = msg.closest('article');
+      const branchInfo = article ? extractBranchInfo(article) : undefined;
       messages.push({
         id: `msg-${messages.length}`,
         type: 'assistant',
         text,
         element: msg,
         structured: extractStructuredContent(msg),
+        ...(branchInfo && { branchInfo }),
       });
     }
   });

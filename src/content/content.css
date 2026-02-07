@@ -615,6 +615,75 @@
 }
 
 
+/* Branch navigation — standalone line */
+.chatlog-branch-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.chatlog-branch-text {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  margin-right: 2px;
+}
+
+.chatlog-branch-btn {
+  background: transparent;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s;
+}
+
+.chatlog-branch-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.chatlog-branch-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.chatlog-branch-label {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.5);
+  min-width: 20px;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-branch-text {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .chatlog-branch-btn {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .chatlog-branch-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .chatlog-branch-label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
 /* Scrollbar */
 .chatlog-sidebar::-webkit-scrollbar,
 .chatlog-outline-messages::-webkit-scrollbar {

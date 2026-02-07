@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Message, DisplayMode, StructuredContent, ContentBlock, RichText, RichSegment } from '../../types';
+import type { Message, DisplayMode, StructuredContent, ContentBlock, RichText, RichSegment, BranchInfo } from '../../types';
 import type { ActiveTarget } from '../hooks/useActiveMessage';
 import { SCROLL_REF_RATIO } from '../lib/constants';
 
@@ -49,6 +49,27 @@ function RichTextView({ segments }: { segments: RichText }) {
         <Segment key={i} seg={seg} />
       ))}
     </>
+  );
+}
+
+function BranchNav({ branchInfo }: { branchInfo: BranchInfo }) {
+  return (
+    <div className="chatlog-branch-nav">
+      <span className="chatlog-branch-text">Branch</span>
+      <button
+        className="chatlog-branch-btn"
+        onClick={(e) => { e.stopPropagation(); (branchInfo.prevButton as HTMLButtonElement)?.click(); }}
+        disabled={branchInfo.current <= 1}
+      >&#8249;</button>
+      <span className="chatlog-branch-label">
+        {branchInfo.current}/{branchInfo.total}
+      </span>
+      <button
+        className="chatlog-branch-btn"
+        onClick={(e) => { e.stopPropagation(); (branchInfo.nextButton as HTMLButtonElement)?.click(); }}
+        disabled={branchInfo.current >= branchInfo.total}
+      >&#8250;</button>
+    </div>
   );
 }
 
@@ -229,6 +250,7 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
     const files = message.structured?.blocks.filter((b) => b.type === 'file') || [];
     return (
       <button onClick={handleClick} className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}>
+        {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
         {images.length > 0 && (
           <div className="chatlog-message-user-images">
             {images.map((img, i) => (
@@ -257,6 +279,7 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
 
   return (
     <button onClick={handleClick} className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}>
+      {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
       <div className="chatlog-message-assistant">
         <div className="chatlog-bubble chatlog-bubble-assistant">
           {displayMode === 'compact' && <AssistantCompact message={message} />}

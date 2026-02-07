@@ -22,12 +22,20 @@ export interface StructuredContent {
   blocks: ContentBlock[];
 }
 
+export interface BranchInfo {
+  current: number;
+  total: number;
+  prevButton: Element | null;
+  nextButton: Element | null;
+}
+
 export interface Message {
   id: string;
   type: 'user' | 'assistant';
   text: string;
   element: Element;
   structured?: StructuredContent;
+  branchInfo?: BranchInfo;
 }
 
 export type Platform = 'claude' | 'chatgpt' | null;
