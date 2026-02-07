@@ -1,0 +1,652 @@
+@import "tailwindcss";
+
+/* Sidebar with glass effect */
+.chatlog-sidebar {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-family: anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: rgba(0, 0, 0, 0.95);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-sidebar {
+    background: rgba(10, 10, 10, 0.25);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+.chatlog-sidebar-right {
+  right: 0;
+  width: 320px;
+  transform: translateX(100%);
+}
+
+.chatlog-sidebar.pinned {
+  transform: translateX(0) !important;
+}
+
+/* Hover zones */
+.chatlog-hover-zone {
+  position: fixed;
+  top: 0;
+  width: 20px;
+  height: 100vh;
+  z-index: 999998;
+}
+
+.chatlog-hover-right {
+  right: 0;
+}
+
+/* Show sidebar on hover */
+.chatlog-hover-right:hover ~ .chatlog-sidebar-right:not(.pinned),
+.chatlog-sidebar-right:not(.pinned):hover {
+  transform: translateX(0);
+}
+
+/* Toggle button */
+.chatlog-toggles {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999998;
+  display: flex;
+  gap: 8px;
+}
+
+.chatlog-toggle {
+  height: 36px;
+  width: 36px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgb(255, 255, 255);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.6);
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-toggle {
+    background: rgb(33, 33, 33);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.chatlog-toggle:hover {
+  background: rgb(248, 248, 248);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-toggle:hover {
+    background: rgb(44, 44, 44);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.chatlog-toggle.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: rgb(59, 130, 246);
+}
+
+/* Pin button */
+.chatlog-pin-btn {
+  background: transparent;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: rgba(0, 0, 0, 0.5);
+  padding: 4px;
+}
+
+.chatlog-pin-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.chatlog-pin-btn.pinned {
+  color: rgba(59, 130, 246, 0.8);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-pin-btn {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .chatlog-pin-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .chatlog-pin-btn.pinned {
+    color: rgba(59, 130, 246, 0.9);
+    background: rgba(59, 130, 246, 0.15);
+  }
+}
+
+/* Header */
+.chatlog-outline-header {
+  height: 44px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-outline-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.chatlog-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chatlog-outline-count {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-outline-count {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Message list */
+.chatlog-outline-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chatlog-empty {
+  padding: 20px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-empty {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* Message buttons */
+.chatlog-message {
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+}
+
+.chatlog-message:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.chatlog-message-active {
+  border-left: 2px solid rgb(59, 130, 246);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-message:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .chatlog-message-active {
+    border-left-color: rgb(96, 165, 250);
+    background: rgba(96, 165, 250, 0.08);
+  }
+}
+
+.chatlog-message-assistant {
+  display: block;
+  width: 100%;
+}
+
+.chatlog-message-user {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Bubbles */
+.chatlog-bubble {
+  width: 100%;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.chatlog-bubble-user {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 85%;
+  width: fit-content;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.chatlog-bubble-assistant {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-bubble-user {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .chatlog-bubble-assistant {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* Display mode selector */
+.chatlog-mode-selector {
+  display: flex;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-mode-selector {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.chatlog-mode-btn {
+  background: transparent;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+}
+
+.chatlog-mode-btn:hover {
+  color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.chatlog-mode-btn.active {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-mode-btn {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .chatlog-mode-btn:hover {
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .chatlog-mode-btn.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: rgb(96, 165, 250);
+  }
+}
+
+/* Structured content container */
+.chatlog-structured {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Heading - bold, slightly larger, with a subtle left accent */
+.chatlog-structured-heading {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  padding-left: 8px;
+  border-left: 2px solid rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-heading {
+    color: rgba(255, 255, 255, 0.92);
+    border-left-color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+/* Clickable heading sections in detailed view */
+.chatlog-heading-section {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.chatlog-heading-section:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.chatlog-heading-section:hover .chatlog-structured-heading {
+  border-left-color: rgb(59, 130, 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-heading-section:hover {
+    background: rgba(96, 165, 250, 0.08);
+  }
+
+  .chatlog-heading-section:hover .chatlog-structured-heading {
+    border-left-color: rgb(96, 165, 250);
+  }
+}
+
+/* Active section highlight (scroll sync) */
+.chatlog-section-active {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.chatlog-section-active .chatlog-structured-heading {
+  border-left-color: rgb(59, 130, 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-section-active {
+    background: rgba(96, 165, 250, 0.08);
+  }
+
+  .chatlog-section-active .chatlog-structured-heading {
+    border-left-color: rgb(96, 165, 250);
+  }
+}
+
+/* Paragraphs */
+.chatlog-structured-p {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-p {
+    color: rgba(255, 255, 255, 0.65);
+  }
+}
+
+/* Horizontal rule / divider */
+.chatlog-structured-hr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin: 4px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-hr {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Images */
+.chatlog-structured-img {
+  max-width: 100%;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-img {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.chatlog-message-user-images {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+/* File chips (uploaded text/pdf files) */
+.chatlog-message-user-files {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.chatlog-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 85%;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.chatlog-file-ext {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+}
+
+.chatlog-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-file-chip {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .chatlog-file-ext {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .chatlog-file-name {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.chatlog-message-user-images .chatlog-structured-img {
+  max-width: 85%;
+  max-height: 120px;
+  object-fit: cover;
+}
+
+/* Compact mode: single-line clamp for the preview paragraph */
+.chatlog-compact-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Lists - indented with subtle bullets */
+.chatlog-structured-list {
+  margin: 0;
+  padding-left: 14px;
+  font-size: 11px;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.chatlog-structured-li {
+  color: rgba(0, 0, 0, 0.6);
+  position: relative;
+  padding-left: 10px;
+  margin-bottom: 2px;
+}
+
+.chatlog-structured-li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-li {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .chatlog-structured-li::before {
+    color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Inline code */
+.chatlog-inline-code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+  padding: 1px 4px;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-inline-code {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75);
+  }
+}
+
+/* Code blocks - monospace with distinct background */
+.chatlog-structured-code {
+  display: block;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.7);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.chatlog-structured-code code {
+  font: inherit;
+  color: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-code {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+
+/* Scrollbar */
+.chatlog-sidebar::-webkit-scrollbar,
+.chatlog-outline-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatlog-sidebar::-webkit-scrollbar-track,
+.chatlog-outline-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatlog-sidebar::-webkit-scrollbar-thumb,
+.chatlog-outline-messages::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-sidebar::-webkit-scrollbar-thumb,
+  .chatlog-outline-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.chatlog-sidebar::-webkit-scrollbar-thumb:hover,
+.chatlog-outline-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-sidebar::-webkit-scrollbar-thumb:hover,
+  .chatlog-outline-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}

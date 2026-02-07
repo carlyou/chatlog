@@ -16,15 +16,13 @@
         "https://claude.ai/*",
         "https://chatgpt.com/*"
       ],
-      "js": ["src/content.js"],
-      "css": ["styles/chatlog.css"],
+      "js": ["src/content/index.tsx"],
       "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["styles/*"],
-      "matches": ["https://claude.ai/*", "https://chatgpt.com/*"]
-    }
-  ]
+  "icons": {
+    "16": "public/assets/icon16.png",
+    "48": "public/assets/icon48.png",
+    "128": "public/assets/icon128.png"
+  }
 }
