@@ -399,9 +399,17 @@ function parseClaudeMessages(container: Element): Message[] {
         ...(branchInfo && { branchInfo }),
       });
     } else if (hasStreaming) {
-      const responseContainer = group.querySelector('[class*="row-start-2"]');
-      if (responseContainer) {
-        const responseText = responseContainer.textContent?.trim();
+      const responseContainers = group.querySelectorAll('[class*="row-start-2"]');
+      if (responseContainers.length > 0) {
+        const textParts: string[] = [];
+        const allBlocks: ContentBlock[] = [];
+        for (const rc of responseContainers) {
+          const t = rc.textContent?.trim();
+          if (t) textParts.push(t);
+          const { blocks: rcBlocks } = extractStructuredContent(rc);
+          allBlocks.push(...rcBlocks);
+        }
+        const responseText = textParts.join('\n');
         if (responseText) {
           const branchScope = group.closest('[data-test-render-count]') || group;
           const branchInfo = extractBranchInfo(branchScope);
@@ -409,8 +417,8 @@ function parseClaudeMessages(container: Element): Message[] {
             id: `msg-${messages.length}`,
             type: 'assistant',
             text: responseText,
-            element: responseContainer,
-            structured: extractStructuredContent(responseContainer),
+            element: responseContainers[0],
+            structured: { blocks: allBlocks },
             ...(branchInfo && { branchInfo }),
           });
         }

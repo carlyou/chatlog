@@ -47,9 +47,23 @@ async function init() {
     hostStyle.textContent = `
       body.chatlog-right-pinned #main-content { margin-right: 320px; }
       body.chatlog-right-pinned main { margin-right: 320px; }
+      div[data-chat-input-container="true"] {
+        transition: opacity 0.3s ease;
+        opacity: var(--chatlog-input-opacity, 1);
+      }
+      div[data-chat-input-container="true"]:focus-within {
+        opacity: 1 !important;
+      }
     `;
     document.head.appendChild(hostStyle);
   }
+
+  // Fade chat input based on mouse Y position
+  document.addEventListener('mousemove', (e) => {
+    const threshold = 3 / 4;
+    const opacity = e.clientY <= window.innerHeight * threshold ? 0 :  1;
+    document.documentElement.style.setProperty('--chatlog-input-opacity', String(opacity));
+  }, { passive: true });
 
   // Remove any previous mount
   document.getElementById('chatlog-root')?.remove();

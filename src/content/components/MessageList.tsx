@@ -4,6 +4,8 @@ import type { ActiveTarget } from '../hooks/useActiveMessage';
 import { MessageBubble } from './MessageBubble';
 import { SCROLL_REF_RATIO } from '../lib/constants';
 
+const SCROLL_DURATION = 240; // ms — fast but smooth
+
 /** Scroll so the element's top edge sits at SCROLL_REF_RATIO from the top of its scroll container. */
 export function scrollToTopCenter(el: HTMLElement, container: HTMLElement) {
   // Walk up offsetParent chain to get position relative to the scroll container
@@ -14,7 +16,20 @@ export function scrollToTopCenter(el: HTMLElement, container: HTMLElement) {
     current = current.offsetParent as HTMLElement | null;
   }
   const targetScrollTop = top - container.clientHeight * SCROLL_REF_RATIO;
-  container.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+  const startScrollTop = container.scrollTop;
+  const distance = targetScrollTop - startScrollTop;
+
+  if (Math.abs(distance) < 1) return;
+
+  const startTime = performance.now();
+  const step = (now: number) => {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / SCROLL_DURATION, 1);
+    const ease = 1 - (1 - t) * (1 - t); // easeOutQuad
+    container.scrollTop = startScrollTop + distance * ease;
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 interface MessageListProps {
@@ -23,9 +38,10 @@ interface MessageListProps {
   activeMessageId: string | null;
   activeSectionIndex: number | null;
   onLockActive: (target: ActiveTarget) => void;
+  onJumpNavigate?: () => void;
 }
 
-export function MessageList({ messages, displayMode, activeMessageId, activeSectionIndex, onLockActive }: MessageListProps) {
+export function MessageList({ messages, displayMode, activeMessageId, activeSectionIndex, onLockActive, onJumpNavigate }: MessageListProps) {
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const setItemRef = useCallback((id: string, el: HTMLElement | null) => {
@@ -67,6 +83,7 @@ export function MessageList({ messages, displayMode, activeMessageId, activeSect
             isActive={msg.id === activeMessageId}
             activeSectionIndex={msg.id === activeMessageId ? activeSectionIndex : null}
             onLockActive={onLockActive}
+            onJumpNavigate={onJumpNavigate}
           />
         </div>
       ))}

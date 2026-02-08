@@ -38,6 +38,23 @@ export interface Message {
   branchInfo?: BranchInfo;
 }
 
+export interface ShortcutBinding {
+  enabled: boolean;
+  key: string;
+  shift?: boolean;
+  ctrl?: boolean;
+  alt?: boolean;
+  meta?: boolean;
+}
+
+export interface ShortcutConfig {
+  toggleMode: ShortcutBinding;
+  historyBack: ShortcutBinding;
+  historyForward: ShortcutBinding;
+  sectionPrev: ShortcutBinding;
+  sectionNext: ShortcutBinding;
+}
+
 export type Platform = 'claude' | 'chatgpt' | null;
 
 export interface PlatformSelectors {

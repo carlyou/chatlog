@@ -6,7 +6,7 @@ import { SCROLL_REF_RATIO } from '../lib/constants';
 
 import { scrollToTopCenter } from './MessageList';
 
-function scrollElToRefLine(el: HTMLElement) {
+export function scrollElToRefLine(el: HTMLElement) {
   const target = window.innerHeight * SCROLL_REF_RATIO;
   const delta = el.getBoundingClientRect().top - target + 5;
 
@@ -32,6 +32,7 @@ interface MessageBubbleProps {
   isActive?: boolean;
   activeSectionIndex?: number | null;
   onLockActive?: (target: ActiveTarget) => void;
+  onJumpNavigate?: () => void;
 }
 
 function Segment({ seg }: { seg: RichSegment }) {
@@ -228,8 +229,9 @@ function AssistantDetailed({ message, activeSectionIndex, onSectionClick }: { me
   return <>{message.text}</>;
 }
 
-export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive }: MessageBubbleProps) {
+export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive, onJumpNavigate }: MessageBubbleProps) {
   const handleClick = () => {
+    onJumpNavigate?.();
     onLockActive?.({ messageId: message.id, sectionIndex: null });
     if (message.element) {
       scrollElToRefLine(message.element as HTMLElement);
@@ -237,6 +239,7 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
   };
 
   const handleSectionClick = (sectionIndex: number) => {
+    onJumpNavigate?.();
     onLockActive?.({ messageId: message.id, sectionIndex });
   };
 

@@ -50,9 +50,10 @@
   right: 0;
 }
 
-/* Show sidebar on hover */
+/* Show sidebar on hover or peek */
 .chatlog-hover-right:hover ~ .chatlog-sidebar-right:not(.pinned),
-.chatlog-sidebar-right:not(.pinned):hover {
+.chatlog-sidebar-right:not(.pinned):hover,
+.chatlog-sidebar-right.peeking:not(.pinned) {
   transform: translateX(0);
 }
 
@@ -198,6 +199,8 @@
   gap: 2px;
 }
 
+
+
 .chatlog-empty {
   padding: 20px;
   text-align: center;
@@ -219,7 +222,7 @@
   padding: 0;
   text-align: left;
   transition: all 0.15s ease;
-  border-radius: 4px;
+  /*border-radius: 4px;*/
 }
 
 .chatlog-message:hover {
@@ -228,7 +231,7 @@
 
 .chatlog-message-active {
   border-left: 2px solid rgb(59, 130, 246);
-  background: rgba(59, 130, 246, 0.06);
+  /*background: rgba(59, 130, 246, 0.06);*/
 }
 
 @media (prefers-color-scheme: dark) {
@@ -383,7 +386,7 @@
 }
 
 .chatlog-heading-section:hover {
-  background: rgba(59, 130, 246, 0.06);
+  /*background: rgba(59, 130, 246, 0.06);*/
 }
 
 .chatlog-heading-section:hover .chatlog-structured-heading {
@@ -402,7 +405,7 @@
 
 /* Active section highlight (scroll sync) */
 .chatlog-section-active {
-  background: rgba(59, 130, 246, 0.06);
+  /*background: rgba(59, 130, 246, 0.06);*/
 }
 
 .chatlog-section-active .chatlog-structured-heading {
@@ -681,6 +684,143 @@
 
   .chatlog-branch-label {
     color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Shortcut settings panel */
+.chatlog-shortcut-settings {
+  position: absolute;
+  bottom: 44px;
+  right: 0;
+  width: 260px;
+  background: rgb(255, 255, 255);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 999999;
+  font-size: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-shortcut-settings {
+    background: rgb(33, 33, 33);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.chatlog-shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.chatlog-shortcut-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-shortcut-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+.chatlog-shortcut-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-shortcut-label {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.chatlog-shortcut-label input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.chatlog-shortcut-bind {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.chatlog-shortcut-bind:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.chatlog-shortcut-bind.listening {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: rgb(59, 130, 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-shortcut-bind {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .chatlog-shortcut-bind:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .chatlog-shortcut-bind.listening {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: rgb(96, 165, 250);
+  }
+}
+
+.chatlog-shortcut-reset {
+  margin-top: 4px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chatlog-shortcut-reset:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-shortcut-reset {
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .chatlog-shortcut-reset:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.7);
   }
 }
 
