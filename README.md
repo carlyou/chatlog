@@ -2,7 +2,17 @@
 
 A Chrome extension that adds a structured sidebar to [Claude.ai](https://claude.ai) and [ChatGPT](https://chatgpt.com), giving you an outline view of your conversation.
 
-![ChatLog](Chatlog.png)
+![ChatLog](assets/screenshot_detailed.png)
+
+## Demo
+
+**Claude.ai:**
+
+[![Claude Demo](https://img.youtube.com/vi/TMmrb_Jg38A/maxresdefault.jpg)](https://youtu.be/TMmrb_Jg38A)
+
+**ChatGPT:**
+
+[![ChatGPT Demo](https://img.youtube.com/vi/nDsYVB7eM8E/maxresdefault.jpg)](https://youtu.be/nDsYVB7eM8E)
 
 ## Features
 
