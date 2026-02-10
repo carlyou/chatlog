@@ -18,6 +18,7 @@ export function bindingLabel(binding: ShortcutBinding): string {
   if (binding.alt) parts.push('Alt');
   if (binding.shift) parts.push('Shift');
   if (binding.meta) parts.push('Cmd');
-  parts.push(binding.key);
+  const keyLabel = binding.key === ' ' ? 'Space' : binding.key;
+  parts.push(keyLabel);
   return parts.join(' + ');
 }

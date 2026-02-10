@@ -9,7 +9,7 @@
   backdrop-filter: blur(5px);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
   z-index: 999999;
   display: flex;
   flex-direction: column;
@@ -33,21 +33,32 @@
   transform: translateX(100%);
 }
 
-.chatlog-sidebar.pinned {
+.chatlog-sidebar.pinned,
+.chatlog-sidebar.chatlog-dragging {
   transform: translateX(0) !important;
 }
 
 /* Hover zones */
 .chatlog-hover-zone {
   position: fixed;
-  top: 0;
-  width: 20px;
-  height: 100vh;
+  top: 10vh;
+  width: 48px;
+  height: 80vh;
   z-index: 999998;
 }
 
 .chatlog-hover-right {
   right: 0;
+}
+
+/* Invisible buffer extending sidebar's hoverable area to the left */
+.chatlog-sidebar-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40px;
+  width: 40px;
+  height: 100%;
 }
 
 /* Show sidebar on hover or peek */
@@ -62,9 +73,32 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 999998;
+  z-index: 1000000;
   display: flex;
   gap: 8px;
+  transition: opacity 0.2s;
+}
+
+/* When sidebar is visible, hide toggles but keep them hoverable */
+.chatlog-sidebar.pinned ~ .chatlog-toggles,
+.chatlog-sidebar.peeking ~ .chatlog-toggles {
+  opacity: 0;
+}
+
+.chatlog-toggles::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  pointer-events: auto;
+}
+
+.chatlog-toggles > * {
+  position: relative;
+}
+
+.chatlog-sidebar.pinned ~ .chatlog-toggles:hover,
+.chatlog-sidebar.peeking ~ .chatlog-toggles:hover {
+  opacity: 1;
 }
 
 .chatlog-toggle {
@@ -175,10 +209,11 @@
 .chatlog-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
 }
 
 .chatlog-outline-count {
+  padding-left: 4px;
   font-size: 12px;
   color: rgba(0, 0, 0, 0.5);
 }
@@ -222,6 +257,7 @@
   padding: 0;
   text-align: left;
   transition: all 0.15s ease;
+  position: relative;
   /*border-radius: 4px;*/
 }
 
@@ -254,6 +290,11 @@
   display: flex;
   justify-content: flex-end;
 }
+
+.chatlog-message > strong {
+  font-weight: 600;
+}
+
 
 /* Bubbles */
 .chatlog-bubble {
@@ -364,7 +405,7 @@
 .chatlog-structured-heading {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   padding-left: 8px;
   border-left: 2px solid rgba(0, 0, 0, 0.25);
@@ -377,6 +418,18 @@
     border-left-color: rgba(255, 255, 255, 0.25);
   }
 }
+
+/* Outline mode: one-line preview under headings */
+.chatlog-outline-preview {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+pre.chatlog-outline-preview {
+  display: block;
+  padding: 2px 6px;
+}
+
 
 /* Clickable heading sections in detailed view */
 .chatlog-heading-section {
@@ -401,6 +454,66 @@
   .chatlog-heading-section:hover .chatlog-structured-heading {
     border-left-color: rgb(96, 165, 250);
   }
+}
+
+/* Collapsible heading with chevron at end */
+.chatlog-heading-collapsible {
+  display: flex;
+  align-items: baseline;
+}
+
+.chatlog-heading-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatlog-chevron {
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.35);
+  margin-left: 4px;
+}
+
+.chatlog-heading-section:hover .chatlog-chevron {
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-chevron {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* Collapse animation using grid */
+.chatlog-collapse-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.2s ease;
+}
+
+.chatlog-collapse-body.collapsed {
+  grid-template-rows: 0fr;
+}
+
+.chatlog-collapse-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Message-level collapse chevron (absolutely positioned in bubble) */
+.chatlog-bubble-assistant > .chatlog-chevron {
+  position: absolute;
+  top: 6px;
+  right: 4px;
+  opacity: 0;
+}
+
+.chatlog-message:hover .chatlog-bubble-assistant > .chatlog-chevron {
+  opacity: 1;
 }
 
 /* Active section highlight (scroll sync) */
@@ -821,6 +934,247 @@
   .chatlog-shortcut-reset:hover {
     background: rgba(255, 255, 255, 0.04);
     color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* Search bar */
+.chatlog-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-search-bar {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.chatlog-search-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: inherit;
+  outline: none;
+  font-family: inherit;
+}
+
+.chatlog-search-input:focus {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-search-input {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .chatlog-search-input:focus {
+    border-color: rgba(96, 165, 250, 0.4);
+    background: rgba(96, 165, 250, 0.06);
+  }
+}
+
+.chatlog-search-count {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-search-count {
+    color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+.chatlog-search-close {
+  background: transparent;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.chatlog-search-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-search-close {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .chatlog-search-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* Search dimming and highlight */
+.chatlog-search-dimmed {
+  opacity: 0.3;
+  transition: opacity 0.15s;
+}
+
+.chatlog-search-highlight {
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-search-highlight {
+    background: rgba(96, 165, 250, 0.1);
+  }
+}
+
+/* Search text highlight */
+.chatlog-search-mark {
+  background: rgba(250, 204, 21, 0.4);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-search-mark {
+    background: rgba(250, 204, 21, 0.3);
+  }
+}
+
+/* Bookmark button */
+.chatlog-bookmark-btn {
+  position: absolute;
+  top: 2px;
+  left: -14px;
+  width: 14px;
+  height: 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.2);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.chatlog-message:hover .chatlog-bookmark-btn {
+  opacity: 1;
+}
+
+.chatlog-bookmark-btn.bookmarked {
+  opacity: 1;
+  color: rgb(234, 179, 8);
+}
+
+.chatlog-bookmark-btn:hover {
+  color: rgb(234, 179, 8);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-bookmark-btn {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  .chatlog-bookmark-btn.bookmarked {
+    color: rgb(250, 204, 21);
+  }
+
+  .chatlog-bookmark-btn:hover {
+    color: rgb(250, 204, 21);
+  }
+}
+
+/* Header filter button (bookmark star in header) */
+.chatlog-header-btn {
+  background: transparent;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 0;
+  transition: all 0.15s;
+}
+
+.chatlog-header-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.chatlog-header-btn.active {
+  color: rgb(234, 179, 8);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.chatlog-header-btn.chatlog-search-active {
+  color: rgb(59, 130, 246);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-header-btn {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .chatlog-header-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .chatlog-header-btn.active {
+    color: rgb(250, 204, 21);
+    background: rgba(250, 204, 21, 0.12);
+  }
+
+  .chatlog-header-btn.chatlog-search-active {
+    color: rgb(96, 165, 250);
+    background: rgba(96, 165, 250, 0.12);
+  }
+}
+
+/* Drag handle */
+.chatlog-drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1;
+  transition: background 0.15s;
+}
+
+.chatlog-drag-handle:hover {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-drag-handle:hover {
+    background: rgba(96, 165, 250, 0.3);
   }
 }
 

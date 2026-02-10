@@ -7,6 +7,7 @@ interface DisplayModeSelectorProps {
 
 const modes: { value: DisplayMode; label: string; title: string }[] = [
   { value: 'compact', label: 'C', title: 'Compact' },
+  { value: 'outline', label: 'O', title: 'Outline' },
   { value: 'detailed', label: 'D', title: 'Detailed' },
 ];
 

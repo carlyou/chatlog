@@ -15,6 +15,8 @@ interface UseShiftKeyParams {
   lockActive: (target: ActiveTarget) => void;
   shortcutConfig: ShortcutConfig;
   onPeek?: () => void;
+  onTogglePin?: () => void;
+  onToggleSearch?: () => void;
 }
 
 interface NavEntry {
@@ -38,7 +40,7 @@ function findScrollableAncestor(el: Element): HTMLElement | null {
   return null;
 }
 
-export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive, shortcutConfig, onPeek }: UseShiftKeyParams): { pushToHistory: () => void } {
+export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive, shortcutConfig, onPeek, onTogglePin, onToggleSearch }: UseShiftKeyParams): { pushToHistory: () => void } {
   // --- History state (all refs to avoid re-render churn) ---
   const historyRef = useRef<number[]>([]);
   const historyIndexRef = useRef(-1);
@@ -53,7 +55,7 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
       if (msg.element) {
         entries.push({ messageId: msg.id, sectionIndex: null, element: msg.element });
       }
-      if (mode === 'detailed' && msg.structured) {
+      if ((mode === 'detailed' || mode === 'outline') && msg.structured) {
         let headingIdx = 0;
         for (const block of msg.structured.blocks) {
           if (block.type === 'heading' && block.element) {
@@ -158,7 +160,22 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
     if (matchesBinding(e, config.toggleMode)) {
       e.preventDefault();
       onPeek?.();
-      setMode(mode === 'compact' ? 'detailed' : 'compact');
+      const modeOrder: DisplayMode[] = ['compact', 'outline', 'detailed'];
+      const nextIdx = (modeOrder.indexOf(mode) + 1) % modeOrder.length;
+      setMode(modeOrder[nextIdx]);
+      return;
+    }
+
+    if (matchesBinding(e, config.toggleSidebar)) {
+      e.preventDefault();
+      onTogglePin?.();
+      return;
+    }
+
+    if (matchesBinding(e, config.toggleSearch)) {
+      e.preventDefault();
+      onPeek?.();
+      onToggleSearch?.();
       return;
     }
 
@@ -259,7 +276,7 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
       scrollElToRefLine(prev.element as HTMLElement);
       return;
     }
-  }, [mode, setMode, navEntries, activeTarget, lockActive, getScrollContainer, shortcutConfig, onPeek]);
+  }, [mode, setMode, navEntries, activeTarget, lockActive, getScrollContainer, shortcutConfig, onPeek, onTogglePin, onToggleSearch]);
 
   useEffect(() => {
     window.addEventListener('keydown', onKeyDown);

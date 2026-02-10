@@ -9,7 +9,7 @@ export function useDisplayMode() {
   useEffect(() => {
     chrome.storage.local.get(STORAGE_KEY, (result) => {
       const stored = result[STORAGE_KEY];
-      if (stored === 'compact' || stored === 'detailed') {
+      if (stored === 'compact' || stored === 'outline' || stored === 'detailed') {
         setModeState(stored);
       }
     });

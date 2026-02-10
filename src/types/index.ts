@@ -1,4 +1,4 @@
-export type DisplayMode = 'compact' | 'detailed';
+export type DisplayMode = 'compact' | 'outline' | 'detailed';
 
 export interface RichSegment {
   text: string;
@@ -49,6 +49,8 @@ export interface ShortcutBinding {
 
 export interface ShortcutConfig {
   toggleMode: ShortcutBinding;
+  toggleSidebar: ShortcutBinding;
+  toggleSearch: ShortcutBinding;
   historyBack: ShortcutBinding;
   historyForward: ShortcutBinding;
   sectionPrev: ShortcutBinding;

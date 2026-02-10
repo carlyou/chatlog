@@ -39,9 +39,15 @@ interface MessageListProps {
   activeSectionIndex: number | null;
   onLockActive: (target: ActiveTarget) => void;
   onJumpNavigate?: () => void;
+  searchQuery?: string;
+  searchMatchIds?: string[];
+  currentSearchMatchId?: string | null;
+  bookmarkFilter?: boolean;
+  isBookmarked?: (messageId: string) => boolean;
+  onToggleBookmark?: (messageId: string) => void;
 }
 
-export function MessageList({ messages, displayMode, activeMessageId, activeSectionIndex, onLockActive, onJumpNavigate }: MessageListProps) {
+export function MessageList({ messages, displayMode, activeMessageId, activeSectionIndex, onLockActive, onJumpNavigate, searchQuery, searchMatchIds, currentSearchMatchId, bookmarkFilter, isBookmarked, onToggleBookmark }: MessageListProps) {
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const setItemRef = useCallback((id: string, el: HTMLElement | null) => {
@@ -53,7 +59,7 @@ export function MessageList({ messages, displayMode, activeMessageId, activeSect
   }, []);
 
   // Auto-scroll at message level; in compact mode ignore section-level tracking
-  const useSections = displayMode === 'detailed';
+  const useSections = displayMode === 'detailed' || displayMode === 'outline';
   useEffect(() => {
     if (!activeMessageId || (useSections && activeSectionIndex !== null)) return;
     const el = itemRefs.current.get(activeMessageId);
@@ -65,6 +71,18 @@ export function MessageList({ messages, displayMode, activeMessageId, activeSect
     }
   }, [activeMessageId, activeSectionIndex, useSections]);
 
+  // Auto-scroll to current search match
+  useEffect(() => {
+    if (!currentSearchMatchId) return;
+    const el = itemRefs.current.get(currentSearchMatchId);
+    if (el) {
+      const container = el.closest('.chatlog-outline-messages') as HTMLElement | null;
+      if (container) {
+        scrollToTopCenter(el, container);
+      }
+    }
+  }, [currentSearchMatchId]);
+
   if (messages.length === 0) {
     return (
       <div className="chatlog-outline-messages">
@@ -73,20 +91,37 @@ export function MessageList({ messages, displayMode, activeMessageId, activeSect
     );
   }
 
+  const hasSearch = searchQuery && searchQuery.trim().length > 0;
+  const matchSet = searchMatchIds ? new Set(searchMatchIds) : null;
+
   return (
     <div className="chatlog-outline-messages">
-      {messages.map((msg) => (
-        <div key={msg.id} ref={(el) => setItemRef(msg.id, el)}>
-          <MessageBubble
-            message={msg}
-            displayMode={displayMode}
-            isActive={msg.id === activeMessageId}
-            activeSectionIndex={msg.id === activeMessageId ? activeSectionIndex : null}
-            onLockActive={onLockActive}
-            onJumpNavigate={onJumpNavigate}
-          />
-        </div>
-      ))}
+      {messages.map((msg) => {
+        // Bookmark filter
+        if (bookmarkFilter && isBookmarked && !isBookmarked(msg.id)) return null;
+        // Search dimming
+        const isDimmed = hasSearch && matchSet && !matchSet.has(msg.id);
+        const isSearchHighlight = currentSearchMatchId === msg.id;
+        return (
+          <div
+            key={msg.id}
+            ref={(el) => setItemRef(msg.id, el)}
+            className={`${isDimmed ? 'chatlog-search-dimmed' : ''}${isSearchHighlight ? ' chatlog-search-highlight' : ''}`}
+          >
+            <MessageBubble
+              message={msg}
+              displayMode={displayMode}
+              isActive={msg.id === activeMessageId}
+              activeSectionIndex={msg.id === activeMessageId ? activeSectionIndex : null}
+              onLockActive={onLockActive}
+              onJumpNavigate={onJumpNavigate}
+              searchQuery={hasSearch ? searchQuery : undefined}
+              bookmarked={isBookmarked?.(msg.id)}
+              onToggleBookmark={onToggleBookmark ? () => onToggleBookmark(msg.id) : undefined}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

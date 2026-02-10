@@ -1,10 +1,32 @@
-import { useEffect, useRef } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Message, DisplayMode, StructuredContent, ContentBlock, RichText, RichSegment, BranchInfo } from '../../types';
 import type { ActiveTarget } from '../hooks/useActiveMessage';
 import { SCROLL_REF_RATIO } from '../lib/constants';
+import { BookmarkButton } from './BookmarkButton';
 
 
 import { scrollToTopCenter } from './MessageList';
+
+const SearchQueryContext = createContext<string | undefined>(undefined);
+
+function HighlightText({ text }: { text: string }) {
+  const query = useContext(SearchQueryContext);
+  if (!query || !query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="chatlog-search-mark">{part}</mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
 
 export function scrollElToRefLine(el: HTMLElement) {
   const target = window.innerHeight * SCROLL_REF_RATIO;
@@ -33,10 +55,13 @@ interface MessageBubbleProps {
   activeSectionIndex?: number | null;
   onLockActive?: (target: ActiveTarget) => void;
   onJumpNavigate?: () => void;
+  searchQuery?: string;
+  bookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
 function Segment({ seg }: { seg: RichSegment }) {
-  let el: React.ReactNode = seg.text;
+  let el: React.ReactNode = <HighlightText text={seg.text} />;
   if (seg.code) el = <code className="chatlog-inline-code">{el}</code>;
   if (seg.bold) el = <strong>{el}</strong>;
   if (seg.italic) el = <em>{el}</em>;
@@ -74,10 +99,28 @@ function BranchNav({ branchInfo }: { branchInfo: BranchInfo }) {
   );
 }
 
+function CollapseChevron({ collapsed, onClick }: { collapsed: boolean; onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <svg
+      className="chatlog-chevron"
+      onClick={onClick}
+      viewBox="0 0 16 16"
+      width="12"
+      height="12"
+    >
+      {collapsed ? (
+        <path d="M3 10L8 5L13 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      ) : (
+        <path d="M3 6L8 11L13 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      )}
+    </svg>
+  );
+}
+
 function BlockView({ block }: { block: ContentBlock }) {
   switch (block.type) {
     case 'heading':
-      return <div className="chatlog-structured-heading">{block.text}</div>;
+      return <div className="chatlog-structured-heading"><HighlightText text={block.text} /></div>;
     case 'paragraph':
       return (
         <p className="chatlog-structured-p">
@@ -95,7 +138,7 @@ function BlockView({ block }: { block: ContentBlock }) {
         </ul>
       );
     case 'code':
-      return <pre className="chatlog-structured-code"><code>{block.text}</code></pre>;
+      return <pre className="chatlog-structured-code"><code><HighlightText text={block.text} /></code></pre>;
     case 'divider':
       return <hr className="chatlog-structured-hr" />;
     case 'image':
@@ -132,8 +175,26 @@ function groupIntoSections(blocks: ContentBlock[]): Section[] {
   return sections;
 }
 
-function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionClick }: { structured: StructuredContent; anchorMode?: boolean; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void }) {
+function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionClick, allCollapsed }: { structured: StructuredContent; anchorMode?: boolean; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean }) {
   const activeSectionRef = useRef<HTMLDivElement | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const prevAllCollapsedRef = useRef(allCollapsed);
+
+  useEffect(() => {
+    if (prevAllCollapsedRef.current && !allCollapsed) {
+      setCollapsed(new Set());
+    }
+    prevAllCollapsedRef.current = allCollapsed;
+  }, [allCollapsed]);
+
+  const toggleCollapse = (idx: number) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (activeSectionIndex != null && activeSectionRef.current) {
@@ -163,6 +224,105 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
         if (section.headingElement) {
           const currentIdx = headingIdx++;
           const isSectionActive = activeSectionIndex === currentIdx;
+          const isCollapsed = allCollapsed || collapsed.has(currentIdx);
+          const handleClick = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (e.shiftKey) {
+              toggleCollapse(currentIdx);
+              return;
+            }
+            onSectionClick?.(currentIdx);
+            scrollElToRefLine(section.headingElement as HTMLElement);
+          };
+          const handleChevronClick = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            toggleCollapse(currentIdx);
+          };
+          const headingBlock = section.blocks[0];
+          const bodyBlocks = section.blocks.slice(1);
+          return (
+            <div
+              key={i}
+              ref={isSectionActive ? activeSectionRef : undefined}
+              className={`chatlog-heading-section${isSectionActive ? ' chatlog-section-active' : ''}`}
+              onClick={handleClick}
+            >
+              <div className="chatlog-structured-heading chatlog-heading-collapsible">
+                <span className="chatlog-heading-text">{headingBlock.type === 'heading' ? <HighlightText text={headingBlock.text} /> : ''}</span>
+                {!allCollapsed && <CollapseChevron collapsed={isCollapsed} onClick={handleChevronClick} />}
+              </div>
+              {bodyBlocks.length > 0 && (
+                <div className={`chatlog-collapse-body${isCollapsed ? ' collapsed' : ''}`}>
+                  <div className="chatlog-collapse-inner">
+                    {bodyBlocks.map((block, j) => (
+                      <BlockView key={j} block={block} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+        // Pre-heading blocks: clamp to 2 lines when allCollapsed
+        return (
+          <div key={`pre-${i}`} className={allCollapsed ? 'chatlog-compact-preview' : undefined}>
+            {section.blocks.map((block, j) => (
+              <BlockView key={j} block={block} />
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function getFirstPreview(blocks: ContentBlock[]): ContentBlock | undefined {
+  return blocks.find((b) => b.type === 'paragraph' || b.type === 'list' || b.type === 'code');
+}
+
+function PreviewLine({ block }: { block: ContentBlock }) {
+  if (block.type === 'paragraph') {
+    return (
+      <p className="chatlog-structured-p chatlog-outline-preview">
+        <RichTextView segments={block.segments} />
+      </p>
+    );
+  }
+  if (block.type === 'list' && block.items.length > 0) {
+    return (
+      <p className="chatlog-structured-p chatlog-outline-preview">
+        <RichTextView segments={block.items[0]} />
+      </p>
+    );
+  }
+  if (block.type === 'code') {
+    const firstLine = block.text.split('\n', 1)[0];
+    return <pre className="chatlog-structured-code chatlog-outline-preview"><code><HighlightText text={firstLine} /></code></pre>;
+  }
+  return null;
+}
+
+function AssistantOutline({ message, activeSectionIndex, onSectionClick }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void }) {
+  const { structured, text } = message;
+
+  if (!structured || structured.blocks.length === 0) {
+    return <p className="chatlog-structured-p chatlog-outline-preview"><HighlightText text={text} /></p>;
+  }
+
+  const sections = groupIntoSections(structured.blocks);
+
+  if (sections.length === 0) {
+    return <p className="chatlog-structured-p chatlog-outline-preview"><HighlightText text={text} /></p>;
+  }
+
+  let headingIdx = 0;
+  return (
+    <div className="chatlog-structured">
+      {sections.map((section, i) => {
+        const preview = getFirstPreview(section.blocks.filter((b) => b.type !== 'heading'));
+        if (section.headingElement) {
+          const currentIdx = headingIdx++;
+          const isSectionActive = activeSectionIndex === currentIdx;
           const handleClick = (e: React.MouseEvent) => {
             e.stopPropagation();
             onSectionClick?.(currentIdx);
@@ -171,19 +331,19 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
           return (
             <div
               key={i}
-              ref={isSectionActive ? activeSectionRef : undefined}
               className={`chatlog-heading-section${isSectionActive ? ' chatlog-section-active' : ''}`}
               onClick={handleClick}
             >
-              {section.blocks.map((block, j) => (
-                <BlockView key={j} block={block} />
-              ))}
+              <div className="chatlog-structured-heading">{section.blocks[0].type === 'heading' ? <HighlightText text={section.blocks[0].text} /> : ''}</div>
+              {preview && <PreviewLine block={preview} />}
             </div>
           );
         }
-        return section.blocks.map((block, j) => (
-          <BlockView key={`pre-${j}`} block={block} />
-        ));
+        // Pre-heading content: show a preview only
+        if (preview) {
+          return <PreviewLine key={`pre-${i}`} block={preview} />;
+        }
+        return null;
       })}
     </div>
   );
@@ -193,7 +353,7 @@ function AssistantCompact({ message }: { message: Message }) {
   const { structured, text } = message;
 
   if (!structured || structured.blocks.length === 0) {
-    return <p className="chatlog-structured-p chatlog-compact-preview">{text}</p>;
+    return <p className="chatlog-structured-p chatlog-compact-preview"><HighlightText text={text} /></p>;
   }
 
   // Take the first two displayable blocks in document order
@@ -207,7 +367,7 @@ function AssistantCompact({ message }: { message: Message }) {
   return (
     <>
       {first?.type === 'heading' && (
-        <div className="chatlog-structured-heading">{first.text}</div>
+        <div className="chatlog-structured-heading"><HighlightText text={first.text} /></div>
       )}
       <p className="chatlog-structured-p chatlog-compact-preview">
         {first?.type === 'paragraph' ? (
@@ -215,22 +375,29 @@ function AssistantCompact({ message }: { message: Message }) {
         ) : second?.type === 'paragraph' ? (
           <RichTextView segments={second.segments} />
         ) : (
-          text
+          <HighlightText text={text} />
         )}
       </p>
     </>
   );
 }
 
-function AssistantDetailed({ message, activeSectionIndex, onSectionClick }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void }) {
+function AssistantDetailed({ message, activeSectionIndex, onSectionClick, allCollapsed }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean }) {
   if (message.structured && message.structured.blocks.length > 0) {
-    return <StructuredView structured={message.structured} anchorMode activeSectionIndex={activeSectionIndex} onSectionClick={onSectionClick} />;
+    return <StructuredView structured={message.structured} anchorMode activeSectionIndex={activeSectionIndex} onSectionClick={onSectionClick} allCollapsed={allCollapsed} />;
   }
-  return <>{message.text}</>;
+  return <HighlightText text={message.text} />;
 }
 
-export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive, onJumpNavigate }: MessageBubbleProps) {
-  const handleClick = () => {
+export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive, onJumpNavigate, searchQuery, bookmarked, onToggleBookmark }: MessageBubbleProps) {
+  const [messageCollapsed, setMessageCollapsed] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (e.shiftKey && displayMode !== 'compact' && message.type === 'assistant') {
+      e.stopPropagation();
+      setMessageCollapsed((prev) => !prev);
+      return;
+    }
     onJumpNavigate?.();
     onLockActive?.({ messageId: message.id, sectionIndex: null });
     if (message.element) {
@@ -243,16 +410,24 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
     onLockActive?.({ messageId: message.id, sectionIndex });
   };
 
+  const handleMessageCollapseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMessageCollapsed((prev) => !prev);
+  };
+
   // In compact mode there are no rendered sections, so always highlight the whole message
-  const useSections = displayMode === 'detailed';
+  const useSections = displayMode === 'detailed' || displayMode === 'outline';
   const effectiveSectionIndex = useSections ? activeSectionIndex : null;
   const showMessageHighlight = isActive && effectiveSectionIndex === null;
 
+  const content = (() => {
   if (message.type === 'user') {
-    const images = message.structured?.blocks.filter((b) => b.type === 'image') || [];
-    const files = message.structured?.blocks.filter((b) => b.type === 'file') || [];
+    const showMedia = displayMode !== 'compact';
+    const images = showMedia ? (message.structured?.blocks.filter((b) => b.type === 'image') || []) : [];
+    const files = showMedia ? (message.structured?.blocks.filter((b) => b.type === 'file') || []) : [];
     return (
       <button onClick={handleClick} className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}>
+        {onToggleBookmark && <BookmarkButton bookmarked={!!bookmarked} onToggle={onToggleBookmark} />}
         {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
         {images.length > 0 && (
           <div className="chatlog-message-user-images">
@@ -274,21 +449,39 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
           </div>
         )}
         <div className="chatlog-message-user">
-          <div className="chatlog-bubble chatlog-bubble-user">{message.text}</div>
+          <div className="chatlog-bubble chatlog-bubble-user"><HighlightText text={message.text} /></div>
         </div>
       </button>
     );
   }
 
+  const hasContent = displayMode !== 'compact' && message.structured && message.structured.blocks.length > 0;
+
   return (
     <button onClick={handleClick} className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}>
+      {onToggleBookmark && <BookmarkButton bookmarked={!!bookmarked} onToggle={onToggleBookmark} />}
       {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
       <div className="chatlog-message-assistant">
         <div className="chatlog-bubble chatlog-bubble-assistant">
           {displayMode === 'compact' && <AssistantCompact message={message} />}
-          {displayMode === 'detailed' && <AssistantDetailed message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} />}
+          {displayMode === 'outline' && (
+            <AssistantOutline message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} />
+          )}
+          {displayMode === 'detailed' && (
+            <>
+              {hasContent && <CollapseChevron collapsed={messageCollapsed} onClick={handleMessageCollapseClick} />}
+              <AssistantDetailed message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} allCollapsed={messageCollapsed} />
+            </>
+          )}
         </div>
       </div>
     </button>
+  );
+  })();
+
+  return (
+    <SearchQueryContext.Provider value={searchQuery}>
+      {content}
+    </SearchQueryContext.Provider>
   );
 }

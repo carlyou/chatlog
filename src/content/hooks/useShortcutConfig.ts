@@ -5,6 +5,8 @@ const STORAGE_KEY = 'chatlog-shortcuts';
 
 export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   toggleMode: { enabled: true, key: 'Tab', shift: true },
+  toggleSidebar: { enabled: true, key: 'Escape', shift: true },
+  toggleSearch: { enabled: true, key: ' ', shift: true },
   historyBack: { enabled: true, key: 'ArrowLeft', shift: true },
   historyForward: { enabled: true, key: 'ArrowRight', shift: true },
   sectionPrev: { enabled: true, key: 'ArrowUp', shift: true },

@@ -45,8 +45,8 @@ async function init() {
     const hostStyle = document.createElement('style');
     hostStyle.id = 'chatlog-host-styles';
     hostStyle.textContent = `
-      body.chatlog-right-pinned #main-content { margin-right: 320px; }
-      body.chatlog-right-pinned main { margin-right: 320px; }
+      body.chatlog-right-pinned #main-content { margin-right: var(--chatlog-sidebar-width, 320px); }
+      body.chatlog-right-pinned main { margin-right: var(--chatlog-sidebar-width, 320px); }
       div[data-chat-input-container="true"] {
         transition: opacity 0.3s ease;
         opacity: var(--chatlog-input-opacity, 1);

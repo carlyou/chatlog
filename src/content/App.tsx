@@ -6,6 +6,9 @@ import { useDisplayMode } from './hooks/useDisplayMode';
 import { useActiveMessage } from './hooks/useActiveMessage';
 import { useShiftKey } from './hooks/useShiftKey';
 import { useShortcutConfig } from './hooks/useShortcutConfig';
+import { useSearch } from './hooks/useSearch';
+import { useBookmarks } from './hooks/useBookmarks';
+import { useSidebarWidth } from './hooks/useSidebarWidth';
 import { Sidebar } from './components/Sidebar';
 import { ToggleButton } from './components/ToggleButton';
 import { HoverZone } from './components/HoverZone';
@@ -22,6 +25,9 @@ export function App({ platform }: AppProps) {
   const { pinned, toggle } = usePinned();
   const { mode, setMode } = useDisplayMode();
   const { config: shortcutConfig, setConfig: setShortcutConfig } = useShortcutConfig();
+  const search = useSearch(messages);
+  const bookmarks = useBookmarks(platform);
+  const { width, setWidth } = useSidebarWidth();
 
   // Temporarily slide sidebar in on shortcut use while not pinned
   const [peeking, setPeeking] = useState(false);
@@ -33,7 +39,12 @@ export function App({ platform }: AppProps) {
     peekTimerRef.current = window.setTimeout(() => setPeeking(false), PEEK_DURATION);
   }, [pinned]);
 
-  const { pushToHistory } = useShiftKey({ mode, setMode, messages, activeTarget, lockActive, shortcutConfig, onPeek: peek });
+  const { pushToHistory } = useShiftKey({
+    mode, setMode, messages, activeTarget, lockActive, shortcutConfig,
+    onPeek: peek, onTogglePin: toggle, onToggleSearch: search.toggle,
+  });
+
+  const currentSearchMatchId = search.matchIds.length > 0 ? search.matchIds[search.currentMatch] : null;
 
   return (
     <>
@@ -49,6 +60,23 @@ export function App({ platform }: AppProps) {
         activeSectionIndex={activeTarget.sectionIndex}
         onLockActive={lockActive}
         onJumpNavigate={pushToHistory}
+        searchOpen={search.isOpen}
+        searchQuery={search.query}
+        onSearchQueryChange={search.setQuery}
+        searchMatchIds={search.matchIds}
+        currentSearchMatchId={currentSearchMatchId}
+        searchTotalMatches={search.totalMatches}
+        searchCurrentMatch={search.currentMatch}
+        onSearchNext={search.nextMatch}
+        onSearchPrev={search.prevMatch}
+        onSearchClose={search.close}
+        onToggleSearch={search.toggle}
+        bookmarkFilter={bookmarks.showOnly}
+        onToggleBookmarkFilter={bookmarks.toggleShowOnly}
+        isBookmarked={bookmarks.isBookmarked}
+        onToggleBookmark={bookmarks.toggle}
+        width={width}
+        onWidthChange={setWidth}
       />
       <ToggleButton
         active={pinned}

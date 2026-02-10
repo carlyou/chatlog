@@ -10,6 +10,8 @@ interface ShortcutSettingsProps {
 
 const LABELS: Record<keyof ShortcutConfig, string> = {
   toggleMode: 'Toggle mode',
+  toggleSidebar: 'Toggle sidebar',
+  toggleSearch: 'Toggle search',
   historyBack: 'History back',
   historyForward: 'History forward',
   sectionPrev: 'Previous section',
@@ -26,6 +28,7 @@ export function ShortcutSettings({ config, onChange }: ShortcutSettingsProps) {
 
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
 
     const newBinding: ShortcutBinding = {
       enabled: config[listeningKey].enabled,
@@ -42,6 +45,10 @@ export function ShortcutSettings({ config, onChange }: ShortcutSettingsProps) {
 
   useEffect(() => {
     if (!listeningKey) return;
+    // Blur host page input so keystrokes don't leak there
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     window.addEventListener('keydown', handleCapture, { capture: true });
     return () => window.removeEventListener('keydown', handleCapture, { capture: true });
   }, [listeningKey, handleCapture]);
