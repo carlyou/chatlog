@@ -444,7 +444,6 @@ function parseClaudeMessageRoot(root: Element): Message | null {
 
   const id = getStableRootId(root);
   const isUserMessage = root.className.includes('bg-bg-300');
-  const hasStreaming = root.hasAttribute('data-is-streaming');
 
   if (isUserMessage) {
     const grandparent = root.parentElement?.parentElement;
@@ -462,31 +461,40 @@ function parseClaudeMessageRoot(root: Element): Message | null {
     };
   }
 
-  if (!hasStreaming) return null;
-
   const responseContainers = root.querySelectorAll('[class*="row-start-2"]');
-  if (responseContainers.length === 0) return null;
-
-  const textParts: string[] = [];
-  const allBlocks: ContentBlock[] = [];
-  for (const rc of responseContainers) {
-    const t = rc.textContent?.trim();
-    if (t) textParts.push(t);
-    const { blocks } = extractStructuredContent(rc);
-    allBlocks.push(...blocks);
-  }
-
-  const responseText = textParts.join('\n');
-  if (!responseText) return null;
-
   const branchScope = root.closest('[data-test-render-count]') || root;
   const branchInfo = extractBranchInfo(branchScope);
+
+  if (responseContainers.length > 0) {
+    const textParts: string[] = [];
+    const allBlocks: ContentBlock[] = [];
+    for (const rc of responseContainers) {
+      const t = rc.textContent?.trim();
+      if (t) textParts.push(t);
+      const { blocks } = extractStructuredContent(rc);
+      allBlocks.push(...blocks);
+    }
+
+    const responseText = textParts.join('\n');
+    if (responseText) {
+      return {
+        id,
+        type: 'assistant',
+        text: responseText,
+        element: responseContainers[0],
+        structured: { blocks: allBlocks },
+        ...(branchInfo && { branchInfo }),
+      };
+    }
+  }
+
+  const structured = extractStructuredContent(root);
   return {
     id,
     type: 'assistant',
-    text: responseText,
-    element: responseContainers[0],
-    structured: { blocks: allBlocks },
+    text,
+    element: root,
+    ...(structured.blocks.length > 0 && { structured }),
     ...(branchInfo && { branchInfo }),
   };
 }

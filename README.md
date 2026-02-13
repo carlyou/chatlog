@@ -72,17 +72,4 @@ npm run dev
 Open shortcut settings (gear button) and enable **Performance overlay**.
 
 When enabled, ChatLog shows live perf stats near the bottom-right toggles and logs periodic summaries (`[chatlog:perf] ...`) in the page console.
-
-You can also enable it manually in console:
-
-```js
-localStorage.setItem('chatlog:perf', '1')
-```
-
-Then reload the page. ChatLog will print periodic summaries with mutation, refresh, and parse timing stats.
-
-To disable:
-
-```js
-localStorage.removeItem('chatlog:perf')
-```
+The toggle state is persisted in `chrome.storage.local`.

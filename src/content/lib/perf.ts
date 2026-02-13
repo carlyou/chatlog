@@ -22,7 +22,6 @@ export interface PerfSnapshot {
   timings: Record<TimingKey, number[]>;
 }
 
-const PERF_FLAG = 'chatlog:perf';
 const REPORT_INTERVAL_MS = 10000;
 const MAX_TIMING_SAMPLES = 200;
 
@@ -51,25 +50,9 @@ const timings: Record<TimingKey, number[]> = {
 };
 
 let reportTimer = 0;
-let enabledCacheInitialized = false;
 let enabledCache = false;
 
-function readEnabledFromStorage(): boolean {
-  try {
-    return window.localStorage.getItem(PERF_FLAG) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function ensureEnabledCache(): void {
-  if (enabledCacheInitialized) return;
-  enabledCacheInitialized = true;
-  enabledCache = readEnabledFromStorage();
-}
-
 function isEnabled(): boolean {
-  ensureEnabledCache();
   return enabledCache;
 }
 
@@ -78,14 +61,8 @@ export function perfIsEnabled(): boolean {
 }
 
 export function perfSetEnabled(enabled: boolean): void {
-  enabledCacheInitialized = true;
   enabledCache = enabled;
-  try {
-    if (enabled) window.localStorage.setItem(PERF_FLAG, '1');
-    else window.localStorage.removeItem(PERF_FLAG);
-  } catch {
-    // ignore storage errors
-  }
+  exposeDebugHandle();
   perfRefreshReportingState();
 }
 
@@ -177,21 +154,18 @@ export function perfInc(key: CounterKey, by = 1): void {
   if (!isEnabled()) return;
   counters[key] += by;
   maybeReport();
-  exposeDebugHandle();
 }
 
 export function perfSetMax(key: Extract<CounterKey, 'mutationRecordsMaxBurst'>, value: number): void {
   if (!isEnabled()) return;
   counters[key] = Math.max(counters[key], value);
   maybeReport();
-  exposeDebugHandle();
 }
 
 export function perfSet(key: Extract<CounterKey, 'messagesParsedLast'>, value: number): void {
   if (!isEnabled()) return;
   counters[key] = value;
   maybeReport();
-  exposeDebugHandle();
 }
 
 export function perfTiming(key: TimingKey, ms: number): void {
@@ -211,7 +185,6 @@ export function perfTiming(key: TimingKey, ms: number): void {
   }
 
   maybeReport();
-  exposeDebugHandle();
 }
 
 export function perfRun<T>(timing: TimingKey, fn: () => T): T {
@@ -228,3 +201,5 @@ export function perfRefreshReportingState(): void {
   if (isEnabled()) maybeReport();
   else stopReport();
 }
+
+exposeDebugHandle();
