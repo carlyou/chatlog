@@ -69,13 +69,17 @@ npm run dev
 
 ## Performance profiling (dev)
 
-You can enable lightweight parser/observer profiling logs in the page console:
+Open shortcut settings (gear button) and enable **Performance overlay**.
+
+When enabled, ChatLog shows live perf stats near the bottom-right toggles and logs periodic summaries (`[chatlog:perf] ...`) in the page console.
+
+You can also enable it manually in console:
 
 ```js
 localStorage.setItem('chatlog:perf', '1')
 ```
 
-Then reload the page. ChatLog will print periodic summaries (`[chatlog:perf] ...`) with mutation, refresh, and parse timing stats.
+Then reload the page. ChatLog will print periodic summaries with mutation, refresh, and parse timing stats.
 
 To disable:
 

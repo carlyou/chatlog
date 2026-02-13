@@ -17,6 +17,11 @@ type CounterKey =
 
 type TimingKey = 'parseMessagesMs' | 'refreshMs' | 'reconcileMs';
 
+export interface PerfSnapshot {
+  counters: Record<CounterKey, number>;
+  timings: Record<TimingKey, number[]>;
+}
+
 const PERF_FLAG = 'chatlog:perf';
 const REPORT_INTERVAL_MS = 10000;
 const MAX_TIMING_SAMPLES = 200;
@@ -53,6 +58,20 @@ function isEnabled(): boolean {
   } catch {
     return false;
   }
+}
+
+export function perfIsEnabled(): boolean {
+  return isEnabled();
+}
+
+export function perfSetEnabled(enabled: boolean): void {
+  try {
+    if (enabled) window.localStorage.setItem(PERF_FLAG, '1');
+    else window.localStorage.removeItem(PERF_FLAG);
+  } catch {
+    // ignore storage errors
+  }
+  perfRefreshReportingState();
 }
 
 function mean(values: number[]): number {
@@ -103,6 +122,26 @@ function stopReport() {
   reportTimer = 0;
 }
 
+export function perfGetSnapshot(): PerfSnapshot {
+  return {
+    counters: { ...counters },
+    timings: {
+      parseMessagesMs: [...timings.parseMessagesMs],
+      refreshMs: [...timings.refreshMs],
+      reconcileMs: [...timings.reconcileMs],
+    },
+  };
+}
+
+export function perfReset(): void {
+  (Object.keys(counters) as CounterKey[]).forEach((key) => {
+    counters[key] = 0;
+  });
+  (Object.keys(timings) as TimingKey[]).forEach((key) => {
+    timings[key] = [];
+  });
+}
+
 function exposeDebugHandle() {
   if (typeof window === 'undefined') return;
   const target = window as Window & {
@@ -114,22 +153,8 @@ function exposeDebugHandle() {
 
   if (target.__chatlogPerf) return;
   target.__chatlogPerf = {
-    getSnapshot: () => ({
-      counters: { ...counters },
-      timings: {
-        parseMessagesMs: [...timings.parseMessagesMs],
-        refreshMs: [...timings.refreshMs],
-        reconcileMs: [...timings.reconcileMs],
-      },
-    }),
-    reset: () => {
-      (Object.keys(counters) as CounterKey[]).forEach((key) => {
-        counters[key] = 0;
-      });
-      (Object.keys(timings) as TimingKey[]).forEach((key) => {
-        timings[key] = [];
-      });
-    },
+    getSnapshot: perfGetSnapshot,
+    reset: perfReset,
   };
 }
 

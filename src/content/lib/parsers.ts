@@ -517,9 +517,11 @@ function parseChatGPTMessageRoot(root: Element): Message | null {
 }
 
 export function parseMessageRoot(platform: Platform, root: Element): Message | null {
-  if (platform === 'claude') return parseClaudeMessageRoot(root);
-  if (platform === 'chatgpt') return parseChatGPTMessageRoot(root);
-  return null;
+  return perfRun('parseMessagesMs', () => {
+    if (platform === 'claude') return parseClaudeMessageRoot(root);
+    if (platform === 'chatgpt') return parseChatGPTMessageRoot(root);
+    return null;
+  });
 }
 
 export function parseMessages(platform: Platform): Message[] {
