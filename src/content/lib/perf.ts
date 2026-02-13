@@ -51,8 +51,10 @@ const timings: Record<TimingKey, number[]> = {
 };
 
 let reportTimer = 0;
+let enabledCacheInitialized = false;
+let enabledCache = false;
 
-function isEnabled(): boolean {
+function readEnabledFromStorage(): boolean {
   try {
     return window.localStorage.getItem(PERF_FLAG) === '1';
   } catch {
@@ -60,11 +62,24 @@ function isEnabled(): boolean {
   }
 }
 
+function ensureEnabledCache(): void {
+  if (enabledCacheInitialized) return;
+  enabledCacheInitialized = true;
+  enabledCache = readEnabledFromStorage();
+}
+
+function isEnabled(): boolean {
+  ensureEnabledCache();
+  return enabledCache;
+}
+
 export function perfIsEnabled(): boolean {
   return isEnabled();
 }
 
 export function perfSetEnabled(enabled: boolean): void {
+  enabledCacheInitialized = true;
+  enabledCache = enabled;
   try {
     if (enabled) window.localStorage.setItem(PERF_FLAG, '1');
     else window.localStorage.removeItem(PERF_FLAG);

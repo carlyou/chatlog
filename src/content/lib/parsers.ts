@@ -24,8 +24,14 @@ function hashText(input: string): string {
   return (hash >>> 0).toString(16);
 }
 
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
+const TEXT_DIGEST_SAMPLE_SIZE = 96;
+
+function digestTextSample(text: string): string {
+  const len = text.length;
+  if (len === 0) return '0:0:0';
+  const head = text.slice(0, TEXT_DIGEST_SAMPLE_SIZE);
+  const tail = len > TEXT_DIGEST_SAMPLE_SIZE ? text.slice(-TEXT_DIGEST_SAMPLE_SIZE) : '';
+  return `${len}:${hashText(head)}:${hashText(tail)}`;
 }
 
 // Walk inline child nodes of an element and produce RichText segments
@@ -423,13 +429,13 @@ export function computeMessageRootSignature(platform: Platform, root: Element): 
     ? root.getAttribute('data-message-author-role') || 'unknown'
     : (root.className.includes('bg-bg-300') ? 'user' : 'assistant');
   const hasStreaming = root.hasAttribute('data-is-streaming') ? '1' : '0';
-  const textHash = hashText(normalizeText(root.textContent || ''));
+  const textDigest = digestTextSample(root.textContent || '');
   const childCount = root.childElementCount;
-  const codeCount = root.querySelectorAll('pre').length;
-  const headingCount = root.querySelectorAll('h1,h2,h3,h4,h5,h6').length;
-  const listCount = root.querySelectorAll('ul,ol').length;
-  const mediaCount = root.querySelectorAll('img,[data-testid="file-thumbnail"]').length;
-  return [role, hasStreaming, textHash, childCount, codeCount, headingCount, listCount, mediaCount].join('|');
+  const hasCode = root.querySelector('pre') ? '1' : '0';
+  const hasHeading = root.querySelector('h1,h2,h3,h4,h5,h6') ? '1' : '0';
+  const hasList = root.querySelector('ul,ol') ? '1' : '0';
+  const hasMedia = root.querySelector('img,[data-testid="file-thumbnail"]') ? '1' : '0';
+  return [role, hasStreaming, textDigest, childCount, hasCode, hasHeading, hasList, hasMedia].join('|');
 }
 
 function parseClaudeMessageRoot(root: Element): Message | null {

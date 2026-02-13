@@ -14,7 +14,8 @@ import { perfInc, perfRun, perfSetMax, perfTiming } from '../lib/perf';
 const PROCESS_DEBOUNCE_MS = 150;
 const PROCESS_BUDGET_MS = 10;
 const PROCESS_MAX_ROOTS_PER_TICK = 25;
-const FULL_RECONCILE_INTERVAL_MS = 30000;
+const FULL_RECONCILE_INTERVAL_MS = 60000;
+const IDLE_RECONCILE_TIMEOUT_MS = 2000;
 const DIRTY_ROOT_RECONCILE_THRESHOLD = 150;
 
 interface CacheEntry {
@@ -41,6 +42,8 @@ export function useMessages(platform: Platform) {
   const observerRef = useRef<MutationObserver | null>(null);
   const processTimerRef = useRef<number>(0);
   const reconcileTimerRef = useRef<number>(0);
+  const idleReconcileRef = useRef<number>(0);
+  const delayedReconcileRef = useRef<number>(0);
   const rootOrderRef = useRef<Element[]>([]);
   const dirtyRootsRef = useRef<Set<Element>>(new Set());
   const cacheRef = useRef<WeakMap<Element, CacheEntry>>(new WeakMap());
@@ -101,6 +104,33 @@ export function useMessages(platform: Platform) {
       if (reason === 'url-change') perfInc('urlChangeRefreshes');
     });
   }, [commitFromCache, parseRootIfChanged, reindexRoots, resolveContainer]);
+
+  const clearScheduledReconcile = useCallback(() => {
+    if (idleReconcileRef.current && typeof window.cancelIdleCallback === 'function') {
+      window.cancelIdleCallback(idleReconcileRef.current);
+    }
+    if (delayedReconcileRef.current) {
+      window.clearTimeout(delayedReconcileRef.current);
+    }
+    idleReconcileRef.current = 0;
+    delayedReconcileRef.current = 0;
+  }, []);
+
+  const scheduleIntervalReconcile = useCallback(() => {
+    if (idleReconcileRef.current || delayedReconcileRef.current) return;
+    const run = () => {
+      idleReconcileRef.current = 0;
+      delayedReconcileRef.current = 0;
+      fullReconcile('interval');
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleReconcileRef.current = window.requestIdleCallback(run, { timeout: IDLE_RECONCILE_TIMEOUT_MS });
+      return;
+    }
+
+    delayedReconcileRef.current = window.setTimeout(run, PROCESS_DEBOUNCE_MS);
+  }, [fullReconcile]);
 
   const processDirtyRoots = useCallback(() => {
     processTimerRef.current = 0;
@@ -240,7 +270,8 @@ export function useMessages(platform: Platform) {
     rebindObserver();
 
     reconcileTimerRef.current = window.setInterval(() => {
-      fullReconcile('interval');
+      if (document.hidden) return;
+      scheduleIntervalReconcile();
     }, FULL_RECONCILE_INTERVAL_MS);
 
     return () => {
@@ -248,15 +279,17 @@ export function useMessages(platform: Platform) {
       observerRef.current = null;
       if (processTimerRef.current) window.clearTimeout(processTimerRef.current);
       if (reconcileTimerRef.current) window.clearInterval(reconcileTimerRef.current);
+      clearScheduledReconcile();
       processTimerRef.current = 0;
       reconcileTimerRef.current = 0;
       dirtyRootsRef.current.clear();
       rootOrderRef.current = [];
       knownRootSetRef.current.clear();
     };
-  }, [fullReconcile, rebindObserver]);
+  }, [clearScheduledReconcile, fullReconcile, rebindObserver, scheduleIntervalReconcile]);
 
   useUrlChange(() => {
+    clearScheduledReconcile();
     rebindRef.current();
     fullReconcile('url-change');
   });
