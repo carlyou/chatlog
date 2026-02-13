@@ -66,3 +66,19 @@ npm run dev
 - [@crxjs/vite-plugin](https://crxjs.dev/vite-plugin) for Chrome extension bundling
 - Tailwind CSS 4
 - Chrome Manifest V3
+
+## Performance profiling (dev)
+
+You can enable lightweight parser/observer profiling logs in the page console:
+
+```js
+localStorage.setItem('chatlog:perf', '1')
+```
+
+Then reload the page. ChatLog will print periodic summaries (`[chatlog:perf] ...`) with mutation, refresh, and parse timing stats.
+
+To disable:
+
+```js
+localStorage.removeItem('chatlog:perf')
+```
