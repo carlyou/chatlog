@@ -1,5 +1,6 @@
 import type { Message, Platform, StructuredContent, ContentBlock, RichText, RichSegment, BranchInfo } from '../../types';
 import { getSelectors } from './selectors';
+import { perfInc, perfRun, perfSet } from './perf';
 
 // Walk inline child nodes of an element and produce RichText segments
 // preserving bold, italic, and inline code formatting.
@@ -474,7 +475,16 @@ export function parseMessages(platform: Platform): Message[] {
   const container = document.querySelector(selectors.messageContainer);
   if (!container) return [];
 
-  if (platform === 'claude') return parseClaudeMessages(container);
-  if (platform === 'chatgpt') return parseChatGPTMessages(container);
-  return [];
+  return perfRun('parseMessagesMs', () => {
+    perfInc('parseMessagesCalls');
+    perfInc('fullParses');
+
+    let messages: Message[] = [];
+    if (platform === 'claude') messages = parseClaudeMessages(container);
+    else if (platform === 'chatgpt') messages = parseChatGPTMessages(container);
+
+    perfSet('messagesParsedLast', messages.length);
+    perfInc('messagesParsedTotal', messages.length);
+    return messages;
+  });
 }

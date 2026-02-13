@@ -9,6 +9,7 @@ import { useShortcutConfig } from './hooks/useShortcutConfig';
 import { useSearch } from './hooks/useSearch';
 import { useBookmarks } from './hooks/useBookmarks';
 import { useSidebarWidth } from './hooks/useSidebarWidth';
+import { usePerfMode } from './hooks/usePerfMode';
 import { Sidebar } from './components/Sidebar';
 import { ToggleButton } from './components/ToggleButton';
 import { HoverZone } from './components/HoverZone';
@@ -28,6 +29,7 @@ export function App({ platform }: AppProps) {
   const search = useSearch(messages);
   const bookmarks = useBookmarks(platform);
   const { width, setWidth } = useSidebarWidth();
+  const { enabled: perfEnabled, setEnabled: setPerfEnabled } = usePerfMode();
 
   // Temporarily slide sidebar in on shortcut use while not pinned
   const [peeking, setPeeking] = useState(false);
@@ -83,6 +85,8 @@ export function App({ platform }: AppProps) {
         onToggle={toggle}
         shortcutConfig={shortcutConfig}
         onShortcutConfigChange={setShortcutConfig}
+        perfEnabled={perfEnabled}
+        onPerfEnabledChange={setPerfEnabled}
       />
     </>
   );

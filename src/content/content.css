@@ -79,6 +79,51 @@
   transition: opacity 0.2s;
 }
 
+.chatlog-perf-overlay {
+  position: fixed;
+  right: 20px;
+  bottom: 68px;
+  width: 260px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+  z-index: 1000000;
+  font-size: 11px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.chatlog-perf-title {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.chatlog-perf-row {
+  color: rgba(0, 0, 0, 0.78);
+  white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-perf-overlay {
+    background: rgba(24, 24, 24, 0.96);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  }
+
+  .chatlog-perf-title {
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  .chatlog-perf-row {
+    color: rgba(255, 255, 255, 0.82);
+  }
+}
+
 /* When sidebar is visible, hide toggles but keep them hoverable */
 .chatlog-sidebar.pinned ~ .chatlog-toggles,
 .chatlog-sidebar.peeking ~ .chatlog-toggles {
@@ -839,9 +884,19 @@ pre.chatlog-outline-preview {
   background: rgba(0, 0, 0, 0.03);
 }
 
+.chatlog-shortcut-extra-row {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 2px;
+  padding-top: 8px;
+}
+
 @media (prefers-color-scheme: dark) {
   .chatlog-shortcut-row:hover {
     background: rgba(255, 255, 255, 0.04);
+  }
+
+  .chatlog-shortcut-extra-row {
+    border-top-color: rgba(255, 255, 255, 0.1);
   }
 }
 

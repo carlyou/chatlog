@@ -6,6 +6,8 @@ import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
 interface ShortcutSettingsProps {
   config: ShortcutConfig;
   onChange: (config: ShortcutConfig) => void;
+  perfEnabled?: boolean;
+  onPerfEnabledChange?: (enabled: boolean) => void;
 }
 
 const LABELS: Record<keyof ShortcutConfig, string> = {
@@ -18,7 +20,7 @@ const LABELS: Record<keyof ShortcutConfig, string> = {
   sectionNext: 'Next section',
 };
 
-export function ShortcutSettings({ config, onChange }: ShortcutSettingsProps) {
+export function ShortcutSettings({ config, onChange, perfEnabled, onPerfEnabledChange }: ShortcutSettingsProps) {
   const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(null);
 
   const handleCapture = useCallback((e: KeyboardEvent) => {
@@ -85,6 +87,18 @@ export function ShortcutSettings({ config, onChange }: ShortcutSettingsProps) {
           </button>
         </div>
       ))}
+      {onPerfEnabledChange && (
+        <div className="chatlog-shortcut-row chatlog-shortcut-extra-row">
+          <label className="chatlog-shortcut-label">
+            <input
+              type="checkbox"
+              checked={!!perfEnabled}
+              onChange={(e) => onPerfEnabledChange(e.target.checked)}
+            />
+            Performance overlay
+          </label>
+        </div>
+      )}
       <button className="chatlog-shortcut-reset" onClick={resetDefaults}>
         Reset to defaults
       </button>

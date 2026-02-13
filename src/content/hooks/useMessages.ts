@@ -3,12 +3,16 @@ import type { Message, Platform } from '../../types';
 import { parseMessages } from '../lib/parsers';
 import { getSelectors } from '../lib/selectors';
 import { useUrlChange } from './useUrlChange';
+import { perfInc, perfSetMax, perfTiming } from '../lib/perf';
 
 export function useMessages(platform: Platform) {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const refresh = useCallback(() => {
+    const start = performance.now();
+    perfInc('refreshExecuted');
     setMessages(parseMessages(platform));
+    perfTiming('refreshMs', performance.now() - start);
   }, [platform]);
 
   // Initial parse + MutationObserver for live updates
@@ -23,8 +27,13 @@ export function useMessages(platform: Platform) {
 
     let timeout: ReturnType<typeof setTimeout>;
 
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((records) => {
+      perfInc('observerCallbacks');
+      perfInc('mutationRecordsTotal', records.length);
+      perfSetMax('mutationRecordsMaxBurst', records.length);
+      if (timeout) perfInc('refreshSkipped');
       clearTimeout(timeout);
+      perfInc('refreshScheduled');
       timeout = setTimeout(refresh, 500);
     });
 
@@ -37,7 +46,10 @@ export function useMessages(platform: Platform) {
   }, [platform, refresh]);
 
   // Re-parse on SPA navigation
-  useUrlChange(refresh);
+  useUrlChange(() => {
+    perfInc('urlChangeRefreshes');
+    refresh();
+  });
 
   return messages;
 }
