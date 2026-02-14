@@ -175,17 +175,26 @@ function groupIntoSections(blocks: ContentBlock[]): Section[] {
   return sections;
 }
 
-function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionClick, allCollapsed }: { structured: StructuredContent; anchorMode?: boolean; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean }) {
+function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionClick, allCollapsed, startCollapsed }: { structured: StructuredContent; anchorMode?: boolean; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean; startCollapsed?: boolean }) {
   const activeSectionRef = useRef<HTMLDivElement | null>(null);
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<number>>(() => {
+    if (!startCollapsed) return new Set();
+    const sections = groupIntoSections(structured.blocks);
+    const count = sections.filter(s => s.headingElement).length;
+    return new Set(Array.from({ length: count }, (_, i) => i));
+  });
   const prevAllCollapsedRef = useRef(allCollapsed);
 
   useEffect(() => {
-    if (prevAllCollapsedRef.current && !allCollapsed) {
+    if (!prevAllCollapsedRef.current && allCollapsed) {
+      const sections = groupIntoSections(structured.blocks);
+      const count = sections.filter(s => s.headingElement).length;
+      setCollapsed(new Set(Array.from({ length: count }, (_, i) => i)));
+    } else if (prevAllCollapsedRef.current && !allCollapsed) {
       setCollapsed(new Set());
     }
     prevAllCollapsedRef.current = allCollapsed;
-  }, [allCollapsed]);
+  }, [allCollapsed, structured.blocks]);
 
   const toggleCollapse = (idx: number) => {
     setCollapsed((prev) => {
@@ -224,7 +233,7 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
         if (section.headingElement) {
           const currentIdx = headingIdx++;
           const isSectionActive = activeSectionIndex === currentIdx;
-          const isCollapsed = allCollapsed || collapsed.has(currentIdx);
+          const isCollapsed = collapsed.has(currentIdx);
           const handleClick = (e: React.MouseEvent) => {
             e.stopPropagation();
             if (e.shiftKey) {
@@ -249,7 +258,7 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
             >
               <div className="chatlog-structured-heading chatlog-heading-collapsible">
                 <span className="chatlog-heading-text">{headingBlock.type === 'heading' ? <HighlightText text={headingBlock.text} /> : ''}</span>
-                {!allCollapsed && <CollapseChevron collapsed={isCollapsed} onClick={handleChevronClick} />}
+                <CollapseChevron collapsed={isCollapsed} onClick={handleChevronClick} />
               </div>
               {bodyBlocks.length > 0 && (
                 <div className={`chatlog-collapse-body${isCollapsed ? ' collapsed' : ''}`}>
@@ -276,78 +285,6 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
   );
 }
 
-function getFirstPreview(blocks: ContentBlock[]): ContentBlock | undefined {
-  return blocks.find((b) => b.type === 'paragraph' || b.type === 'list' || b.type === 'code');
-}
-
-function PreviewLine({ block }: { block: ContentBlock }) {
-  if (block.type === 'paragraph') {
-    return (
-      <p className="chatlog-structured-p chatlog-outline-preview">
-        <RichTextView segments={block.segments} />
-      </p>
-    );
-  }
-  if (block.type === 'list' && block.items.length > 0) {
-    return (
-      <p className="chatlog-structured-p chatlog-outline-preview">
-        <RichTextView segments={block.items[0]} />
-      </p>
-    );
-  }
-  if (block.type === 'code') {
-    const firstLine = block.text.split('\n', 1)[0];
-    return <pre className="chatlog-structured-code chatlog-outline-preview"><code><HighlightText text={firstLine} /></code></pre>;
-  }
-  return null;
-}
-
-function AssistantOutline({ message, activeSectionIndex, onSectionClick }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void }) {
-  const { structured, text } = message;
-
-  if (!structured || structured.blocks.length === 0) {
-    return <p className="chatlog-structured-p chatlog-outline-preview"><HighlightText text={text} /></p>;
-  }
-
-  const sections = groupIntoSections(structured.blocks);
-
-  if (sections.length === 0) {
-    return <p className="chatlog-structured-p chatlog-outline-preview"><HighlightText text={text} /></p>;
-  }
-
-  let headingIdx = 0;
-  return (
-    <div className="chatlog-structured">
-      {sections.map((section, i) => {
-        const preview = getFirstPreview(section.blocks.filter((b) => b.type !== 'heading'));
-        if (section.headingElement) {
-          const currentIdx = headingIdx++;
-          const isSectionActive = activeSectionIndex === currentIdx;
-          const handleClick = (e: React.MouseEvent) => {
-            e.stopPropagation();
-            onSectionClick?.(currentIdx);
-            scrollElToRefLine(section.headingElement as HTMLElement);
-          };
-          return (
-            <div
-              key={i}
-              className={`chatlog-heading-section${isSectionActive ? ' chatlog-section-active' : ''}`}
-              onClick={handleClick}
-            >
-              <div className="chatlog-structured-heading">{section.blocks[0].type === 'heading' ? <HighlightText text={section.blocks[0].text} /> : ''}</div>
-              {preview && <PreviewLine block={preview} />}
-            </div>
-          );
-        }
-        // Pre-heading content: show a preview only
-        if (preview) {
-          return <PreviewLine key={`pre-${i}`} block={preview} />;
-        }
-        return null;
-      })}
-    </div>
-  );
-}
 
 function AssistantCompact({ message }: { message: Message }) {
   const { structured, text } = message;
@@ -382,15 +319,15 @@ function AssistantCompact({ message }: { message: Message }) {
   );
 }
 
-function AssistantDetailed({ message, activeSectionIndex, onSectionClick, allCollapsed }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean }) {
+function AssistantDetailed({ message, activeSectionIndex, onSectionClick, allCollapsed, startCollapsed }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean; startCollapsed?: boolean }) {
   if (message.structured && message.structured.blocks.length > 0) {
-    return <StructuredView structured={message.structured} anchorMode activeSectionIndex={activeSectionIndex} onSectionClick={onSectionClick} allCollapsed={allCollapsed} />;
+    return <StructuredView structured={message.structured} anchorMode activeSectionIndex={activeSectionIndex} onSectionClick={onSectionClick} allCollapsed={allCollapsed} startCollapsed={startCollapsed} />;
   }
   return <HighlightText text={message.text} />;
 }
 
 export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive, onJumpNavigate, searchQuery, bookmarked, onToggleBookmark }: MessageBubbleProps) {
-  const [messageCollapsed, setMessageCollapsed] = useState(false);
+  const [messageCollapsed, setMessageCollapsed] = useState(displayMode === 'outline');
 
   const handleClick = (e: React.MouseEvent) => {
     if (e.shiftKey && displayMode !== 'compact' && message.type === 'assistant') {
@@ -465,7 +402,10 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
         <div className="chatlog-bubble chatlog-bubble-assistant">
           {displayMode === 'compact' && <AssistantCompact message={message} />}
           {displayMode === 'outline' && (
-            <AssistantOutline message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} />
+            <>
+              {hasContent && <CollapseChevron collapsed={messageCollapsed} onClick={handleMessageCollapseClick} />}
+              <AssistantDetailed message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} allCollapsed={messageCollapsed} startCollapsed />
+            </>
           )}
           {displayMode === 'detailed' && (
             <>

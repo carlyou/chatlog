@@ -1,5 +1,38 @@
 import type { Message, Platform, StructuredContent, ContentBlock, RichText, RichSegment, BranchInfo } from '../../types';
 import { getSelectors } from './selectors';
+import { perfInc, perfRun, perfSet } from './perf';
+
+let rootIdCounter = 0;
+const rootIdMap = new WeakMap<Element, string>();
+
+function getStableRootId(root: Element): string {
+  let id = rootIdMap.get(root);
+  if (!id) {
+    rootIdCounter += 1;
+    id = `msg-${rootIdCounter}`;
+    rootIdMap.set(root, id);
+  }
+  return id;
+}
+
+function hashText(input: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+const TEXT_DIGEST_SAMPLE_SIZE = 96;
+
+function digestTextSample(text: string): string {
+  const len = text.length;
+  if (len === 0) return '0:0:0';
+  const head = text.slice(0, TEXT_DIGEST_SAMPLE_SIZE);
+  const tail = len > TEXT_DIGEST_SAMPLE_SIZE ? text.slice(-TEXT_DIGEST_SAMPLE_SIZE) : '';
+  return `${len}:${hashText(head)}:${hashText(tail)}`;
+}
 
 // Walk inline child nodes of an element and produce RichText segments
 // preserving bold, italic, and inline code formatting.
@@ -371,100 +404,138 @@ function extractBranchInfo(container: Element): BranchInfo | undefined {
   return undefined;
 }
 
-function parseClaudeMessages(container: Element): Message[] {
-  const messages: Message[] = [];
-  const allGroups = container.querySelectorAll('div.group.relative');
-
-  allGroups.forEach((group) => {
-    const text = group.textContent?.trim();
-    if (!text) return;
-
-    const isUserMessage = group.className.includes('bg-bg-300');
-    const hasStreaming = group.hasAttribute('data-is-streaming');
-
-    if (isUserMessage) {
-      // Images live in the grandparent, not inside the text bubble
-      const grandparent = group.parentElement?.parentElement;
-      const searchScope = grandparent || group;
-      const structured = extractStructuredContent(searchScope);
-      // Branch nav lives in the render-count wrapper or grandparent
-      const branchScope = group.closest('[data-test-render-count]') || grandparent;
-      const branchInfo = branchScope ? extractBranchInfo(branchScope) : undefined;
-      messages.push({
-        id: `msg-${messages.length}`,
-        type: 'user',
-        text,
-        element: group,
-        ...(structured.blocks.length > 0 && { structured }),
-        ...(branchInfo && { branchInfo }),
-      });
-    } else if (hasStreaming) {
-      const responseContainers = group.querySelectorAll('[class*="row-start-2"]');
-      if (responseContainers.length > 0) {
-        const textParts: string[] = [];
-        const allBlocks: ContentBlock[] = [];
-        for (const rc of responseContainers) {
-          const t = rc.textContent?.trim();
-          if (t) textParts.push(t);
-          const { blocks: rcBlocks } = extractStructuredContent(rc);
-          allBlocks.push(...rcBlocks);
-        }
-        const responseText = textParts.join('\n');
-        if (responseText) {
-          const branchScope = group.closest('[data-test-render-count]') || group;
-          const branchInfo = extractBranchInfo(branchScope);
-          messages.push({
-            id: `msg-${messages.length}`,
-            type: 'assistant',
-            text: responseText,
-            element: responseContainers[0],
-            structured: { blocks: allBlocks },
-            ...(branchInfo && { branchInfo }),
-          });
-        }
-      }
-    }
-  });
-
-  return messages;
+export function getMessageRootSelector(platform: Platform): string | null {
+  if (platform === 'claude') return 'div.group.relative';
+  if (platform === 'chatgpt') return '[data-message-author-role]';
+  return null;
 }
 
-function parseChatGPTMessages(container: Element): Message[] {
-  const messages: Message[] = [];
-  const allMessages = container.querySelectorAll('[data-message-author-role]');
+export function getMessageRoots(platform: Platform, container: Element): Element[] {
+  const selector = getMessageRootSelector(platform);
+  if (!selector) return [];
+  return Array.from(container.querySelectorAll(selector));
+}
 
-  allMessages.forEach((msg) => {
-    const role = msg.getAttribute('data-message-author-role');
-    const text = msg.textContent?.trim();
-    if (!text) return;
+export function getMessageRootForNode(platform: Platform, node: Node): Element | null {
+  const selector = getMessageRootSelector(platform);
+  if (!selector) return null;
+  const el = node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
+  if (!el) return null;
+  return el.closest(selector);
+}
 
-    if (role === 'user') {
-      const structured = extractStructuredContent(msg);
-      const article = msg.closest('article');
-      const branchInfo = article ? extractBranchInfo(article) : undefined;
-      messages.push({
-        id: `msg-${messages.length}`,
-        type: 'user',
-        text,
-        element: msg,
-        ...(structured.blocks.length > 0 && { structured }),
-        ...(branchInfo && { branchInfo }),
-      });
-    } else if (role === 'assistant') {
-      const article = msg.closest('article');
-      const branchInfo = article ? extractBranchInfo(article) : undefined;
-      messages.push({
-        id: `msg-${messages.length}`,
-        type: 'assistant',
-        text,
-        element: msg,
-        structured: extractStructuredContent(msg),
-        ...(branchInfo && { branchInfo }),
-      });
+export function computeMessageRootSignature(platform: Platform, root: Element): string {
+  const role = platform === 'chatgpt'
+    ? root.getAttribute('data-message-author-role') || 'unknown'
+    : (root.className.includes('bg-bg-300') ? 'user' : 'assistant');
+  const hasStreaming = root.hasAttribute('data-is-streaming') ? '1' : '0';
+  const textDigest = digestTextSample(root.textContent || '');
+  const childCount = root.childElementCount;
+  const hasCode = root.querySelector('pre') ? '1' : '0';
+  const hasHeading = root.querySelector('h1,h2,h3,h4,h5,h6') ? '1' : '0';
+  const hasList = root.querySelector('ul,ol') ? '1' : '0';
+  const hasMedia = root.querySelector('img,[data-testid="file-thumbnail"]') ? '1' : '0';
+  return [role, hasStreaming, textDigest, childCount, hasCode, hasHeading, hasList, hasMedia].join('|');
+}
+
+function parseClaudeMessageRoot(root: Element): Message | null {
+  const text = root.textContent?.trim();
+  if (!text) return null;
+
+  const id = getStableRootId(root);
+  const isUserMessage = root.className.includes('bg-bg-300');
+
+  if (isUserMessage) {
+    const grandparent = root.parentElement?.parentElement;
+    const searchScope = grandparent || root;
+    const structured = extractStructuredContent(searchScope);
+    const branchScope = root.closest('[data-test-render-count]') || grandparent;
+    const branchInfo = branchScope ? extractBranchInfo(branchScope) : undefined;
+    return {
+      id,
+      type: 'user',
+      text,
+      element: root,
+      ...(structured.blocks.length > 0 && { structured }),
+      ...(branchInfo && { branchInfo }),
+    };
+  }
+
+  const responseContainers = root.querySelectorAll('[class*="row-start-2"]');
+  const branchScope = root.closest('[data-test-render-count]') || root;
+  const branchInfo = extractBranchInfo(branchScope);
+
+  if (responseContainers.length > 0) {
+    const textParts: string[] = [];
+    const allBlocks: ContentBlock[] = [];
+    for (const rc of responseContainers) {
+      const t = rc.textContent?.trim();
+      if (t) textParts.push(t);
+      const { blocks } = extractStructuredContent(rc);
+      allBlocks.push(...blocks);
     }
-  });
 
-  return messages;
+    const responseText = textParts.join('\n');
+    if (responseText) {
+      return {
+        id,
+        type: 'assistant',
+        text: responseText,
+        element: responseContainers[0],
+        structured: { blocks: allBlocks },
+        ...(branchInfo && { branchInfo }),
+      };
+    }
+  }
+
+  const structured = extractStructuredContent(root);
+  return {
+    id,
+    type: 'assistant',
+    text,
+    element: root,
+    ...(structured.blocks.length > 0 && { structured }),
+    ...(branchInfo && { branchInfo }),
+  };
+}
+
+function parseChatGPTMessageRoot(root: Element): Message | null {
+  const role = root.getAttribute('data-message-author-role');
+  const text = root.textContent?.trim();
+  if (!text || (role !== 'user' && role !== 'assistant')) return null;
+
+  const id = getStableRootId(root);
+  const article = root.closest('article');
+  const branchInfo = article ? extractBranchInfo(article) : undefined;
+
+  if (role === 'user') {
+    const structured = extractStructuredContent(root);
+    return {
+      id,
+      type: 'user',
+      text,
+      element: root,
+      ...(structured.blocks.length > 0 && { structured }),
+      ...(branchInfo && { branchInfo }),
+    };
+  }
+
+  return {
+    id,
+    type: 'assistant',
+    text,
+    element: root,
+    structured: extractStructuredContent(root),
+    ...(branchInfo && { branchInfo }),
+  };
+}
+
+export function parseMessageRoot(platform: Platform, root: Element): Message | null {
+  return perfRun('parseMessagesMs', () => {
+    if (platform === 'claude') return parseClaudeMessageRoot(root);
+    if (platform === 'chatgpt') return parseChatGPTMessageRoot(root);
+    return null;
+  });
 }
 
 export function parseMessages(platform: Platform): Message[] {
@@ -474,7 +545,16 @@ export function parseMessages(platform: Platform): Message[] {
   const container = document.querySelector(selectors.messageContainer);
   if (!container) return [];
 
-  if (platform === 'claude') return parseClaudeMessages(container);
-  if (platform === 'chatgpt') return parseChatGPTMessages(container);
-  return [];
+  return perfRun('parseMessagesMs', () => {
+    perfInc('parseMessagesCalls');
+    const roots = getMessageRoots(platform, container);
+    const messages: Message[] = [];
+    for (const root of roots) {
+      const parsed = parseMessageRoot(platform, root);
+      if (parsed) messages.push(parsed);
+    }
+    perfSet('messagesParsedLast', messages.length);
+    perfInc('messagesParsedTotal', messages.length);
+    return messages;
+  });
 }

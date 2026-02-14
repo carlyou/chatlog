@@ -66,3 +66,10 @@ npm run dev
 - [@crxjs/vite-plugin](https://crxjs.dev/vite-plugin) for Chrome extension bundling
 - Tailwind CSS 4
 - Chrome Manifest V3
+
+## Performance profiling (dev)
+
+Open shortcut settings (gear button) and enable **Performance overlay**.
+
+When enabled, ChatLog shows live perf stats near the bottom-right toggles and logs periodic summaries (`[chatlog:perf] ...`) in the page console.
+The toggle state is persisted in `chrome.storage.local`.
