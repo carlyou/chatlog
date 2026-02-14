@@ -20,7 +20,10 @@ export function SearchBar({ query, onQueryChange, currentMatch, totalMatches, on
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === ' ' && e.shiftKey) {
-      // Let Shift+Space bubble up to the global shortcut handler to toggle search
+      // Handle toggle directly and stop all propagation
+      e.preventDefault();
+      e.stopPropagation();
+      onClose();
       return;
     }
     e.stopPropagation();
@@ -32,6 +35,16 @@ export function SearchBar({ query, onQueryChange, currentMatch, totalMatches, on
       if (e.shiftKey) onPrev();
       else onNext();
     }
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent) => {
+    // Also prevent keyup for Shift+Space to ensure no space is typed
+    if (e.key === ' ' && e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    e.stopPropagation();
   };
 
   const stopProp = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -46,7 +59,7 @@ export function SearchBar({ query, onQueryChange, currentMatch, totalMatches, on
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        onKeyUp={stopProp}
+        onKeyUp={handleKeyUp}
         onKeyPress={stopProp}
       />
       {query && (

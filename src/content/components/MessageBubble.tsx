@@ -329,6 +329,11 @@ function AssistantDetailed({ message, activeSectionIndex, onSectionClick, allCol
 export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive, onJumpNavigate, searchQuery, bookmarked, onToggleBookmark }: MessageBubbleProps) {
   const [messageCollapsed, setMessageCollapsed] = useState(displayMode === 'outline');
 
+  // Sync collapsed state when switching display modes
+  useEffect(() => {
+    setMessageCollapsed(displayMode === 'outline');
+  }, [displayMode]);
+
   const handleClick = (e: React.MouseEvent) => {
     if (e.shiftKey && displayMode !== 'compact' && message.type === 'assistant') {
       e.stopPropagation();

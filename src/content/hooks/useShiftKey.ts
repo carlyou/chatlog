@@ -155,6 +155,18 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
 
   // --- Keydown handler ---
   const onKeyDown = useCallback((e: KeyboardEvent) => {
+    // Skip shortcuts when typing in input fields, except for our search input
+    const target = e.target as HTMLElement;
+    const isSearchInput = target.classList?.contains('chatlog-search-input');
+    if (
+      !isSearchInput &&
+      (target.tagName === 'INPUT' ||
+       target.tagName === 'TEXTAREA' ||
+       target.isContentEditable)
+    ) {
+      return;
+    }
+
     const config = shortcutConfig;
 
     if (matchesBinding(e, config.toggleMode)) {
