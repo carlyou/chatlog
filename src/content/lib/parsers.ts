@@ -36,6 +36,11 @@ function digestTextSample(text: string): string {
 
 // Walk inline child nodes of an element and produce RichText segments
 // preserving bold, italic, and inline code formatting.
+function isBoldOnlyParagraph(segments: RichText): boolean {
+  const substantive = segments.filter((s) => s.text.trim().length > 0);
+  return substantive.length > 0 && substantive.every((s) => s.bold === true);
+}
+
 function extractRichText(el: Element): RichText {
   const segments: RichSegment[] = [];
 
@@ -304,7 +309,7 @@ export function extractStructuredContent(element: Element): StructuredContent {
     } else if (tag === 'p') {
       const text = el.textContent?.trim();
       if (!text) return;
-      blocks.push({ type: 'paragraph', segments: extractRichText(el) });
+      blocks.push({ type: 'paragraph', segments: extractRichText(el), _el: el } as ContentBlock);
     } else if (tag === 'ul' || tag === 'ol') {
       // Mark all descendant elements as visited to prevent double-parsing
       // (e.g. ChatGPT wraps list-item content in <p> tags)
@@ -377,6 +382,25 @@ export function extractStructuredContent(element: Element): StructuredContent {
       }
     }
   });
+
+  // Promote bold-only paragraphs to headings if no real headings exist
+  const hasHeadings = blocks.some((b) => b.type === 'heading');
+  if (!hasHeadings) {
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i];
+      if (b.type === 'paragraph' && isBoldOnlyParagraph(b.segments)) {
+        const text = b.segments.map((s) => s.text).join('').trim();
+        if (text) {
+          blocks[i] = { type: 'heading', text, element: (b as any)._el };
+        }
+      }
+    }
+  }
+
+  // Clean up temporary _el references from paragraph blocks
+  for (const b of blocks) {
+    if ('_el' in b) delete (b as any)._el;
+  }
 
   // Parse file thumbnails (e.g. uploaded .txt, .pdf files)
   element.querySelectorAll('[data-testid="file-thumbnail"]').forEach((el) => {

@@ -170,6 +170,7 @@ function BlockView({ block }: { block: ContentBlock }) {
 }
 
 interface Section {
+  isHeading?: boolean;
   headingElement?: Element;
   blocks: ContentBlock[];
 }
@@ -180,13 +181,13 @@ function groupIntoSections(blocks: ContentBlock[]): Section[] {
 
   for (const block of blocks) {
     if (block.type === 'heading') {
-      current = { headingElement: block.element, blocks: [block] };
+      current = { isHeading: true, headingElement: block.element, blocks: [block] };
       sections.push(current);
     } else if (current) {
       current.blocks.push(block);
     } else {
       // Blocks before the first heading — no anchor
-      if (!sections.length || sections[0].headingElement) {
+      if (!sections.length || sections[0].isHeading) {
         sections.unshift({ blocks: [block] });
         current = null;
       } else {
@@ -203,7 +204,7 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
   const [collapsed, setCollapsed] = useState<Set<number>>(() => {
     if (!startCollapsed) return new Set();
     const sections = groupIntoSections(structured.blocks);
-    const count = sections.filter(s => s.headingElement).length;
+    const count = sections.filter(s => s.isHeading).length;
     return new Set(Array.from({ length: count }, (_, i) => i));
   });
   const prevAllCollapsedRef = useRef(allCollapsed);
@@ -211,7 +212,7 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
   useEffect(() => {
     if (!prevAllCollapsedRef.current && allCollapsed) {
       const sections = groupIntoSections(structured.blocks);
-      const count = sections.filter(s => s.headingElement).length;
+      const count = sections.filter(s => s.isHeading).length;
       setCollapsed(new Set(Array.from({ length: count }, (_, i) => i)));
     } else if (prevAllCollapsedRef.current && !allCollapsed) {
       setCollapsed(new Set());
@@ -253,7 +254,7 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
   return (
     <div className="chatlog-structured">
       {sections.map((section, i) => {
-        if (section.headingElement) {
+        if (section.isHeading) {
           const currentIdx = headingIdx++;
           const isSectionActive = activeSectionIndex === currentIdx;
           const isCollapsed = collapsed.has(currentIdx);
@@ -264,7 +265,7 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
               return;
             }
             onSectionClick?.(currentIdx);
-            scrollElToRefLine(section.headingElement as HTMLElement);
+            if (section.headingElement) scrollElToRefLine(section.headingElement as HTMLElement);
           };
           const handleChevronClick = (e: React.MouseEvent) => {
             e.stopPropagation();
