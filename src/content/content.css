@@ -728,6 +728,47 @@ pre.chatlog-outline-preview {
   }
 }
 
+/* Tables */
+.chatlog-structured-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.chatlog-structured-table th,
+.chatlog-structured-table td {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 3px 6px;
+  text-align: left;
+}
+
+.chatlog-structured-table th {
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.chatlog-structured-table td {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-structured-table th,
+  .chatlog-structured-table td {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .chatlog-structured-table th {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .chatlog-structured-table td {
+    color: rgba(255, 255, 255, 0.65);
+  }
+}
+
 /* Inline code */
 .chatlog-inline-code {
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
@@ -1110,6 +1151,30 @@ pre.chatlog-outline-preview {
 @media (prefers-color-scheme: dark) {
   .chatlog-search-mark {
     background: rgba(250, 204, 21, 0.3);
+  }
+}
+
+/* Main conversation search highlight */
+.chatlog-main-highlight {
+  background: rgba(250, 204, 21, 0.4);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.chatlog-main-highlight-current {
+  background: rgba(249, 115, 22, 0.6);
+  outline: 2px solid rgba(249, 115, 22, 0.8);
+  outline-offset: 0px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chatlog-main-highlight {
+    background: rgba(250, 204, 21, 0.3);
+  }
+  .chatlog-main-highlight-current {
+    background: rgba(249, 115, 22, 0.5);
+    outline-color: rgba(249, 115, 22, 0.7);
   }
 }
 

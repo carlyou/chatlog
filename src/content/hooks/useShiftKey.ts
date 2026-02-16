@@ -25,6 +25,12 @@ interface NavEntry {
   element: Element;
 }
 
+/** Query through shadow root for the search input. */
+function getSearchInput(): HTMLInputElement | null {
+  const shadow = document.querySelector('#chatlog-root')?.shadowRoot;
+  return shadow?.querySelector('.chatlog-search-input') as HTMLInputElement | null;
+}
+
 /** Walk up from an element to find the nearest scrollable ancestor. */
 function findScrollableAncestor(el: Element): HTMLElement | null {
   let parent = el.parentElement;
@@ -155,15 +161,17 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
 
   // --- Keydown handler ---
   const onKeyDown = useCallback((e: KeyboardEvent) => {
-    // Skip shortcuts when typing in input fields, except for our search input
-    const target = e.target as HTMLElement;
+    // When typing in host-page input fields, only allow search toggle shortcut through
+    const target = e.composedPath()[0] as HTMLElement;
     const isSearchInput = target.classList?.contains('chatlog-search-input');
-    if (
+    const isHostInput =
       !isSearchInput &&
       (target.tagName === 'INPUT' ||
        target.tagName === 'TEXTAREA' ||
-       target.isContentEditable)
-    ) {
+       target.isContentEditable);
+
+    if (isHostInput) {
+      // Pass all keystrokes through to host input (including Shift+Space)
       return;
     }
 
@@ -186,8 +194,25 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
 
     if (matchesBinding(e, config.toggleSearch)) {
       e.preventDefault();
+      e.stopPropagation();
       onPeek?.();
-      onToggleSearch?.();
+      const input = getSearchInput();
+      if (!input) {
+        // Search not open → open search
+        onToggleSearch?.();
+      } else if (isSearchInput) {
+        // Search open, input focused
+        if (input.value.trim()) {
+          // Input not empty → unfocus
+          input.blur();
+        } else {
+          // Input empty → close search
+          onToggleSearch?.();
+        }
+      } else {
+        // Search open, input not focused → focus it
+        input.focus();
+      }
       return;
     }
 
@@ -291,8 +316,10 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
   }, [mode, setMode, navEntries, activeTarget, lockActive, getScrollContainer, shortcutConfig, onPeek, onTogglePin, onToggleSearch]);
 
   useEffect(() => {
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    // Use capture phase so we can intercept shortcuts (like Shift+Space for search toggle)
+    // before they reach the host page's input elements
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [onKeyDown]);
 
   return { pushToHistory };

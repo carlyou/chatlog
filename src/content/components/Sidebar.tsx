@@ -42,7 +42,7 @@ interface SidebarProps {
 export function Sidebar({ messages, pinned, peeking, onTogglePin, displayMode, onDisplayModeChange, activeMessageId, activeSectionIndex, onLockActive, onJumpNavigate, searchOpen, searchQuery, onSearchQueryChange, searchMatchIds, currentSearchMatchId, searchTotalMatches, searchCurrentMatch, onSearchNext, onSearchPrev, onSearchClose, onToggleSearch, bookmarkFilter, onToggleBookmarkFilter, isBookmarked, onToggleBookmark, width, onWidthChange }: SidebarProps) {
   return (
     <div
-      className={`chatlog-sidebar chatlog-sidebar-right ${pinned ? 'pinned' : ''} ${peeking ? 'peeking' : ''}`}
+      className={`chatlog-sidebar chatlog-sidebar-right ${pinned ? 'pinned' : ''} ${(peeking || searchOpen) ? 'peeking' : ''}`}
       style={width ? { width: `${width}px` } : undefined}
     >
       {onWidthChange && <DragHandle onDrag={onWidthChange} />}

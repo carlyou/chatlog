@@ -26,7 +26,7 @@ export function App({ platform }: AppProps) {
   const { pinned, toggle } = usePinned();
   const { mode, setMode } = useDisplayMode();
   const { config: shortcutConfig, setConfig: setShortcutConfig } = useShortcutConfig();
-  const search = useSearch(messages);
+  const search = useSearch(messages, platform, lockActive);
   const bookmarks = useBookmarks(platform);
   const { width, setWidth } = useSidebarWidth();
   const { enabled: perfEnabled, setEnabled: setPerfEnabled } = usePerfMode();
@@ -46,7 +46,7 @@ export function App({ platform }: AppProps) {
     onPeek: peek, onTogglePin: toggle, onToggleSearch: search.toggle,
   });
 
-  const currentSearchMatchId = search.matchIds.length > 0 ? search.matchIds[search.currentMatch] : null;
+  const currentSearchMatchId = search.currentMatchMsgId;
 
   return (
     <>

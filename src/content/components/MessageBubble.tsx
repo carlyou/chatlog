@@ -141,6 +141,29 @@ function BlockView({ block }: { block: ContentBlock }) {
       return <pre className="chatlog-structured-code"><code><HighlightText text={block.text} /></code></pre>;
     case 'divider':
       return <hr className="chatlog-structured-hr" />;
+    case 'table':
+      return (
+        <table className="chatlog-structured-table">
+          {block.headers.length > 0 && (
+            <thead>
+              <tr>
+                {block.headers.map((h, i) => (
+                  <th key={i}><HighlightText text={h} /></th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {block.rows.map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td key={j}><HighlightText text={cell} /></td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
     case 'image':
       return <img src={block.src} alt={block.alt} className="chatlog-structured-img" />;
   }

@@ -20,10 +20,15 @@ export function SearchBar({ query, onQueryChange, currentMatch, totalMatches, on
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === ' ' && e.shiftKey) {
-      // Handle toggle directly and stop all propagation
       e.preventDefault();
       e.stopPropagation();
-      onClose();
+      if (query.trim()) {
+        // Input not empty, focused → unfocus
+        inputRef.current?.blur();
+      } else {
+        // Input empty, focused → close search
+        onClose();
+      }
       return;
     }
     e.stopPropagation();
@@ -67,7 +72,7 @@ export function SearchBar({ query, onQueryChange, currentMatch, totalMatches, on
           {totalMatches > 0 ? `${currentMatch + 1}/${totalMatches}` : '0'}
         </span>
       )}
-      <button className="chatlog-search-close" onClick={onClose} title="Close">
+      <button className="chatlog-search-close" onClick={() => { onQueryChange(''); onClose(); }} title="Close">
         <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
           <line x1="1" y1="1" x2="9" y2="9" />
           <line x1="9" y1="1" x2="1" y2="9" />

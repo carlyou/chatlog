@@ -16,6 +16,7 @@ export type ContentBlock =
   | { type: 'code'; text: string }
   | { type: 'divider' }
   | { type: 'image'; src: string; alt: string }
+  | { type: 'table'; headers: string[]; rows: string[][] }
   | { type: 'file'; name: string; info: string; ext: string };
 
 export interface StructuredContent {

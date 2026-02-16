@@ -290,7 +290,7 @@ export function extractStructuredContent(element: Element): StructuredContent {
   const blocks: ContentBlock[] = [];
   const visited = new WeakSet<Element>();
 
-  element.querySelectorAll('h1, h2, h3, h4, h5, h6, p, ul, ol, pre, hr, img').forEach((el) => {
+  element.querySelectorAll('h1, h2, h3, h4, h5, h6, p, ul, ol, pre, hr, img, table').forEach((el) => {
     if (visited.has(el)) return;
     visited.add(el);
 
@@ -348,6 +348,24 @@ export function extractStructuredContent(element: Element): StructuredContent {
       } else {
         const text = el.textContent?.trim();
         if (text) blocks.push({ type: 'code', text });
+      }
+    } else if (tag === 'table') {
+      // Mark all descendant elements as visited to prevent double-parsing
+      el.querySelectorAll('p, h1, h2, h3, h4, h5, h6, ul, ol, pre, hr, img').forEach((d) => visited.add(d));
+      const headers: string[] = [];
+      el.querySelectorAll('thead th').forEach((th) => {
+        headers.push(th.textContent?.trim() || '');
+      });
+      const rows: string[][] = [];
+      el.querySelectorAll('tbody tr').forEach((tr) => {
+        const cells: string[] = [];
+        tr.querySelectorAll('td').forEach((td) => {
+          cells.push(td.textContent?.trim() || '');
+        });
+        if (cells.length > 0) rows.push(cells);
+      });
+      if (headers.length > 0 || rows.length > 0) {
+        blocks.push({ type: 'table', headers, rows });
       }
     } else if (tag === 'img') {
       const rawSrc = el.getAttribute('src');
