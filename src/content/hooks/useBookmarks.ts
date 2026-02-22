@@ -5,9 +5,12 @@ const STORAGE_KEY = 'chatlog-bookmarks';
 
 function getConversationId(): string | null {
   const path = window.location.pathname;
-  // Claude: /chat/{id}
+  // Claude chat: /chat/{id}
   const claudeMatch = path.match(/\/chat\/([^/]+)/);
   if (claudeMatch) return claudeMatch[1];
+  // Claude Code: /code/{id}
+  const codeMatch = path.match(/\/code\/([^/]+)/);
+  if (codeMatch) return codeMatch[1];
   // ChatGPT: /c/{id}
   const gptMatch = path.match(/\/c\/([^/]+)/);
   if (gptMatch) return gptMatch[1];

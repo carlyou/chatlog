@@ -448,6 +448,7 @@ function extractBranchInfo(container: Element): BranchInfo | undefined {
 
 export function getMessageRootSelector(platform: Platform): string | null {
   if (platform === 'claude') return 'div.group.relative';
+  if (platform === 'claude-code') return '[data-testid="user-message"],[data-testid="assistant-message"]';
   if (platform === 'chatgpt') return '[data-message-author-role]';
   return null;
 }
@@ -469,7 +470,9 @@ export function getMessageRootForNode(platform: Platform, node: Node): Element |
 export function computeMessageRootSignature(platform: Platform, root: Element): string {
   const role = platform === 'chatgpt'
     ? root.getAttribute('data-message-author-role') || 'unknown'
-    : (root.className.includes('bg-bg-300') ? 'user' : 'assistant');
+    : platform === 'claude-code'
+      ? root.getAttribute('data-testid') === 'user-message' ? 'user' : 'assistant'
+      : (root.className.includes('bg-bg-300') ? 'user' : 'assistant');
   const hasStreaming = root.hasAttribute('data-is-streaming') ? '1' : '0';
   const textDigest = digestTextSample(root.textContent || '');
   const childCount = root.childElementCount;
@@ -541,6 +544,24 @@ function parseClaudeMessageRoot(root: Element): Message | null {
   };
 }
 
+function parseClaudeCodeMessageRoot(root: Element): Message | null {
+  const text = root.textContent?.trim();
+  if (!text) return null;
+
+  const id = getStableRootId(root);
+  const testId = root.getAttribute('data-testid');
+  const isUserMessage = testId === 'user-message';
+
+  const structured = extractStructuredContent(root);
+  return {
+    id,
+    type: isUserMessage ? 'user' : 'assistant',
+    text,
+    element: root,
+    ...(structured.blocks.length > 0 && { structured }),
+  };
+}
+
 function parseChatGPTMessageRoot(root: Element): Message | null {
   const role = root.getAttribute('data-message-author-role');
   const text = root.textContent?.trim();
@@ -575,6 +596,7 @@ function parseChatGPTMessageRoot(root: Element): Message | null {
 export function parseMessageRoot(platform: Platform, root: Element): Message | null {
   return perfRun('parseMessagesMs', () => {
     if (platform === 'claude') return parseClaudeMessageRoot(root);
+    if (platform === 'claude-code') return parseClaudeCodeMessageRoot(root);
     if (platform === 'chatgpt') return parseChatGPTMessageRoot(root);
     return null;
   });
