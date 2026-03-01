@@ -1,10 +1,10 @@
-import type { Message, DisplayMode } from '../../types';
+import type { DisplayMode, Message } from '../../types';
 import type { ActiveTarget } from '../hooks/useActiveMessage';
-import { PinButton } from './PinButton';
-import { MessageList } from './MessageList';
 import { DisplayModeSelector } from './DisplayModeSelector';
-import { SearchBar } from './SearchBar';
 import { DragHandle } from './DragHandle';
+import { MessageList } from './MessageList';
+import { PinButton } from './PinButton';
+import { SearchBar } from './SearchBar';
 
 interface SidebarProps {
   messages: Message[];
@@ -39,19 +39,58 @@ interface SidebarProps {
   onWidthChange?: (w: number) => void;
 }
 
-export function Sidebar({ messages, pinned, peeking, onTogglePin, displayMode, onDisplayModeChange, activeMessageId, activeSectionIndex, onLockActive, onJumpNavigate, searchOpen, searchQuery, onSearchQueryChange, searchMatchIds, currentSearchMatchId, searchTotalMatches, searchCurrentMatch, onSearchNext, onSearchPrev, onSearchClose, onToggleSearch, bookmarkFilter, onToggleBookmarkFilter, isBookmarked, onToggleBookmark, width, onWidthChange }: SidebarProps) {
+export function Sidebar({
+  messages,
+  pinned,
+  peeking,
+  onTogglePin,
+  displayMode,
+  onDisplayModeChange,
+  activeMessageId,
+  activeSectionIndex,
+  onLockActive,
+  onJumpNavigate,
+  searchOpen,
+  searchQuery,
+  onSearchQueryChange,
+  searchMatchIds,
+  currentSearchMatchId,
+  searchTotalMatches,
+  searchCurrentMatch,
+  onSearchNext,
+  onSearchPrev,
+  onSearchClose,
+  onToggleSearch,
+  bookmarkFilter,
+  onToggleBookmarkFilter,
+  isBookmarked,
+  onToggleBookmark,
+  width,
+  onWidthChange,
+}: SidebarProps) {
+  const activeIndex = activeMessageId
+    ? messages.findIndex((m) => m.id === activeMessageId)
+    : -1;
+  const countDisplay =
+    activeIndex >= 0
+      ? `${activeIndex + 1}/${messages.length}`
+      : `${messages.length}`;
+
   return (
     <div
-      className={`chatlog-sidebar chatlog-sidebar-right ${pinned ? 'pinned' : ''} ${(peeking || searchOpen) ? 'peeking' : ''}`}
+      className={`chatlog-sidebar chatlog-sidebar-right ${pinned ? 'pinned' : ''} ${peeking || searchOpen ? 'peeking' : ''}`}
       style={width ? { width: `${width}px` } : undefined}
     >
       {onWidthChange && <DragHandle onDrag={onWidthChange} />}
       <div className="chatlog-outline-header">
         <div className="chatlog-header-title">
           <span>ChatLog</span>
-          <span className="chatlog-outline-count">{messages.length}</span>
+          <span className="chatlog-outline-count">{countDisplay}</span>
         </div>
-        <DisplayModeSelector mode={displayMode} onModeChange={onDisplayModeChange} />
+        <DisplayModeSelector
+          mode={displayMode}
+          onModeChange={onDisplayModeChange}
+        />
         <div className="chatlog-header-actions">
           {onToggleSearch && (
             <button
@@ -59,7 +98,16 @@ export function Sidebar({ messages, pinned, peeking, onTogglePin, displayMode, o
               onClick={onToggleSearch}
               title="Search (Shift+Space)"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -71,7 +119,16 @@ export function Sidebar({ messages, pinned, peeking, onTogglePin, displayMode, o
               onClick={onToggleBookmarkFilter}
               title={bookmarkFilter ? 'Show all' : 'Show bookmarked'}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill={bookmarkFilter ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill={bookmarkFilter ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
               </svg>
             </button>
@@ -79,17 +136,21 @@ export function Sidebar({ messages, pinned, peeking, onTogglePin, displayMode, o
           <PinButton pinned={pinned} onToggle={onTogglePin} />
         </div>
       </div>
-      {searchOpen && onSearchQueryChange && onSearchNext && onSearchPrev && onSearchClose && (
-        <SearchBar
-          query={searchQuery || ''}
-          onQueryChange={onSearchQueryChange}
-          currentMatch={searchCurrentMatch || 0}
-          totalMatches={searchTotalMatches || 0}
-          onNext={onSearchNext}
-          onPrev={onSearchPrev}
-          onClose={onSearchClose}
-        />
-      )}
+      {searchOpen &&
+        onSearchQueryChange &&
+        onSearchNext &&
+        onSearchPrev &&
+        onSearchClose && (
+          <SearchBar
+            query={searchQuery || ''}
+            onQueryChange={onSearchQueryChange}
+            currentMatch={searchCurrentMatch || 0}
+            totalMatches={searchTotalMatches || 0}
+            onNext={onSearchNext}
+            onPrev={onSearchPrev}
+            onClose={onSearchClose}
+          />
+        )}
       <MessageList
         messages={messages}
         displayMode={displayMode}

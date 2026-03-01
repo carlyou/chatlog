@@ -1,9 +1,16 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import type { Message, DisplayMode, StructuredContent, ContentBlock, RichText, RichSegment, BranchInfo } from '../../types';
+import type {
+  BranchInfo,
+  ContentBlock,
+  DisplayMode,
+  Message,
+  RichSegment,
+  RichText,
+  StructuredContent,
+} from '../../types';
 import type { ActiveTarget } from '../hooks/useActiveMessage';
 import { SCROLL_REF_RATIO } from '../lib/constants';
 import { BookmarkButton } from './BookmarkButton';
-
 
 import { scrollToTopCenter } from './MessageList';
 
@@ -19,10 +26,12 @@ function HighlightText({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         part.toLowerCase() === query.toLowerCase() ? (
-          <mark key={i} className="chatlog-search-mark">{part}</mark>
+          <mark key={i} className="chatlog-search-mark">
+            {part}
+          </mark>
         ) : (
           part
-        )
+        ),
       )}
     </>
   );
@@ -84,22 +93,38 @@ function BranchNav({ branchInfo }: { branchInfo: BranchInfo }) {
       <span className="chatlog-branch-text">Branch</span>
       <button
         className="chatlog-branch-btn"
-        onClick={(e) => { e.stopPropagation(); (branchInfo.prevButton as HTMLButtonElement)?.click(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          (branchInfo.prevButton as HTMLButtonElement)?.click();
+        }}
         disabled={branchInfo.current <= 1}
-      >&#8249;</button>
+      >
+        &#8249;
+      </button>
       <span className="chatlog-branch-label">
         {branchInfo.current}/{branchInfo.total}
       </span>
       <button
         className="chatlog-branch-btn"
-        onClick={(e) => { e.stopPropagation(); (branchInfo.nextButton as HTMLButtonElement)?.click(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          (branchInfo.nextButton as HTMLButtonElement)?.click();
+        }}
         disabled={branchInfo.current >= branchInfo.total}
-      >&#8250;</button>
+      >
+        &#8250;
+      </button>
     </div>
   );
 }
 
-function CollapseChevron({ collapsed, onClick }: { collapsed: boolean; onClick: (e: React.MouseEvent) => void }) {
+function CollapseChevron({
+  collapsed,
+  onClick,
+}: {
+  collapsed: boolean;
+  onClick: (e: React.MouseEvent) => void;
+}) {
   return (
     <svg
       className="chatlog-chevron"
@@ -109,9 +134,23 @@ function CollapseChevron({ collapsed, onClick }: { collapsed: boolean; onClick: 
       height="12"
     >
       {collapsed ? (
-        <path d="M3 10L8 5L13 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path
+          d="M3 10L8 5L13 10"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       ) : (
-        <path d="M3 6L8 11L13 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path
+          d="M3 6L8 11L13 6"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       )}
     </svg>
   );
@@ -120,7 +159,11 @@ function CollapseChevron({ collapsed, onClick }: { collapsed: boolean; onClick: 
 function BlockView({ block }: { block: ContentBlock }) {
   switch (block.type) {
     case 'heading':
-      return <div className="chatlog-structured-heading"><HighlightText text={block.text} /></div>;
+      return (
+        <div className="chatlog-structured-heading">
+          <HighlightText text={block.text} />
+        </div>
+      );
     case 'paragraph':
       return (
         <p className="chatlog-structured-p">
@@ -138,7 +181,13 @@ function BlockView({ block }: { block: ContentBlock }) {
         </ul>
       );
     case 'code':
-      return <pre className="chatlog-structured-code"><code><HighlightText text={block.text} /></code></pre>;
+      return (
+        <pre className="chatlog-structured-code">
+          <code>
+            <HighlightText text={block.text} />
+          </code>
+        </pre>
+      );
     case 'divider':
       return <hr className="chatlog-structured-hr" />;
     case 'table':
@@ -148,7 +197,9 @@ function BlockView({ block }: { block: ContentBlock }) {
             <thead>
               <tr>
                 {block.headers.map((h, i) => (
-                  <th key={i}><HighlightText text={h} /></th>
+                  <th key={i}>
+                    <HighlightText text={h} />
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -157,7 +208,9 @@ function BlockView({ block }: { block: ContentBlock }) {
             {block.rows.map((row, i) => (
               <tr key={i}>
                 {row.map((cell, j) => (
-                  <td key={j}><HighlightText text={cell} /></td>
+                  <td key={j}>
+                    <HighlightText text={cell} />
+                  </td>
                 ))}
               </tr>
             ))}
@@ -165,7 +218,13 @@ function BlockView({ block }: { block: ContentBlock }) {
         </table>
       );
     case 'image':
-      return <img src={block.src} alt={block.alt} className="chatlog-structured-img" />;
+      return (
+        <img
+          src={block.src}
+          alt={block.alt}
+          className="chatlog-structured-img"
+        />
+      );
   }
 }
 
@@ -181,7 +240,11 @@ function groupIntoSections(blocks: ContentBlock[]): Section[] {
 
   for (const block of blocks) {
     if (block.type === 'heading') {
-      current = { isHeading: true, headingElement: block.element, blocks: [block] };
+      current = {
+        isHeading: true,
+        headingElement: block.element,
+        blocks: [block],
+      };
       sections.push(current);
     } else if (current) {
       current.blocks.push(block);
@@ -199,25 +262,58 @@ function groupIntoSections(blocks: ContentBlock[]): Section[] {
   return sections;
 }
 
-function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionClick, allCollapsed, startCollapsed }: { structured: StructuredContent; anchorMode?: boolean; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean; startCollapsed?: boolean }) {
+function StructuredView({
+  structured,
+  anchorMode,
+  activeSectionIndex,
+  onSectionClick,
+  allCollapsed,
+  startCollapsed,
+}: {
+  structured: StructuredContent;
+  anchorMode?: boolean;
+  activeSectionIndex?: number | null;
+  onSectionClick?: (sectionIndex: number) => void;
+  allCollapsed?: boolean;
+  startCollapsed?: boolean;
+}) {
   const activeSectionRef = useRef<HTMLDivElement | null>(null);
   const [collapsed, setCollapsed] = useState<Set<number>>(() => {
     if (!startCollapsed) return new Set();
     const sections = groupIntoSections(structured.blocks);
-    const count = sections.filter(s => s.isHeading).length;
+    const count = sections.filter((s) => s.isHeading).length;
     return new Set(Array.from({ length: count }, (_, i) => i));
   });
   const prevAllCollapsedRef = useRef(allCollapsed);
+  // Track the heading count we've already collapsed so new arrivals can be added incrementally
+  const prevHeadingCountRef = useRef(
+    startCollapsed
+      ? groupIntoSections(structured.blocks).filter((s) => s.isHeading).length
+      : 0,
+  );
 
   useEffect(() => {
+    const sections = groupIntoSections(structured.blocks);
+    const headingCount = sections.filter((s) => s.isHeading).length;
+
     if (!prevAllCollapsedRef.current && allCollapsed) {
-      const sections = groupIntoSections(structured.blocks);
-      const count = sections.filter(s => s.isHeading).length;
-      setCollapsed(new Set(Array.from({ length: count }, (_, i) => i)));
+      // Switched to collapsed: collapse all current headings
+      setCollapsed(new Set(Array.from({ length: headingCount }, (_, i) => i)));
     } else if (prevAllCollapsedRef.current && !allCollapsed) {
+      // Switched to expanded: expand all
       setCollapsed(new Set());
+    } else if (allCollapsed && headingCount > prevHeadingCountRef.current) {
+      // Already collapsed but new headings arrived (e.g. streaming): add them
+      setCollapsed((prev) => {
+        const next = new Set(prev);
+        for (let i = prevHeadingCountRef.current; i < headingCount; i++)
+          next.add(i);
+        return next;
+      });
     }
+
     prevAllCollapsedRef.current = allCollapsed;
+    prevHeadingCountRef.current = headingCount;
   }, [allCollapsed, structured.blocks]);
 
   const toggleCollapse = (idx: number) => {
@@ -231,7 +327,9 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
 
   useEffect(() => {
     if (activeSectionIndex != null && activeSectionRef.current) {
-      const container = activeSectionRef.current.closest('.chatlog-outline-messages') as HTMLElement | null;
+      const container = activeSectionRef.current.closest(
+        '.chatlog-outline-messages',
+      ) as HTMLElement | null;
       if (container) {
         scrollToTopCenter(activeSectionRef.current, container);
       }
@@ -265,7 +363,8 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
               return;
             }
             onSectionClick?.(currentIdx);
-            if (section.headingElement) scrollElToRefLine(section.headingElement as HTMLElement);
+            if (section.headingElement)
+              scrollElToRefLine(section.headingElement as HTMLElement);
           };
           const handleChevronClick = (e: React.MouseEvent) => {
             e.stopPropagation();
@@ -281,11 +380,22 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
               onClick={handleClick}
             >
               <div className="chatlog-structured-heading chatlog-heading-collapsible">
-                <span className="chatlog-heading-text">{headingBlock.type === 'heading' ? <HighlightText text={headingBlock.text} /> : ''}</span>
-                <CollapseChevron collapsed={isCollapsed} onClick={handleChevronClick} />
+                <span className="chatlog-heading-text">
+                  {headingBlock.type === 'heading' ? (
+                    <HighlightText text={headingBlock.text} />
+                  ) : (
+                    ''
+                  )}
+                </span>
+                <CollapseChevron
+                  collapsed={isCollapsed}
+                  onClick={handleChevronClick}
+                />
               </div>
               {bodyBlocks.length > 0 && (
-                <div className={`chatlog-collapse-body${isCollapsed ? ' collapsed' : ''}`}>
+                <div
+                  className={`chatlog-collapse-body${isCollapsed ? ' collapsed' : ''}`}
+                >
                   <div className="chatlog-collapse-inner">
                     {bodyBlocks.map((block, j) => (
                       <BlockView key={j} block={block} />
@@ -298,7 +408,10 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
         }
         // Pre-heading blocks: clamp to 2 lines when allCollapsed
         return (
-          <div key={`pre-${i}`} className={allCollapsed ? 'chatlog-compact-preview' : undefined}>
+          <div
+            key={`pre-${i}`}
+            className={allCollapsed ? 'chatlog-compact-preview' : undefined}
+          >
             {section.blocks.map((block, j) => (
               <BlockView key={j} block={block} />
             ))}
@@ -309,17 +422,20 @@ function StructuredView({ structured, anchorMode, activeSectionIndex, onSectionC
   );
 }
 
-
 function AssistantCompact({ message }: { message: Message }) {
   const { structured, text } = message;
 
   if (!structured || structured.blocks.length === 0) {
-    return <p className="chatlog-structured-p chatlog-compact-preview"><HighlightText text={text} /></p>;
+    return (
+      <p className="chatlog-structured-p chatlog-compact-preview">
+        <HighlightText text={text} />
+      </p>
+    );
   }
 
   // Take the first two displayable blocks in document order
   const displayable = structured.blocks.filter(
-    (b) => b.type === 'heading' || b.type === 'paragraph'
+    (b) => b.type === 'heading' || b.type === 'paragraph',
   );
 
   const first = displayable[0];
@@ -328,7 +444,9 @@ function AssistantCompact({ message }: { message: Message }) {
   return (
     <>
       {first?.type === 'heading' && (
-        <div className="chatlog-structured-heading"><HighlightText text={first.text} /></div>
+        <div className="chatlog-structured-heading">
+          <HighlightText text={first.text} />
+        </div>
       )}
       <p className="chatlog-structured-p chatlog-compact-preview">
         {first?.type === 'paragraph' ? (
@@ -343,15 +461,48 @@ function AssistantCompact({ message }: { message: Message }) {
   );
 }
 
-function AssistantDetailed({ message, activeSectionIndex, onSectionClick, allCollapsed, startCollapsed }: { message: Message; activeSectionIndex?: number | null; onSectionClick?: (sectionIndex: number) => void; allCollapsed?: boolean; startCollapsed?: boolean }) {
+function AssistantDetailed({
+  message,
+  activeSectionIndex,
+  onSectionClick,
+  allCollapsed,
+  startCollapsed,
+}: {
+  message: Message;
+  activeSectionIndex?: number | null;
+  onSectionClick?: (sectionIndex: number) => void;
+  allCollapsed?: boolean;
+  startCollapsed?: boolean;
+}) {
   if (message.structured && message.structured.blocks.length > 0) {
-    return <StructuredView structured={message.structured} anchorMode activeSectionIndex={activeSectionIndex} onSectionClick={onSectionClick} allCollapsed={allCollapsed} startCollapsed={startCollapsed} />;
+    return (
+      <StructuredView
+        structured={message.structured}
+        anchorMode
+        activeSectionIndex={activeSectionIndex}
+        onSectionClick={onSectionClick}
+        allCollapsed={allCollapsed}
+        startCollapsed={startCollapsed}
+      />
+    );
   }
   return <HighlightText text={message.text} />;
 }
 
-export function MessageBubble({ message, displayMode, isActive, activeSectionIndex, onLockActive, onJumpNavigate, searchQuery, bookmarked, onToggleBookmark }: MessageBubbleProps) {
-  const [messageCollapsed, setMessageCollapsed] = useState(displayMode === 'outline');
+export function MessageBubble({
+  message,
+  displayMode,
+  isActive,
+  activeSectionIndex,
+  onLockActive,
+  onJumpNavigate,
+  searchQuery,
+  bookmarked,
+  onToggleBookmark,
+}: MessageBubbleProps) {
+  const [messageCollapsed, setMessageCollapsed] = useState(
+    displayMode === 'outline',
+  );
 
   // Sync collapsed state when switching display modes
   useEffect(() => {
@@ -359,7 +510,11 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
   }, [displayMode]);
 
   const handleClick = (e: React.MouseEvent) => {
-    if (e.shiftKey && displayMode !== 'compact' && message.type === 'assistant') {
+    if (
+      e.shiftKey &&
+      displayMode !== 'compact' &&
+      message.type === 'assistant'
+    ) {
       e.stopPropagation();
       setMessageCollapsed((prev) => !prev);
       return;
@@ -387,65 +542,124 @@ export function MessageBubble({ message, displayMode, isActive, activeSectionInd
   const showMessageHighlight = isActive && effectiveSectionIndex === null;
 
   const content = (() => {
-  if (message.type === 'user') {
-    const showMedia = displayMode !== 'compact';
-    const images = showMedia ? (message.structured?.blocks.filter((b) => b.type === 'image') || []) : [];
-    const files = showMedia ? (message.structured?.blocks.filter((b) => b.type === 'file') || []) : [];
+    if (message.type === 'user') {
+      const showMedia = displayMode !== 'compact';
+      const images = showMedia
+        ? message.structured?.blocks.filter((b) => b.type === 'image') || []
+        : [];
+      const files = showMedia
+        ? message.structured?.blocks.filter((b) => b.type === 'file') || []
+        : [];
+      return (
+        <button
+          onClick={handleClick}
+          className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}
+        >
+          {onToggleBookmark && (
+            <BookmarkButton
+              bookmarked={!!bookmarked}
+              onToggle={onToggleBookmark}
+            />
+          )}
+          {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
+          {images.length > 0 && (
+            <div className="chatlog-message-user-images">
+              {images.map(
+                (img, i) =>
+                  img.type === 'image' && (
+                    <img
+                      key={i}
+                      src={img.src}
+                      alt={img.alt}
+                      className="chatlog-structured-img"
+                    />
+                  ),
+              )}
+            </div>
+          )}
+          {files.length > 0 && (
+            <div className="chatlog-message-user-files">
+              {files.map(
+                (f, i) =>
+                  f.type === 'file' && (
+                    <span key={i} className="chatlog-file-chip">
+                      {f.ext && (
+                        <span className="chatlog-file-ext">{f.ext}</span>
+                      )}
+                      <span className="chatlog-file-name">{f.name}</span>
+                    </span>
+                  ),
+              )}
+            </div>
+          )}
+          <div className="chatlog-message-user">
+            <div className="chatlog-bubble chatlog-bubble-user">
+              <HighlightText text={message.text} />
+            </div>
+          </div>
+        </button>
+      );
+    }
+
+    const hasContent =
+      displayMode !== 'compact' &&
+      message.structured &&
+      message.structured.blocks.length > 0;
+
     return (
-      <button onClick={handleClick} className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}>
-        {onToggleBookmark && <BookmarkButton bookmarked={!!bookmarked} onToggle={onToggleBookmark} />}
+      <button
+        onClick={handleClick}
+        className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}
+      >
+        {onToggleBookmark && (
+          <BookmarkButton
+            bookmarked={!!bookmarked}
+            onToggle={onToggleBookmark}
+          />
+        )}
         {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
-        {images.length > 0 && (
-          <div className="chatlog-message-user-images">
-            {images.map((img, i) => (
-              img.type === 'image' && <img key={i} src={img.src} alt={img.alt} className="chatlog-structured-img" />
-            ))}
+        <div className="chatlog-message-assistant">
+          <div className="chatlog-bubble chatlog-bubble-assistant">
+            {displayMode === 'compact' && (
+              <AssistantCompact message={message} />
+            )}
+            {displayMode === 'outline' && (
+              <>
+                {hasContent && (
+                  <CollapseChevron
+                    collapsed={messageCollapsed}
+                    onClick={handleMessageCollapseClick}
+                  />
+                )}
+                <AssistantDetailed
+                  message={message}
+                  activeSectionIndex={effectiveSectionIndex}
+                  onSectionClick={handleSectionClick}
+                  allCollapsed={messageCollapsed}
+                  startCollapsed
+                />
+              </>
+            )}
+            {displayMode === 'detailed' && (
+              <>
+                {hasContent && (
+                  <CollapseChevron
+                    collapsed={messageCollapsed}
+                    onClick={handleMessageCollapseClick}
+                  />
+                )}
+                <AssistantDetailed
+                  message={message}
+                  activeSectionIndex={effectiveSectionIndex}
+                  onSectionClick={handleSectionClick}
+                  allCollapsed={messageCollapsed}
+                />
+              </>
+            )}
           </div>
-        )}
-        {files.length > 0 && (
-          <div className="chatlog-message-user-files">
-            {files.map((f, i) => (
-              f.type === 'file' && (
-                <span key={i} className="chatlog-file-chip">
-                  {f.ext && <span className="chatlog-file-ext">{f.ext}</span>}
-                  <span className="chatlog-file-name">{f.name}</span>
-                </span>
-              )
-            ))}
-          </div>
-        )}
-        <div className="chatlog-message-user">
-          <div className="chatlog-bubble chatlog-bubble-user"><HighlightText text={message.text} /></div>
         </div>
       </button>
     );
-  }
-
-  const hasContent = displayMode !== 'compact' && message.structured && message.structured.blocks.length > 0;
-
-  return (
-    <button onClick={handleClick} className={`chatlog-message${showMessageHighlight ? ' chatlog-message-active' : ''}`}>
-      {onToggleBookmark && <BookmarkButton bookmarked={!!bookmarked} onToggle={onToggleBookmark} />}
-      {message.branchInfo && <BranchNav branchInfo={message.branchInfo} />}
-      <div className="chatlog-message-assistant">
-        <div className="chatlog-bubble chatlog-bubble-assistant">
-          {displayMode === 'compact' && <AssistantCompact message={message} />}
-          {displayMode === 'outline' && (
-            <>
-              {hasContent && <CollapseChevron collapsed={messageCollapsed} onClick={handleMessageCollapseClick} />}
-              <AssistantDetailed message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} allCollapsed={messageCollapsed} startCollapsed />
-            </>
-          )}
-          {displayMode === 'detailed' && (
-            <>
-              {hasContent && <CollapseChevron collapsed={messageCollapsed} onClick={handleMessageCollapseClick} />}
-              <AssistantDetailed message={message} activeSectionIndex={effectiveSectionIndex} onSectionClick={handleSectionClick} allCollapsed={messageCollapsed} />
-            </>
-          )}
-        </div>
-      </div>
-    </button>
-  );
   })();
 
   return (

@@ -10,7 +10,13 @@ export function PinButton({ pinned, onToggle }: PinButtonProps) {
       title={pinned ? 'Unpin sidebar' : 'Pin sidebar'}
       className={`chatlog-pin-btn ${pinned ? 'pinned' : ''}`}
     >
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"

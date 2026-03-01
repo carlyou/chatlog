@@ -10,8 +10,14 @@ export interface ActiveTarget {
 const LOCK_DURATION = 800;
 const SETTLE_DELAY = 150;
 
-export function useActiveMessage(messages: Message[]): { active: ActiveTarget; lockActive: (target: ActiveTarget) => void } {
-  const [active, setActive] = useState<ActiveTarget>({ messageId: null, sectionIndex: null });
+export function useActiveMessage(messages: Message[]): {
+  active: ActiveTarget;
+  lockActive: (target: ActiveTarget) => void;
+} {
+  const [active, setActive] = useState<ActiveTarget>({
+    messageId: null,
+    sectionIndex: null,
+  });
   const lockRef = useRef(0);
 
   const lockActive = useCallback((target: ActiveTarget) => {
@@ -22,14 +28,20 @@ export function useActiveMessage(messages: Message[]): { active: ActiveTarget; l
   useEffect(() => {
     if (messages.length === 0) return;
 
-    const elementMap = new Map<Element, { messageId: string; sectionIndex: number | null }>();
+    const elementMap = new Map<
+      Element,
+      { messageId: string; sectionIndex: number | null }
+    >();
 
     for (const msg of messages) {
       let headingCount = 0;
       if (msg.structured) {
         for (const block of msg.structured.blocks) {
           if (block.type === 'heading' && block.element) {
-            elementMap.set(block.element, { messageId: msg.id, sectionIndex: headingCount });
+            elementMap.set(block.element, {
+              messageId: msg.id,
+              sectionIndex: headingCount,
+            });
             headingCount++;
           }
         }
@@ -47,7 +59,8 @@ export function useActiveMessage(messages: Message[]): { active: ActiveTarget; l
       if (Date.now() - lockRef.current < LOCK_DURATION) return;
 
       const refLine = window.innerHeight * SCROLL_REF_RATIO;
-      let best: { messageId: string; sectionIndex: number | null } | null = null;
+      let best: { messageId: string; sectionIndex: number | null } | null =
+        null;
       let bestDistance = Infinity;
 
       for (const [el, target] of elementMap) {
@@ -79,9 +92,10 @@ export function useActiveMessage(messages: Message[]): { active: ActiveTarget; l
 
       if (best) {
         setActive((prev) =>
-          prev.messageId === best.messageId && prev.sectionIndex === best.sectionIndex
+          prev.messageId === best.messageId &&
+          prev.sectionIndex === best.sectionIndex
             ? prev
-            : best
+            : best,
         );
       }
     };
@@ -102,7 +116,10 @@ export function useActiveMessage(messages: Message[]): { active: ActiveTarget; l
     // Run once immediately to set initial active state
     updateActive();
 
-    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    window.addEventListener('scroll', onScroll, {
+      passive: true,
+      capture: true,
+    });
 
     return () => {
       window.removeEventListener('scroll', onScroll, { capture: true });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ShortcutConfig } from '../../types';
-import { ShortcutSettings } from './ShortcutSettings';
 import { PerfOverlay } from './PerfOverlay';
+import { ShortcutSettings } from './ShortcutSettings';
 
 interface ToggleButtonProps {
   active: boolean;
@@ -12,7 +12,14 @@ interface ToggleButtonProps {
   onPerfEnabledChange: (enabled: boolean) => void;
 }
 
-export function ToggleButton({ active, onToggle, shortcutConfig, onShortcutConfigChange, perfEnabled, onPerfEnabledChange }: ToggleButtonProps) {
+export function ToggleButton({
+  active,
+  onToggle,
+  shortcutConfig,
+  onShortcutConfigChange,
+  perfEnabled,
+  onPerfEnabledChange,
+}: ToggleButtonProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
@@ -24,7 +31,13 @@ export function ToggleButton({ active, onToggle, shortcutConfig, onShortcutConfi
           title="Shortcut settings"
           className={`chatlog-toggle ${settingsOpen ? 'active' : ''}`}
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -38,7 +51,13 @@ export function ToggleButton({ active, onToggle, shortcutConfig, onShortcutConfi
           title="Toggle outline"
           className={`chatlog-toggle ${active ? 'active' : ''}`}
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

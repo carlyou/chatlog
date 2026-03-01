@@ -1,21 +1,27 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Message, Platform } from '../../types';
-import type { ActiveTarget } from './useActiveMessage';
-import { getSelectors } from '../lib/selectors';
 import {
-  highlightMainConversation,
   clearMainHighlights,
-  setCurrentMainHighlight,
   countMainHighlights,
   getMainHighlightAt,
+  highlightMainConversation,
+  setCurrentMainHighlight,
 } from '../lib/highlighter';
+import { getSelectors } from '../lib/selectors';
+import type { ActiveTarget } from './useActiveMessage';
 
-export function useSearch(messages: Message[], platform: Platform, lockActive?: (target: ActiveTarget) => void) {
+export function useSearch(
+  messages: Message[],
+  platform: Platform,
+  lockActive?: (target: ActiveTarget) => void,
+) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [currentMatch, setCurrentMatch] = useState(0);
   const [mainMatchCount, setMainMatchCount] = useState(0);
-  const [currentMatchMsgId, setCurrentMatchMsgId] = useState<string | null>(null);
+  const [currentMatchMsgId, setCurrentMatchMsgId] = useState<string | null>(
+    null,
+  );
   const containerRef = useRef<Element | null>(null);
 
   // Resolve the main-page container once
@@ -37,8 +43,13 @@ export function useSearch(messages: Message[], platform: Platform, lockActive?: 
         if (msg.text.toLowerCase().includes(q)) return true;
         if (msg.structured) {
           for (const block of msg.structured.blocks) {
-            if (block.type === 'heading' && block.text.toLowerCase().includes(q)) return true;
-            if (block.type === 'code' && block.text.toLowerCase().includes(q)) return true;
+            if (
+              block.type === 'heading' &&
+              block.text.toLowerCase().includes(q)
+            )
+              return true;
+            if (block.type === 'code' && block.text.toLowerCase().includes(q))
+              return true;
             if (block.type === 'paragraph') {
               const text = block.segments.map((s) => s.text).join('');
               if (text.toLowerCase().includes(q)) return true;
@@ -67,14 +78,17 @@ export function useSearch(messages: Message[], platform: Platform, lockActive?: 
   }, [messages, query]);
 
   // Find which message contains a given DOM element
-  const findMessageForElement = useCallback((el: HTMLElement): string | null => {
-    for (const msg of messages) {
-      if (msg.element && (msg.element as HTMLElement).contains(el)) {
-        return msg.id;
+  const findMessageForElement = useCallback(
+    (el: HTMLElement): string | null => {
+      for (const msg of messages) {
+        if (msg.element && (msg.element as HTMLElement).contains(el)) {
+          return msg.id;
+        }
       }
-    }
-    return null;
-  }, [messages]);
+      return null;
+    },
+    [messages],
+  );
 
   // Apply / clear main-conversation highlights whenever query or open state changes
   useEffect(() => {

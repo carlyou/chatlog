@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { ShortcutConfig, ShortcutBinding } from '../../types';
-import { bindingLabel } from '../lib/shortcutMatcher';
+import { useCallback, useEffect, useState } from 'react';
+import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
+import { bindingLabel } from '../lib/shortcutMatcher';
 
 interface ShortcutSettingsProps {
   config: ShortcutConfig;
@@ -20,30 +20,40 @@ const LABELS: Record<keyof ShortcutConfig, string> = {
   sectionNext: 'Next section',
 };
 
-export function ShortcutSettings({ config, onChange, perfEnabled, onPerfEnabledChange }: ShortcutSettingsProps) {
-  const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(null);
+export function ShortcutSettings({
+  config,
+  onChange,
+  perfEnabled,
+  onPerfEnabledChange,
+}: ShortcutSettingsProps) {
+  const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(
+    null,
+  );
 
-  const handleCapture = useCallback((e: KeyboardEvent) => {
-    if (!listeningKey) return;
-    // Ignore bare modifier keys
-    if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+  const handleCapture = useCallback(
+    (e: KeyboardEvent) => {
+      if (!listeningKey) return;
+      // Ignore bare modifier keys
+      if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
 
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
 
-    const newBinding: ShortcutBinding = {
-      enabled: config[listeningKey].enabled,
-      key: e.key,
-      shift: e.shiftKey || undefined,
-      ctrl: e.ctrlKey || undefined,
-      alt: e.altKey || undefined,
-      meta: e.metaKey || undefined,
-    };
+      const newBinding: ShortcutBinding = {
+        enabled: config[listeningKey].enabled,
+        key: e.key,
+        shift: e.shiftKey || undefined,
+        ctrl: e.ctrlKey || undefined,
+        alt: e.altKey || undefined,
+        meta: e.metaKey || undefined,
+      };
 
-    onChange({ ...config, [listeningKey]: newBinding });
-    setListeningKey(null);
-  }, [listeningKey, config, onChange]);
+      onChange({ ...config, [listeningKey]: newBinding });
+      setListeningKey(null);
+    },
+    [listeningKey, config, onChange],
+  );
 
   useEffect(() => {
     if (!listeningKey) return;
@@ -52,7 +62,8 @@ export function ShortcutSettings({ config, onChange, perfEnabled, onPerfEnabledC
       document.activeElement.blur();
     }
     window.addEventListener('keydown', handleCapture, { capture: true });
-    return () => window.removeEventListener('keydown', handleCapture, { capture: true });
+    return () =>
+      window.removeEventListener('keydown', handleCapture, { capture: true });
   }, [listeningKey, handleCapture]);
 
   const toggleEnabled = (key: keyof ShortcutConfig) => {

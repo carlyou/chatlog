@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { perfGetSnapshot, type PerfSnapshot } from '../lib/perf';
+import { type PerfSnapshot, perfGetSnapshot } from '../lib/perf';
 
 interface PerfOverlayProps {
   visible: boolean;
@@ -43,13 +43,32 @@ export function PerfOverlay({ visible }: PerfOverlayProps) {
   return (
     <div className="chatlog-perf-overlay">
       <div className="chatlog-perf-title">Perf</div>
-      <div className="chatlog-perf-row">parse avg/p95: {avg(parseTimes).toFixed(1)}/{p95(parseTimes).toFixed(1)}ms</div>
-      <div className="chatlog-perf-row">reconcile avg/p95: {avg(reconcileTimes).toFixed(1)}/{p95(reconcileTimes).toFixed(1)}ms</div>
-      <div className="chatlog-perf-row">refresh avg/p95: {avg(refreshTimes).toFixed(1)}/{p95(refreshTimes).toFixed(1)}ms</div>
-      <div className="chatlog-perf-row">obs/records: {counters.observerCallbacks}/{counters.mutationRecordsTotal}</div>
-      <div className="chatlog-perf-row">refresh s/e: {counters.refreshScheduled}/{counters.refreshExecuted}</div>
-      <div className="chatlog-perf-row">reconcile f/i: {counters.fullReconciles}/{counters.incrementalReconciles}</div>
-      <div className="chatlog-perf-row">dirty roots: {counters.dirtyRootsProcessed}</div>
+      <div className="chatlog-perf-row">
+        parse avg/p95: {avg(parseTimes).toFixed(1)}/{p95(parseTimes).toFixed(1)}
+        ms
+      </div>
+      <div className="chatlog-perf-row">
+        reconcile avg/p95: {avg(reconcileTimes).toFixed(1)}/
+        {p95(reconcileTimes).toFixed(1)}ms
+      </div>
+      <div className="chatlog-perf-row">
+        refresh avg/p95: {avg(refreshTimes).toFixed(1)}/
+        {p95(refreshTimes).toFixed(1)}ms
+      </div>
+      <div className="chatlog-perf-row">
+        obs/records: {counters.observerCallbacks}/
+        {counters.mutationRecordsTotal}
+      </div>
+      <div className="chatlog-perf-row">
+        refresh s/e: {counters.refreshScheduled}/{counters.refreshExecuted}
+      </div>
+      <div className="chatlog-perf-row">
+        reconcile f/i: {counters.fullReconciles}/
+        {counters.incrementalReconciles}
+      </div>
+      <div className="chatlog-perf-row">
+        dirty roots: {counters.dirtyRootsProcessed}
+      </div>
     </div>
   );
 }

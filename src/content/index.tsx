@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { detectPlatform } from './lib/platform';
-import { getSelectors } from './lib/selectors';
 import { App } from './App';
 import contentCss from './content.css?inline';
+import { detectPlatform } from './lib/platform';
+import { getSelectors } from './lib/selectors';
 
 function waitForElement(selector: string, timeout = 10000): Promise<Element> {
   return new Promise((resolve, reject) => {
@@ -22,7 +22,7 @@ function waitForElement(selector: string, timeout = 10000): Promise<Element> {
 
     setTimeout(() => {
       observer.disconnect();
-      reject(new Error('Timeout waiting for ' + selector));
+      reject(new Error(`Timeout waiting for ${selector}`));
     }, timeout);
   });
 }
@@ -59,11 +59,18 @@ async function init() {
   }
 
   // Fade chat input based on mouse Y position
-  document.addEventListener('mousemove', (e) => {
-    const threshold = 3 / 4;
-    const opacity = e.clientY <= window.innerHeight * threshold ? 0 :  1;
-    document.documentElement.style.setProperty('--chatlog-input-opacity', String(opacity));
-  }, { passive: true });
+  document.addEventListener(
+    'mousemove',
+    (e) => {
+      const threshold = 3 / 4;
+      const opacity = e.clientY <= window.innerHeight * threshold ? 0 : 1;
+      document.documentElement.style.setProperty(
+        '--chatlog-input-opacity',
+        String(opacity),
+      );
+    },
+    { passive: true },
+  );
 
   // Remove any previous mount
   document.getElementById('chatlog-root')?.remove();
@@ -89,7 +96,7 @@ async function init() {
   ReactDOM.createRoot(mountPoint).render(
     <React.StrictMode>
       <App platform={platform} />
-    </React.StrictMode>
+    </React.StrictMode>,
   );
 }
 

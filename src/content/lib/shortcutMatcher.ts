@@ -1,7 +1,10 @@
 import type { ShortcutBinding } from '../../types';
 
 /** Returns true only if the binding is enabled and all modifiers + key match exactly. */
-export function matchesBinding(e: KeyboardEvent, binding: ShortcutBinding): boolean {
+export function matchesBinding(
+  e: KeyboardEvent,
+  binding: ShortcutBinding,
+): boolean {
   if (!binding.enabled) return false;
   if (e.key !== binding.key) return false;
   if (e.shiftKey !== !!binding.shift) return false;

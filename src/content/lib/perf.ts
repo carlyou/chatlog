@@ -99,11 +99,11 @@ function maybeReport() {
     // eslint-disable-next-line no-console
     console.log(
       `[chatlog:perf] obs=${counters.observerCallbacks} records=${counters.mutationRecordsTotal} maxBurst=${counters.mutationRecordsMaxBurst} ` +
-      `refresh(s/e/sk)=${counters.refreshScheduled}/${counters.refreshExecuted}/${counters.refreshSkipped} ` +
-      `reconcile(full/inc)=${counters.fullReconciles}/${counters.incrementalReconciles} dirtyRoots=${counters.dirtyRootsProcessed} ` +
-      `parse(avg/p95/max)=${mean(parse).toFixed(1)}/${p95(parse).toFixed(1)}/${max(parse).toFixed(1)}ms ` +
-      `refresh(avg/p95)=${mean(refresh).toFixed(1)}/${p95(refresh).toFixed(1)}ms ` +
-      `reconcile(avg/p95)=${mean(reconcile).toFixed(1)}/${p95(reconcile).toFixed(1)}ms`
+        `refresh(s/e/sk)=${counters.refreshScheduled}/${counters.refreshExecuted}/${counters.refreshSkipped} ` +
+        `reconcile(full/inc)=${counters.fullReconciles}/${counters.incrementalReconciles} dirtyRoots=${counters.dirtyRootsProcessed} ` +
+        `parse(avg/p95/max)=${mean(parse).toFixed(1)}/${p95(parse).toFixed(1)}/${max(parse).toFixed(1)}ms ` +
+        `refresh(avg/p95)=${mean(refresh).toFixed(1)}/${p95(refresh).toFixed(1)}ms ` +
+        `reconcile(avg/p95)=${mean(reconcile).toFixed(1)}/${p95(reconcile).toFixed(1)}ms`,
     );
   }, REPORT_INTERVAL_MS);
 }
@@ -138,7 +138,10 @@ function exposeDebugHandle() {
   if (typeof window === 'undefined') return;
   const target = window as Window & {
     __chatlogPerf?: {
-      getSnapshot: () => { counters: Record<CounterKey, number>; timings: Record<TimingKey, number[]> };
+      getSnapshot: () => {
+        counters: Record<CounterKey, number>;
+        timings: Record<TimingKey, number[]>;
+      };
       reset: () => void;
     };
   };
@@ -156,13 +159,19 @@ export function perfInc(key: CounterKey, by = 1): void {
   maybeReport();
 }
 
-export function perfSetMax(key: Extract<CounterKey, 'mutationRecordsMaxBurst'>, value: number): void {
+export function perfSetMax(
+  key: Extract<CounterKey, 'mutationRecordsMaxBurst'>,
+  value: number,
+): void {
   if (!isEnabled()) return;
   counters[key] = Math.max(counters[key], value);
   maybeReport();
 }
 
-export function perfSet(key: Extract<CounterKey, 'messagesParsedLast'>, value: number): void {
+export function perfSet(
+  key: Extract<CounterKey, 'messagesParsedLast'>,
+  value: number,
+): void {
   if (!isEnabled()) return;
   counters[key] = value;
   maybeReport();

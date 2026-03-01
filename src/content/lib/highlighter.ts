@@ -19,7 +19,8 @@ function highlightNode(node: Node, query: string): void {
       parent.tagName === 'SCRIPT' ||
       parent.tagName === 'STYLE' ||
       parent.tagName === 'NOSCRIPT'
-    ) return;
+    )
+      return;
 
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
@@ -51,13 +52,19 @@ function clearHighlights(container: Element): void {
   marks.forEach((mark) => {
     const parent = mark.parentNode;
     if (parent) {
-      parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+      parent.replaceChild(
+        document.createTextNode(mark.textContent || ''),
+        mark,
+      );
       parent.normalize();
     }
   });
 }
 
-export function highlightMainConversation(container: Element | null, query: string): void {
+export function highlightMainConversation(
+  container: Element | null,
+  query: string,
+): void {
   if (!container) return;
   clearHighlights(container);
   if (query.trim()) highlightNode(container, query.trim());
@@ -71,7 +78,10 @@ export function clearMainHighlights(container: Element | null): void {
  * Set the "current" highlight on a specific <mark> in the main conversation.
  * Clears any previous current highlight first.
  */
-export function setCurrentMainHighlight(container: Element | null, index: number): void {
+export function setCurrentMainHighlight(
+  container: Element | null,
+  index: number,
+): void {
   if (!container) return;
   // Clear previous
   container.querySelectorAll(`.${HIGHLIGHT_CURRENT_CLASS}`).forEach((el) => {
@@ -93,7 +103,10 @@ export function countMainHighlights(container: Element | null): number {
 }
 
 /** Get the <mark> element at a given index (for finding which message it belongs to). */
-export function getMainHighlightAt(container: Element | null, index: number): HTMLElement | null {
+export function getMainHighlightAt(
+  container: Element | null,
+  index: number,
+): HTMLElement | null {
   if (!container) return null;
   const marks = container.querySelectorAll(`mark[${HIGHLIGHT_ATTR}]`);
   if (index >= 0 && index < marks.length) return marks[index] as HTMLElement;
