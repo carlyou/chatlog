@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'chatlog-sidebar-width';
 const DEFAULT_WIDTH = 320;
@@ -19,11 +19,14 @@ export function useSidebarWidth() {
 
   // Sync CSS variable on host page for margin adjustment
   useEffect(() => {
-    document.documentElement.style.setProperty('--chatlog-sidebar-width', `${width}px`);
+    document.documentElement.style.setProperty(
+      '--chatlog-sidebar-width',
+      `${width}px`,
+    );
   }, [width]);
 
   const setWidth = useCallback((w: number) => {
-    const maxPx = window.innerWidth * MAX_WIDTH_VW / 100;
+    const maxPx = (window.innerWidth * MAX_WIDTH_VW) / 100;
     const clamped = Math.max(MIN_WIDTH, Math.min(w, maxPx));
     setWidthState(clamped);
     chrome.storage.local.set({ [STORAGE_KEY]: clamped });

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Message, Platform } from '../../types';
 import {
   computeMessageRootSignature,
@@ -7,9 +8,9 @@ import {
   getMessageRoots,
   parseMessageRoot,
 } from '../lib/parsers';
+import { perfInc, perfRun, perfSetMax, perfTiming } from '../lib/perf';
 import { getSelectors } from '../lib/selectors';
 import { useUrlChange } from './useUrlChange';
-import { perfInc, perfRun, perfSetMax, perfTiming } from '../lib/perf';
 
 const PROCESS_DEBOUNCE_MS = 150;
 const PROCESS_BUDGET_MS = 10;
@@ -32,10 +33,15 @@ function isMeaningfulTextMutation(node: Node): boolean {
 
 function mutationIsLikelyControlOnly(target: Node): boolean {
   if (!(target instanceof Element)) return false;
-  return !!target.closest('button, [role="button"], [role="menu"], [role="tooltip"], svg');
+  return !!target.closest(
+    'button, [role="button"], [role="menu"], [role="tooltip"], svg',
+  );
 }
 
-export function useMessages(platform: Platform) {
+export function useMessages(
+  platform: Platform,
+  pausedRef?: React.RefObject<boolean>,
+) {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const containerRef = useRef<Element | null>(null);
@@ -57,21 +63,27 @@ export function useMessages(platform: Platform) {
     return document.querySelector(selectors.messageContainer);
   }, [platform]);
 
-  const reindexRoots = useCallback((container: Element): Element[] => {
-    const roots = getMessageRoots(platform, container);
-    rootOrderRef.current = roots;
-    knownRootSetRef.current = new Set(roots);
-    return roots;
-  }, [platform]);
+  const reindexRoots = useCallback(
+    (container: Element): Element[] => {
+      const roots = getMessageRoots(platform, container);
+      rootOrderRef.current = roots;
+      knownRootSetRef.current = new Set(roots);
+      return roots;
+    },
+    [platform],
+  );
 
-  const parseRootIfChanged = useCallback((root: Element): boolean => {
-    const nextSig = computeMessageRootSignature(platform, root);
-    const prev = cacheRef.current.get(root);
-    if (prev && prev.signature === nextSig) return false;
-    const parsed = parseMessageRoot(platform, root);
-    cacheRef.current.set(root, { signature: nextSig, message: parsed });
-    return true;
-  }, [platform]);
+  const parseRootIfChanged = useCallback(
+    (root: Element): boolean => {
+      const nextSig = computeMessageRootSignature(platform, root);
+      const prev = cacheRef.current.get(root);
+      if (prev && prev.signature === nextSig) return false;
+      const parsed = parseMessageRoot(platform, root);
+      cacheRef.current.set(root, { signature: nextSig, message: parsed });
+      return true;
+    },
+    [platform],
+  );
 
   const commitFromCache = useCallback(() => {
     const next: Message[] = [];
@@ -82,31 +94,37 @@ export function useMessages(platform: Platform) {
     setMessages(next);
   }, []);
 
-  const fullReconcile = useCallback((reason: 'init' | 'interval' | 'url-change' | 'rebind') => {
-    perfInc('fullReconciles');
-    perfRun('reconcileMs', () => {
-      const container = resolveContainer();
-      containerRef.current = container;
-      if (!container) {
-        rootOrderRef.current = [];
-        knownRootSetRef.current = new Set();
-        dirtyRootsRef.current.clear();
-        setMessages([]);
-        return;
-      }
+  const fullReconcile = useCallback(
+    (reason: 'init' | 'interval' | 'url-change' | 'rebind') => {
+      perfInc('fullReconciles');
+      perfRun('reconcileMs', () => {
+        const container = resolveContainer();
+        containerRef.current = container;
+        if (!container) {
+          rootOrderRef.current = [];
+          knownRootSetRef.current = new Set();
+          dirtyRootsRef.current.clear();
+          setMessages([]);
+          return;
+        }
 
-      const roots = reindexRoots(container);
-      for (const root of roots) {
-        parseRootIfChanged(root);
-      }
-      dirtyRootsRef.current.clear();
-      commitFromCache();
-      if (reason === 'url-change') perfInc('urlChangeRefreshes');
-    });
-  }, [commitFromCache, parseRootIfChanged, reindexRoots, resolveContainer]);
+        const roots = reindexRoots(container);
+        for (const root of roots) {
+          parseRootIfChanged(root);
+        }
+        dirtyRootsRef.current.clear();
+        commitFromCache();
+        if (reason === 'url-change') perfInc('urlChangeRefreshes');
+      });
+    },
+    [commitFromCache, parseRootIfChanged, reindexRoots, resolveContainer],
+  );
 
   const clearScheduledReconcile = useCallback(() => {
-    if (idleReconcileRef.current && typeof window.cancelIdleCallback === 'function') {
+    if (
+      idleReconcileRef.current &&
+      typeof window.cancelIdleCallback === 'function'
+    ) {
       window.cancelIdleCallback(idleReconcileRef.current);
     }
     if (delayedReconcileRef.current) {
@@ -121,16 +139,19 @@ export function useMessages(platform: Platform) {
     const run = () => {
       idleReconcileRef.current = 0;
       delayedReconcileRef.current = 0;
+      if (pausedRef?.current) return;
       fullReconcile('interval');
     };
 
     if (typeof window.requestIdleCallback === 'function') {
-      idleReconcileRef.current = window.requestIdleCallback(run, { timeout: IDLE_RECONCILE_TIMEOUT_MS });
+      idleReconcileRef.current = window.requestIdleCallback(run, {
+        timeout: IDLE_RECONCILE_TIMEOUT_MS,
+      });
       return;
     }
 
     delayedReconcileRef.current = window.setTimeout(run, PROCESS_DEBOUNCE_MS);
-  }, [fullReconcile]);
+  }, [fullReconcile, pausedRef?.current]);
 
   const processDirtyRoots = useCallback(() => {
     processTimerRef.current = 0;
@@ -145,7 +166,11 @@ export function useMessages(platform: Platform) {
     let changed = false;
 
     const roots = dirtyRootsRef.current;
-    while (roots.size > 0 && parsedCount < PROCESS_MAX_ROOTS_PER_TICK && (performance.now() - start) < PROCESS_BUDGET_MS) {
+    while (
+      roots.size > 0 &&
+      parsedCount < PROCESS_MAX_ROOTS_PER_TICK &&
+      performance.now() - start < PROCESS_BUDGET_MS
+    ) {
       const first = roots.values().next();
       if (first.done) break;
       const root = first.value;
@@ -166,82 +191,108 @@ export function useMessages(platform: Platform) {
 
     if (roots.size > 0) {
       perfInc('refreshScheduled');
-      processTimerRef.current = window.setTimeout(processDirtyRoots, PROCESS_DEBOUNCE_MS);
+      processTimerRef.current = window.setTimeout(
+        processDirtyRoots,
+        PROCESS_DEBOUNCE_MS,
+      );
     }
   }, [commitFromCache, parseRootIfChanged]);
 
   const scheduleDirtyProcessing = useCallback(() => {
+    if (pausedRef?.current) return;
     if (processTimerRef.current) {
       perfInc('refreshSkipped');
       return;
     }
     perfInc('refreshScheduled');
-    processTimerRef.current = window.setTimeout(processDirtyRoots, PROCESS_DEBOUNCE_MS);
-  }, [processDirtyRoots]);
+    processTimerRef.current = window.setTimeout(
+      processDirtyRoots,
+      PROCESS_DEBOUNCE_MS,
+    );
+  }, [processDirtyRoots, pausedRef?.current]);
 
   const markRootDirty = useCallback((root: Element | null) => {
     if (!root || !knownRootSetRef.current.has(root)) return;
     dirtyRootsRef.current.add(root);
   }, []);
 
-  const handleMutations = useCallback((records: MutationRecord[]) => {
-    perfInc('observerCallbacks');
-    perfInc('mutationRecordsTotal', records.length);
-    perfSetMax('mutationRecordsMaxBurst', records.length);
+  const handleMutations = useCallback(
+    (records: MutationRecord[]) => {
+      perfInc('observerCallbacks');
+      perfInc('mutationRecordsTotal', records.length);
+      perfSetMax('mutationRecordsMaxBurst', records.length);
 
-    let needsReindex = false;
+      let needsReindex = false;
 
-    for (const record of records) {
-      if (record.type === 'characterData') {
-        if (!isMeaningfulTextMutation(record.target)) continue;
-        const root = getMessageRootForNode(platform, record.target);
-        markRootDirty(root);
-        continue;
+      for (const record of records) {
+        if (record.type === 'characterData') {
+          if (!isMeaningfulTextMutation(record.target)) continue;
+          const root = getMessageRootForNode(platform, record.target);
+          markRootDirty(root);
+          continue;
+        }
+
+        if (record.type !== 'childList') continue;
+        if (mutationIsLikelyControlOnly(record.target)) continue;
+
+        const targetRoot = getMessageRootForNode(platform, record.target);
+        if (targetRoot) markRootDirty(targetRoot);
+
+        for (const node of record.addedNodes) {
+          const directRoot = getMessageRootForNode(platform, node);
+          if (directRoot?.isConnected) {
+            markRootDirty(directRoot);
+          }
+          if (
+            rootSelector &&
+            node instanceof Element &&
+            (node.matches(rootSelector) || !!node.querySelector(rootSelector))
+          ) {
+            needsReindex = true;
+          }
+        }
+        for (const node of record.removedNodes) {
+          const removedRoot = getMessageRootForNode(platform, node);
+          if (removedRoot) {
+            dirtyRootsRef.current.delete(removedRoot);
+          }
+          if (
+            rootSelector &&
+            node instanceof Element &&
+            (node.matches(rootSelector) || !!node.querySelector(rootSelector))
+          ) {
+            needsReindex = true;
+          }
+        }
       }
 
-      if (record.type !== 'childList') continue;
-      if (mutationIsLikelyControlOnly(record.target)) continue;
-
-      const targetRoot = getMessageRootForNode(platform, record.target);
-      if (targetRoot) markRootDirty(targetRoot);
-
-      for (const node of record.addedNodes) {
-        const directRoot = getMessageRootForNode(platform, node);
-        if (directRoot && directRoot.isConnected) {
-          markRootDirty(directRoot);
-        }
-        if (rootSelector && node instanceof Element && (node.matches(rootSelector) || !!node.querySelector(rootSelector))) {
-          needsReindex = true;
+      if (needsReindex && containerRef.current) {
+        reindexRoots(containerRef.current);
+        // Ensure newly discovered roots are parsed on next tick.
+        for (const root of rootOrderRef.current) {
+          if (!cacheRef.current.has(root)) dirtyRootsRef.current.add(root);
         }
       }
-      for (const node of record.removedNodes) {
-        const removedRoot = getMessageRootForNode(platform, node);
-        if (removedRoot) {
-          dirtyRootsRef.current.delete(removedRoot);
-        }
-        if (rootSelector && node instanceof Element && (node.matches(rootSelector) || !!node.querySelector(rootSelector))) {
-          needsReindex = true;
-        }
+
+      if (dirtyRootsRef.current.size > DIRTY_ROOT_RECONCILE_THRESHOLD) {
+        if (!pausedRef?.current) fullReconcile('rebind');
+        return;
       }
-    }
 
-    if (needsReindex && containerRef.current) {
-      reindexRoots(containerRef.current);
-      // Ensure newly discovered roots are parsed on next tick.
-      for (const root of rootOrderRef.current) {
-        if (!cacheRef.current.has(root)) dirtyRootsRef.current.add(root);
+      if (dirtyRootsRef.current.size > 0) {
+        scheduleDirtyProcessing();
       }
-    }
-
-    if (dirtyRootsRef.current.size > DIRTY_ROOT_RECONCILE_THRESHOLD) {
-      fullReconcile('rebind');
-      return;
-    }
-
-    if (dirtyRootsRef.current.size > 0) {
-      scheduleDirtyProcessing();
-    }
-  }, [fullReconcile, markRootDirty, platform, reindexRoots, rootSelector, scheduleDirtyProcessing]);
+    },
+    [
+      fullReconcile,
+      markRootDirty,
+      platform,
+      reindexRoots,
+      rootSelector,
+      scheduleDirtyProcessing,
+      pausedRef?.current,
+    ],
+  );
 
   const rebindObserver = useCallback(() => {
     observerRef.current?.disconnect();
@@ -278,7 +329,8 @@ export function useMessages(platform: Platform) {
       observerRef.current?.disconnect();
       observerRef.current = null;
       if (processTimerRef.current) window.clearTimeout(processTimerRef.current);
-      if (reconcileTimerRef.current) window.clearInterval(reconcileTimerRef.current);
+      if (reconcileTimerRef.current)
+        window.clearInterval(reconcileTimerRef.current);
       clearScheduledReconcile();
       processTimerRef.current = 0;
       reconcileTimerRef.current = 0;
@@ -286,7 +338,12 @@ export function useMessages(platform: Platform) {
       rootOrderRef.current = [];
       knownRootSetRef.current.clear();
     };
-  }, [clearScheduledReconcile, fullReconcile, rebindObserver, scheduleIntervalReconcile]);
+  }, [
+    clearScheduledReconcile,
+    fullReconcile,
+    rebindObserver,
+    scheduleIntervalReconcile,
+  ]);
 
   useUrlChange(() => {
     clearScheduledReconcile();
@@ -294,5 +351,10 @@ export function useMessages(platform: Platform) {
     fullReconcile('url-change');
   });
 
-  return messages;
+  const reconcile = useCallback(
+    () => fullReconcile('interval'),
+    [fullReconcile],
+  );
+
+  return [messages, reconcile] as const;
 }

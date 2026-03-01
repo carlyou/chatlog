@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Platform } from '../../types';
 
 const STORAGE_KEY = 'chatlog-bookmarks';
@@ -14,7 +14,11 @@ function getConversationId(): string | null {
   return null;
 }
 
-function makeKey(platform: Platform, conversationId: string, messageId: string): string {
+function makeKey(
+  platform: Platform,
+  conversationId: string,
+  messageId: string,
+): string {
   return `${platform}:${conversationId}:${messageId}`;
 }
 
@@ -36,22 +40,28 @@ export function useBookmarks(platform: Platform) {
     chrome.storage.local.set({ [STORAGE_KEY]: [...next] });
   }, []);
 
-  const toggle = useCallback((messageId: string) => {
-    if (!platform || !conversationId) return;
-    const key = makeKey(platform, conversationId, messageId);
-    setBookmarks((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      persist(next);
-      return next;
-    });
-  }, [platform, conversationId, persist]);
+  const toggle = useCallback(
+    (messageId: string) => {
+      if (!platform || !conversationId) return;
+      const key = makeKey(platform, conversationId, messageId);
+      setBookmarks((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+        persist(next);
+        return next;
+      });
+    },
+    [platform, conversationId, persist],
+  );
 
-  const isBookmarked = useCallback((messageId: string) => {
-    if (!platform || !conversationId) return false;
-    return bookmarks.has(makeKey(platform, conversationId, messageId));
-  }, [platform, conversationId, bookmarks]);
+  const isBookmarked = useCallback(
+    (messageId: string) => {
+      if (!platform || !conversationId) return false;
+      return bookmarks.has(makeKey(platform, conversationId, messageId));
+    },
+    [platform, conversationId, bookmarks],
+  );
 
   const toggleShowOnly = useCallback(() => setShowOnly((p) => !p), []);
 

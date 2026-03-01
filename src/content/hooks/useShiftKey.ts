@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { DisplayMode, Message, ShortcutConfig } from '../../types';
-import type { ActiveTarget } from './useActiveMessage';
 import { scrollElToRefLine } from '../components/MessageBubble';
 import { matchesBinding } from '../lib/shortcutMatcher';
+import type { ActiveTarget } from './useActiveMessage';
 
 const MAX_HISTORY = 50;
 const POST_JUMP_DELAY = 400;
@@ -28,7 +28,9 @@ interface NavEntry {
 /** Query through shadow root for the search input. */
 function getSearchInput(): HTMLInputElement | null {
   const shadow = document.querySelector('#chatlog-root')?.shadowRoot;
-  return shadow?.querySelector('.chatlog-search-input') as HTMLInputElement | null;
+  return shadow?.querySelector(
+    '.chatlog-search-input',
+  ) as HTMLInputElement | null;
 }
 
 /** Walk up from an element to find the nearest scrollable ancestor. */
@@ -46,7 +48,17 @@ function findScrollableAncestor(el: Element): HTMLElement | null {
   return null;
 }
 
-export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive, shortcutConfig, onPeek, onTogglePin, onToggleSearch }: UseShiftKeyParams): { pushToHistory: () => void } {
+export function useShiftKey({
+  mode,
+  setMode,
+  messages,
+  activeTarget,
+  lockActive,
+  shortcutConfig,
+  onPeek,
+  onTogglePin,
+  onToggleSearch,
+}: UseShiftKeyParams): { pushToHistory: () => void } {
   // --- History state (all refs to avoid re-render churn) ---
   const historyRef = useRef<number[]>([]);
   const historyIndexRef = useRef(-1);
@@ -59,13 +71,21 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
     const entries: NavEntry[] = [];
     for (const msg of messages) {
       if (msg.element) {
-        entries.push({ messageId: msg.id, sectionIndex: null, element: msg.element });
+        entries.push({
+          messageId: msg.id,
+          sectionIndex: null,
+          element: msg.element,
+        });
       }
       if ((mode === 'detailed' || mode === 'outline') && msg.structured) {
         let headingIdx = 0;
         for (const block of msg.structured.blocks) {
           if (block.type === 'heading' && block.element) {
-            entries.push({ messageId: msg.id, sectionIndex: headingIdx, element: block.element });
+            entries.push({
+              messageId: msg.id,
+              sectionIndex: headingIdx,
+              element: block.element,
+            });
             headingIdx++;
           }
         }
@@ -76,7 +96,7 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
 
   // --- Helper: get scroll container (cached) ---
   const getScrollContainer = useCallback((): HTMLElement | null => {
-    if (scrollContainerRef.current && scrollContainerRef.current.isConnected) {
+    if (scrollContainerRef.current?.isConnected) {
       return scrollContainerRef.current;
     }
     const firstEl = messages.length > 0 ? messages[0].element : null;
@@ -160,160 +180,190 @@ export function useShiftKey({ mode, setMode, messages, activeTarget, lockActive,
   }, [messages.length, getScrollTop]);
 
   // --- Keydown handler ---
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    // When typing in host-page input fields, only allow search toggle shortcut through
-    const target = e.composedPath()[0] as HTMLElement;
-    const isSearchInput = target.classList?.contains('chatlog-search-input');
-    const isHostInput =
-      !isSearchInput &&
-      (target.tagName === 'INPUT' ||
-       target.tagName === 'TEXTAREA' ||
-       target.isContentEditable);
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // When typing in host-page input fields, only allow search toggle shortcut through
+      const target = e.composedPath()[0] as HTMLElement;
+      const isSearchInput = target.classList?.contains('chatlog-search-input');
+      const isHostInput =
+        !isSearchInput &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable);
 
-    if (isHostInput) {
-      // Pass all keystrokes through to host input (including Shift+Space)
-      return;
-    }
+      if (isHostInput) {
+        // Pass all keystrokes through to host input (including Shift+Space)
+        return;
+      }
 
-    const config = shortcutConfig;
+      const config = shortcutConfig;
 
-    if (matchesBinding(e, config.toggleMode)) {
-      e.preventDefault();
-      onPeek?.();
-      const modeOrder: DisplayMode[] = ['compact', 'outline', 'detailed'];
-      const nextIdx = (modeOrder.indexOf(mode) + 1) % modeOrder.length;
-      setMode(modeOrder[nextIdx]);
-      return;
-    }
+      if (matchesBinding(e, config.toggleMode)) {
+        e.preventDefault();
+        onPeek?.();
+        const modeOrder: DisplayMode[] = ['compact', 'outline', 'detailed'];
+        const nextIdx = (modeOrder.indexOf(mode) + 1) % modeOrder.length;
+        setMode(modeOrder[nextIdx]);
+        return;
+      }
 
-    if (matchesBinding(e, config.toggleSidebar)) {
-      e.preventDefault();
-      onTogglePin?.();
-      return;
-    }
+      if (matchesBinding(e, config.toggleSidebar)) {
+        e.preventDefault();
+        onTogglePin?.();
+        return;
+      }
 
-    if (matchesBinding(e, config.toggleSearch)) {
-      e.preventDefault();
-      e.stopPropagation();
-      onPeek?.();
-      const input = getSearchInput();
-      if (!input) {
-        // Search not open → open search
-        onToggleSearch?.();
-      } else if (isSearchInput) {
-        // Search open, input focused
-        if (input.value.trim()) {
-          // Input not empty → unfocus
-          input.blur();
-        } else {
-          // Input empty → close search
+      if (matchesBinding(e, config.toggleSearch)) {
+        e.preventDefault();
+        e.stopPropagation();
+        onPeek?.();
+        const input = getSearchInput();
+        if (!input) {
+          // Search not open → open search
           onToggleSearch?.();
+        } else if (isSearchInput) {
+          // Search open, input focused
+          if (input.value.trim()) {
+            // Input not empty → unfocus
+            input.blur();
+          } else {
+            // Input empty → close search
+            onToggleSearch?.();
+          }
+        } else {
+          // Search open, input not focused → focus it
+          input.focus();
         }
-      } else {
-        // Search open, input not focused → focus it
-        input.focus();
+        return;
       }
-      return;
-    }
 
-    if (matchesBinding(e, config.historyBack)) {
-      e.preventDefault();
-      const history = historyRef.current;
-      const idx = historyIndexRef.current;
-      if (idx <= 0 || history.length === 0) return;
+      if (matchesBinding(e, config.historyBack)) {
+        e.preventDefault();
+        const history = historyRef.current;
+        const idx = historyIndexRef.current;
+        if (idx <= 0 || history.length === 0) return;
 
-      onPeek?.();
-      isNavigatingRef.current = true;
-      historyIndexRef.current = idx - 1;
-      const container = getScrollContainer();
-      if (container) {
-        container.scrollTo({ top: history[idx - 1], behavior: 'smooth' });
-      }
-      setTimeout(() => { isNavigatingRef.current = false; }, 500);
-      return;
-    }
-
-    if (matchesBinding(e, config.historyForward)) {
-      e.preventDefault();
-      const history = historyRef.current;
-      const idx = historyIndexRef.current;
-      if (idx >= history.length - 1) return;
-
-      onPeek?.();
-      isNavigatingRef.current = true;
-      historyIndexRef.current = idx + 1;
-      const container = getScrollContainer();
-      if (container) {
-        container.scrollTo({ top: history[idx + 1], behavior: 'smooth' });
-      }
-      setTimeout(() => { isNavigatingRef.current = false; }, 500);
-      return;
-    }
-
-    if (matchesBinding(e, config.sectionNext)) {
-      e.preventDefault();
-      if (navEntries.length === 0) return;
-
-      let currentIdx = -1;
-      for (let i = 0; i < navEntries.length; i++) {
-        const entry = navEntries[i];
-        if (entry.messageId === activeTarget.messageId && entry.sectionIndex === activeTarget.sectionIndex) {
-          currentIdx = i;
-          break;
+        onPeek?.();
+        isNavigatingRef.current = true;
+        historyIndexRef.current = idx - 1;
+        const container = getScrollContainer();
+        if (container) {
+          container.scrollTo({ top: history[idx - 1], behavior: 'smooth' });
         }
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 500);
+        return;
       }
 
-      if (currentIdx === -1 && activeTarget.messageId) {
-        for (let i = navEntries.length - 1; i >= 0; i--) {
-          if (navEntries[i].messageId === activeTarget.messageId) {
+      if (matchesBinding(e, config.historyForward)) {
+        e.preventDefault();
+        const history = historyRef.current;
+        const idx = historyIndexRef.current;
+        if (idx >= history.length - 1) return;
+
+        onPeek?.();
+        isNavigatingRef.current = true;
+        historyIndexRef.current = idx + 1;
+        const container = getScrollContainer();
+        if (container) {
+          container.scrollTo({ top: history[idx + 1], behavior: 'smooth' });
+        }
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 500);
+        return;
+      }
+
+      if (matchesBinding(e, config.sectionNext)) {
+        e.preventDefault();
+        if (navEntries.length === 0) return;
+
+        let currentIdx = -1;
+        for (let i = 0; i < navEntries.length; i++) {
+          const entry = navEntries[i];
+          if (
+            entry.messageId === activeTarget.messageId &&
+            entry.sectionIndex === activeTarget.sectionIndex
+          ) {
             currentIdx = i;
             break;
           }
         }
-      }
 
-      const nextIdx = currentIdx + 1;
-      if (nextIdx >= navEntries.length) return;
-
-      const next = navEntries[nextIdx];
-      onPeek?.();
-      lockActive({ messageId: next.messageId, sectionIndex: next.sectionIndex });
-      scrollElToRefLine(next.element as HTMLElement);
-      return;
-    }
-
-    if (matchesBinding(e, config.sectionPrev)) {
-      e.preventDefault();
-      if (navEntries.length === 0) return;
-
-      let currentIdx = -1;
-      for (let i = 0; i < navEntries.length; i++) {
-        const entry = navEntries[i];
-        if (entry.messageId === activeTarget.messageId && entry.sectionIndex === activeTarget.sectionIndex) {
-          currentIdx = i;
-          break;
+        if (currentIdx === -1 && activeTarget.messageId) {
+          for (let i = navEntries.length - 1; i >= 0; i--) {
+            if (navEntries[i].messageId === activeTarget.messageId) {
+              currentIdx = i;
+              break;
+            }
+          }
         }
+
+        const nextIdx = currentIdx + 1;
+        if (nextIdx >= navEntries.length) return;
+
+        const next = navEntries[nextIdx];
+        onPeek?.();
+        lockActive({
+          messageId: next.messageId,
+          sectionIndex: next.sectionIndex,
+        });
+        scrollElToRefLine(next.element as HTMLElement);
+        return;
       }
 
-      if (currentIdx === -1 && activeTarget.messageId) {
-        for (let i = navEntries.length - 1; i >= 0; i--) {
-          if (navEntries[i].messageId === activeTarget.messageId) {
+      if (matchesBinding(e, config.sectionPrev)) {
+        e.preventDefault();
+        if (navEntries.length === 0) return;
+
+        let currentIdx = -1;
+        for (let i = 0; i < navEntries.length; i++) {
+          const entry = navEntries[i];
+          if (
+            entry.messageId === activeTarget.messageId &&
+            entry.sectionIndex === activeTarget.sectionIndex
+          ) {
             currentIdx = i;
             break;
           }
         }
+
+        if (currentIdx === -1 && activeTarget.messageId) {
+          for (let i = navEntries.length - 1; i >= 0; i--) {
+            if (navEntries[i].messageId === activeTarget.messageId) {
+              currentIdx = i;
+              break;
+            }
+          }
+        }
+
+        const prevIdx = currentIdx <= 0 ? -1 : currentIdx - 1;
+        if (prevIdx < 0) return;
+
+        const prev = navEntries[prevIdx];
+        onPeek?.();
+        lockActive({
+          messageId: prev.messageId,
+          sectionIndex: prev.sectionIndex,
+        });
+        scrollElToRefLine(prev.element as HTMLElement);
+        return;
       }
-
-      const prevIdx = currentIdx <= 0 ? -1 : currentIdx - 1;
-      if (prevIdx < 0) return;
-
-      const prev = navEntries[prevIdx];
-      onPeek?.();
-      lockActive({ messageId: prev.messageId, sectionIndex: prev.sectionIndex });
-      scrollElToRefLine(prev.element as HTMLElement);
-      return;
-    }
-  }, [mode, setMode, navEntries, activeTarget, lockActive, getScrollContainer, shortcutConfig, onPeek, onTogglePin, onToggleSearch]);
+    },
+    [
+      mode,
+      setMode,
+      navEntries,
+      activeTarget,
+      lockActive,
+      getScrollContainer,
+      shortcutConfig,
+      onPeek,
+      onTogglePin,
+      onToggleSearch,
+    ],
+  );
 
   useEffect(() => {
     // Use capture phase so we can intercept shortcuts (like Shift+Space for search toggle)

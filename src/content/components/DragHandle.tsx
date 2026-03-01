@@ -14,7 +14,9 @@ export function DragHandle({ onDrag }: DragHandleProps) {
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     // Keep sidebar visible while dragging
-    handleRef.current?.closest('.chatlog-sidebar')?.classList.add('chatlog-dragging');
+    handleRef.current
+      ?.closest('.chatlog-sidebar')
+      ?.classList.add('chatlog-dragging');
   }, []);
 
   useEffect(() => {
@@ -29,7 +31,9 @@ export function DragHandle({ onDrag }: DragHandleProps) {
       draggingRef.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-      handleRef.current?.closest('.chatlog-sidebar')?.classList.remove('chatlog-dragging');
+      handleRef.current
+        ?.closest('.chatlog-sidebar')
+        ?.classList.remove('chatlog-dragging');
     };
 
     window.addEventListener('mousemove', onMouseMove);
@@ -40,5 +44,11 @@ export function DragHandle({ onDrag }: DragHandleProps) {
     };
   }, [onDrag]);
 
-  return <div ref={handleRef} className="chatlog-drag-handle" onMouseDown={onMouseDown} />;
+  return (
+    <div
+      ref={handleRef}
+      className="chatlog-drag-handle"
+      onMouseDown={onMouseDown}
+    />
+  );
 }

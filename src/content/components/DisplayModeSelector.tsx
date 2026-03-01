@@ -11,7 +11,10 @@ const modes: { value: DisplayMode; label: string; title: string }[] = [
   { value: 'detailed', label: 'D', title: 'Detailed' },
 ];
 
-export function DisplayModeSelector({ mode, onModeChange }: DisplayModeSelectorProps) {
+export function DisplayModeSelector({
+  mode,
+  onModeChange,
+}: DisplayModeSelectorProps) {
   return (
     <div className="chatlog-mode-selector">
       {modes.map((m) => (

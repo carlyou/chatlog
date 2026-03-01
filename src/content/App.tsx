@@ -1,18 +1,18 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Platform } from '../types';
-import { useMessages } from './hooks/useMessages';
-import { usePinned } from './hooks/usePinned';
-import { useDisplayMode } from './hooks/useDisplayMode';
-import { useActiveMessage } from './hooks/useActiveMessage';
-import { useShiftKey } from './hooks/useShiftKey';
-import { useShortcutConfig } from './hooks/useShortcutConfig';
-import { useSearch } from './hooks/useSearch';
-import { useBookmarks } from './hooks/useBookmarks';
-import { useSidebarWidth } from './hooks/useSidebarWidth';
-import { usePerfMode } from './hooks/usePerfMode';
+import { HoverZone } from './components/HoverZone';
 import { Sidebar } from './components/Sidebar';
 import { ToggleButton } from './components/ToggleButton';
-import { HoverZone } from './components/HoverZone';
+import { useActiveMessage } from './hooks/useActiveMessage';
+import { useBookmarks } from './hooks/useBookmarks';
+import { useDisplayMode } from './hooks/useDisplayMode';
+import { useMessages } from './hooks/useMessages';
+import { usePerfMode } from './hooks/usePerfMode';
+import { usePinned } from './hooks/usePinned';
+import { useSearch } from './hooks/useSearch';
+import { useShiftKey } from './hooks/useShiftKey';
+import { useShortcutConfig } from './hooks/useShortcutConfig';
+import { useSidebarWidth } from './hooks/useSidebarWidth';
 
 const PEEK_DURATION = 2000;
 
@@ -21,12 +21,21 @@ interface AppProps {
 }
 
 export function App({ platform }: AppProps) {
-  const messages = useMessages(platform);
+  const searchPausedRef = useRef(false);
+  const [messages, reconcileMessages] = useMessages(platform, searchPausedRef);
   const { active: activeTarget, lockActive } = useActiveMessage(messages);
   const { pinned, toggle } = usePinned();
   const { mode, setMode } = useDisplayMode();
-  const { config: shortcutConfig, setConfig: setShortcutConfig } = useShortcutConfig();
+  const { config: shortcutConfig, setConfig: setShortcutConfig } =
+    useShortcutConfig();
   const search = useSearch(messages, platform, lockActive);
+
+  // Pause message reconciliation while search is active to avoid disrupting match positions
+  useEffect(() => {
+    searchPausedRef.current = search.isOpen;
+    if (!search.isOpen) reconcileMessages();
+  }, [search.isOpen, reconcileMessages]);
+
   const bookmarks = useBookmarks(platform);
   const { width, setWidth } = useSidebarWidth();
   const { enabled: perfEnabled, setEnabled: setPerfEnabled } = usePerfMode();
@@ -38,12 +47,22 @@ export function App({ platform }: AppProps) {
     if (pinned) return;
     clearTimeout(peekTimerRef.current);
     setPeeking(true);
-    peekTimerRef.current = window.setTimeout(() => setPeeking(false), PEEK_DURATION);
+    peekTimerRef.current = window.setTimeout(
+      () => setPeeking(false),
+      PEEK_DURATION,
+    );
   }, [pinned]);
 
   const { pushToHistory } = useShiftKey({
-    mode, setMode, messages, activeTarget, lockActive, shortcutConfig,
-    onPeek: peek, onTogglePin: toggle, onToggleSearch: search.toggle,
+    mode,
+    setMode,
+    messages,
+    activeTarget,
+    lockActive,
+    shortcutConfig,
+    onPeek: peek,
+    onTogglePin: toggle,
+    onToggleSearch: search.toggle,
   });
 
   const currentSearchMatchId = search.currentMatchMsgId;

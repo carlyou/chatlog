@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ShortcutConfig } from '../../types';
 
 const STORAGE_KEY = 'chatlog-shortcuts';
@@ -16,7 +16,9 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
 /** Merge stored config with defaults so new keys added later are picked up. */
 function mergeWithDefaults(stored: Partial<ShortcutConfig>): ShortcutConfig {
   const merged = { ...DEFAULT_SHORTCUTS };
-  for (const key of Object.keys(DEFAULT_SHORTCUTS) as (keyof ShortcutConfig)[]) {
+  for (const key of Object.keys(
+    DEFAULT_SHORTCUTS,
+  ) as (keyof ShortcutConfig)[]) {
     if (stored[key]) {
       merged[key] = { ...DEFAULT_SHORTCUTS[key], ...stored[key] };
     }

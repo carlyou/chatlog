@@ -14,7 +14,9 @@
   display: flex;
   flex-direction: column;
   font-size: 13px;
-  font-family: anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
   color: rgba(0, 0, 0, 0.95);
 }
 
@@ -35,7 +37,7 @@
 
 .chatlog-sidebar.pinned,
 .chatlog-sidebar.chatlog-dragging {
-  transform: translateX(0) !important;
+  transform: translateX(0);
 }
 
 /* Hover zones */
@@ -53,11 +55,11 @@
 
 /* Invisible buffer extending sidebar's hoverable area to the left */
 .chatlog-sidebar-right::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
-  left: -40px;
-  width: 40px;
+  left: -20px;
+  width: 20px;
   height: 100%;
 }
 
@@ -131,7 +133,7 @@
 }
 
 .chatlog-toggles::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -30px;
   pointer-events: auto;
@@ -279,8 +281,6 @@
   gap: 2px;
 }
 
-
-
 .chatlog-empty {
   padding: 20px;
   text-align: center;
@@ -339,7 +339,6 @@
 .chatlog-message > strong {
   font-weight: 600;
 }
-
 
 /* Bubbles */
 .chatlog-bubble {
@@ -474,7 +473,6 @@ pre.chatlog-outline-preview {
   display: block;
   padding: 2px 6px;
 }
-
 
 /* Clickable heading sections in detailed view */
 .chatlog-heading-section {
@@ -711,7 +709,7 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-structured-li::before {
-  content: '•';
+  content: "•";
   position: absolute;
   left: 0;
   color: rgba(0, 0, 0, 0.3);
@@ -771,7 +769,7 @@ pre.chatlog-outline-preview {
 
 /* Inline code */
 .chatlog-inline-code {
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Fira Code", monospace;
   font-size: 0.9em;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
@@ -789,7 +787,7 @@ pre.chatlog-outline-preview {
 /* Code blocks - monospace with distinct background */
 .chatlog-structured-code {
   display: block;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', monospace;
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Fira Code", monospace;
   font-size: 10px;
   line-height: 1.5;
   background: rgba(0, 0, 0, 0.05);
@@ -815,7 +813,6 @@ pre.chatlog-outline-preview {
     color: rgba(255, 255, 255, 0.7);
   }
 }
-
 
 /* Branch navigation — standalone line */
 .chatlog-branch-nav {
@@ -1194,7 +1191,9 @@ pre.chatlog-outline-preview {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
 }
 
 .chatlog-message:hover .chatlog-bookmark-btn {
