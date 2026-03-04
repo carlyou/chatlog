@@ -58,7 +58,7 @@ export interface ShortcutConfig {
   sectionNext: ShortcutBinding;
 }
 
-export type Platform = 'claude' | 'chatgpt' | null;
+export type Platform = 'claude' | 'chatgpt' | 'claude-code' | null;
 
 export interface PlatformSelectors {
   conversationItem: string;

@@ -7,13 +7,13 @@ import type {
   RichText,
   StructuredContent,
 } from '../../types';
+import { getAdapter } from './adapters/registry';
 import { perfInc, perfRun, perfSet } from './perf';
-import { getSelectors } from './selectors';
 
 let rootIdCounter = 0;
 const rootIdMap = new WeakMap<Element, string>();
 
-function getStableRootId(root: Element): string {
+export function getStableRootId(root: Element): string {
   let id = rootIdMap.get(root);
   if (!id) {
     rootIdCounter += 1;
@@ -493,7 +493,7 @@ export function extractStructuredContent(element: Element): StructuredContent {
 }
 
 /** Search a DOM container for branch navigation (e.g. "2 / 3" with prev/next buttons). */
-function extractBranchInfo(container: Element): BranchInfo | undefined {
+export function extractBranchInfo(container: Element): BranchInfo | undefined {
   // Look for a text node matching "N / N" or "N/N"
   const candidates = container.querySelectorAll('span, div');
   for (const el of candidates) {
@@ -524,10 +524,35 @@ function extractBranchInfo(container: Element): BranchInfo | undefined {
   return undefined;
 }
 
+/** Compute a signature string for a message root, given a pre-determined role. */
+export function computeBaseSignature(role: string, root: Element): string {
+  const hasStreaming = root.hasAttribute('data-is-streaming') ? '1' : '0';
+  const textDigest = digestTextSample(root.textContent || '');
+  const childCount = root.childElementCount;
+  const hasCode = root.querySelector('pre') ? '1' : '0';
+  const hasHeading = root.querySelector('h1,h2,h3,h4,h5,h6') ? '1' : '0';
+  const hasList = root.querySelector('ul,ol') ? '1' : '0';
+  const hasMedia = root.querySelector('img,[data-testid="file-thumbnail"]')
+    ? '1'
+    : '0';
+  return [
+    role,
+    hasStreaming,
+    textDigest,
+    childCount,
+    hasCode,
+    hasHeading,
+    hasList,
+    hasMedia,
+  ].join('|');
+}
+
+// --- Adapter-delegating public API (preserves signatures for consumers) ---
+
 export function getMessageRootSelector(platform: Platform): string | null {
-  if (platform === 'claude') return 'div.group.relative';
-  if (platform === 'chatgpt') return '[data-message-author-role]';
-  return null;
+  if (!platform) return null;
+  const adapter = getAdapter(platform);
+  return adapter?.messageRootSelector ?? null;
 }
 
 export function getMessageRoots(
@@ -557,123 +582,10 @@ export function computeMessageRootSignature(
   platform: Platform,
   root: Element,
 ): string {
-  const role =
-    platform === 'chatgpt'
-      ? root.getAttribute('data-message-author-role') || 'unknown'
-      : root.className.includes('bg-bg-300')
-        ? 'user'
-        : 'assistant';
-  const hasStreaming = root.hasAttribute('data-is-streaming') ? '1' : '0';
-  const textDigest = digestTextSample(root.textContent || '');
-  const childCount = root.childElementCount;
-  const hasCode = root.querySelector('pre') ? '1' : '0';
-  const hasHeading = root.querySelector('h1,h2,h3,h4,h5,h6') ? '1' : '0';
-  const hasList = root.querySelector('ul,ol') ? '1' : '0';
-  const hasMedia = root.querySelector('img,[data-testid="file-thumbnail"]')
-    ? '1'
-    : '0';
-  return [
-    role,
-    hasStreaming,
-    textDigest,
-    childCount,
-    hasCode,
-    hasHeading,
-    hasList,
-    hasMedia,
-  ].join('|');
-}
-
-function parseClaudeMessageRoot(root: Element): Message | null {
-  const text = root.textContent?.trim();
-  if (!text) return null;
-
-  const id = getStableRootId(root);
-  const isUserMessage = root.className.includes('bg-bg-300');
-
-  if (isUserMessage) {
-    const grandparent = root.parentElement?.parentElement;
-    const searchScope = grandparent || root;
-    const structured = extractStructuredContent(searchScope);
-    const branchScope = root.closest('[data-test-render-count]') || grandparent;
-    const branchInfo = branchScope ? extractBranchInfo(branchScope) : undefined;
-    return {
-      id,
-      type: 'user',
-      text,
-      element: root,
-      ...(structured.blocks.length > 0 && { structured }),
-      ...(branchInfo && { branchInfo }),
-    };
-  }
-
-  const responseContainers = root.querySelectorAll('[class*="row-start-2"]');
-  const branchScope = root.closest('[data-test-render-count]') || root;
-  const branchInfo = extractBranchInfo(branchScope);
-
-  if (responseContainers.length > 0) {
-    const textParts: string[] = [];
-    const allBlocks: ContentBlock[] = [];
-    for (const rc of responseContainers) {
-      const t = rc.textContent?.trim();
-      if (t) textParts.push(t);
-      const { blocks } = extractStructuredContent(rc);
-      allBlocks.push(...blocks);
-    }
-
-    const responseText = textParts.join('\n');
-    if (responseText) {
-      return {
-        id,
-        type: 'assistant',
-        text: responseText,
-        element: responseContainers[0],
-        structured: { blocks: allBlocks },
-        ...(branchInfo && { branchInfo }),
-      };
-    }
-  }
-
-  const structured = extractStructuredContent(root);
-  return {
-    id,
-    type: 'assistant',
-    text,
-    element: root,
-    ...(structured.blocks.length > 0 && { structured }),
-    ...(branchInfo && { branchInfo }),
-  };
-}
-
-function parseChatGPTMessageRoot(root: Element): Message | null {
-  const role = root.getAttribute('data-message-author-role');
-  const text = root.textContent?.trim();
-  if (!text || (role !== 'user' && role !== 'assistant')) return null;
-
-  const id = getStableRootId(root);
-  const article = root.closest('article');
-  const branchInfo = article ? extractBranchInfo(article) : undefined;
-
-  if (role === 'user') {
-    const structured = extractStructuredContent(root);
-    return {
-      id,
-      type: 'user',
-      text,
-      element: root,
-      ...(structured.blocks.length > 0 && { structured }),
-      ...(branchInfo && { branchInfo }),
-    };
-  }
-
-  return {
-    id,
-    type: 'assistant',
-    text,
-    element: root,
-    structured: extractStructuredContent(root),
-    ...(branchInfo && { branchInfo }),
-  };
+  if (!platform) return '';
+  const adapter = getAdapter(platform);
+  if (!adapter) return '';
+  return adapter.computeSignature(root);
 }
 
 export function parseMessageRoot(
@@ -681,17 +593,19 @@ export function parseMessageRoot(
   root: Element,
 ): Message | null {
   return perfRun('parseMessagesMs', () => {
-    if (platform === 'claude') return parseClaudeMessageRoot(root);
-    if (platform === 'chatgpt') return parseChatGPTMessageRoot(root);
-    return null;
+    if (!platform) return null;
+    const adapter = getAdapter(platform);
+    if (!adapter) return null;
+    return adapter.parseMessageRoot(root);
   });
 }
 
 export function parseMessages(platform: Platform): Message[] {
-  const selectors = getSelectors(platform);
-  if (!selectors) return [];
+  if (!platform) return [];
+  const adapter = getAdapter(platform);
+  if (!adapter) return [];
 
-  const container = document.querySelector(selectors.messageContainer);
+  const container = document.querySelector(adapter.selectors.messageContainer);
   if (!container) return [];
 
   return perfRun('parseMessagesMs', () => {

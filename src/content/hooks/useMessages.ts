@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Message, Platform } from '../../types';
+import { getAdapter } from '../lib/adapters/registry';
 import {
   computeMessageRootSignature,
   getMessageRootForNode,
@@ -9,7 +10,6 @@ import {
   parseMessageRoot,
 } from '../lib/parsers';
 import { perfInc, perfRun, perfSetMax, perfTiming } from '../lib/perf';
-import { getSelectors } from '../lib/selectors';
 import { useUrlChange } from './useUrlChange';
 
 const PROCESS_DEBOUNCE_MS = 150;
@@ -58,9 +58,10 @@ export function useMessages(
   const rootSelector = getMessageRootSelector(platform);
 
   const resolveContainer = useCallback((): Element | null => {
-    const selectors = getSelectors(platform);
-    if (!selectors) return null;
-    return document.querySelector(selectors.messageContainer);
+    if (!platform) return null;
+    const adapter = getAdapter(platform);
+    if (!adapter) return null;
+    return document.querySelector(adapter.selectors.messageContainer);
   }, [platform]);
 
   const reindexRoots = useCallback(

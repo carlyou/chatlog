@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Message, Platform } from '../../types';
+import { getAdapter } from '../lib/adapters/registry';
 import {
   clearMainHighlights,
   countMainHighlights,
@@ -7,7 +8,6 @@ import {
   highlightMainConversation,
   setCurrentMainHighlight,
 } from '../lib/highlighter';
-import { getSelectors } from '../lib/selectors';
 import type { ActiveTarget } from './useActiveMessage';
 
 export function useSearch(
@@ -28,9 +28,11 @@ export function useSearch(
   const getContainer = useCallback((): Element | null => {
     if (containerRef.current?.isConnected) return containerRef.current;
     if (!platform) return null;
-    const sel = getSelectors(platform);
-    if (!sel) return null;
-    containerRef.current = document.querySelector(sel.messageContainer);
+    const adapter = getAdapter(platform);
+    if (!adapter) return null;
+    containerRef.current = document.querySelector(
+      adapter.selectors.messageContainer,
+    );
     return containerRef.current;
   }, [platform]);
 
