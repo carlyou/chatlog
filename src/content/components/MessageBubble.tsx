@@ -489,6 +489,51 @@ function AssistantDetailed({
   return <HighlightText text={message.text} />;
 }
 
+function UserContent({
+  message,
+  displayMode,
+}: {
+  message: Message;
+  displayMode: DisplayMode;
+}) {
+  const hasStructured =
+    message.structured && message.structured.blocks.length > 0;
+
+  if (displayMode === 'compact' || displayMode === 'outline') {
+    // Compact/Outline: first paragraph or raw text, clamped to 2 lines
+    if (hasStructured) {
+      const first = message.structured?.blocks.find(
+        (b) => b.type === 'paragraph',
+      );
+      if (first?.type === 'paragraph') {
+        return (
+          <p className="chatlog-structured-p chatlog-compact-preview">
+            <RichTextView segments={first.segments} />
+          </p>
+        );
+      }
+    }
+    return (
+      <p className="chatlog-structured-p chatlog-compact-preview">
+        <HighlightText text={message.text} />
+      </p>
+    );
+  }
+
+  // Detailed: render structured content if available
+  if (hasStructured) {
+    return (
+      <StructuredView structured={message.structured as StructuredContent} />
+    );
+  }
+
+  return (
+    <p className="chatlog-structured-p">
+      <HighlightText text={message.text} />
+    </p>
+  );
+}
+
 export function MessageBubble({
   message,
   displayMode,
@@ -594,7 +639,7 @@ export function MessageBubble({
           )}
           <div className="chatlog-message-user">
             <div className="chatlog-bubble chatlog-bubble-user">
-              <HighlightText text={message.text} />
+              <UserContent message={message} displayMode={displayMode} />
             </div>
           </div>
         </button>

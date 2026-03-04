@@ -1,9 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import type { Platform } from '../types';
 import { App } from './App';
 import contentCss from './content.css?inline';
-import { detectPlatform } from './lib/platform';
-import { getSelectors } from './lib/selectors';
+import './lib/adapters/claude';
+import './lib/adapters/chatgpt';
+import './lib/adapters/claude-code';
+import { detectPlatform, getAdapter } from './lib/adapters/registry';
 
 function waitForElement(selector: string, timeout = 10000): Promise<Element> {
   return new Promise((resolve, reject) => {
@@ -28,14 +31,14 @@ function waitForElement(selector: string, timeout = 10000): Promise<Element> {
 }
 
 async function init() {
-  const platform = detectPlatform();
-  if (!platform) return;
+  const platformId = detectPlatform() as Platform;
+  if (!platformId) return;
 
-  const selectors = getSelectors(platform);
-  if (!selectors) return;
+  const adapter = getAdapter(platformId);
+  if (!adapter) return;
 
   try {
-    await waitForElement(selectors.conversationItem, 5000);
+    await waitForElement(adapter.selectors.conversationItem, 5000);
   } catch {
     // Conversation items not found, but continue anyway
   }
@@ -44,9 +47,16 @@ async function init() {
   if (!document.getElementById('chatlog-host-styles')) {
     const hostStyle = document.createElement('style');
     hostStyle.id = 'chatlog-host-styles';
+
+    const marginRules = adapter.pinnedMarginSelectors
+      .map(
+        (sel) =>
+          `body.chatlog-right-pinned ${sel} { margin-right: var(--chatlog-sidebar-width, 320px); }`,
+      )
+      .join('\n      ');
+
     hostStyle.textContent = `
-      body.chatlog-right-pinned #main-content { margin-right: var(--chatlog-sidebar-width, 320px); }
-      body.chatlog-right-pinned main { margin-right: var(--chatlog-sidebar-width, 320px); }
+      ${marginRules}
       div[data-chat-input-container="true"] {
         transition: opacity 0.3s ease;
         opacity: var(--chatlog-input-opacity, 1);
@@ -95,7 +105,7 @@ async function init() {
   // Render React app
   ReactDOM.createRoot(mountPoint).render(
     <React.StrictMode>
-      <App platform={platform} />
+      <App platform={platformId} />
     </React.StrictMode>,
   );
 }

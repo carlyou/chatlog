@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Platform } from '../../types';
+import { getAdapter } from '../lib/adapters/registry';
 
 const STORAGE_KEY = 'chatlog-bookmarks';
 
-function getConversationId(): string | null {
-  const path = window.location.pathname;
-  // Claude: /chat/{id}
-  const claudeMatch = path.match(/\/chat\/([^/]+)/);
-  if (claudeMatch) return claudeMatch[1];
-  // ChatGPT: /c/{id}
-  const gptMatch = path.match(/\/c\/([^/]+)/);
-  if (gptMatch) return gptMatch[1];
-  return null;
+function getConversationId(platform: Platform): string | null {
+  if (!platform) return null;
+  const adapter = getAdapter(platform);
+  if (!adapter) return null;
+  const match = window.location.pathname.match(adapter.conversationIdPattern);
+  return match ? match[1] : null;
 }
 
 function makeKey(
@@ -25,7 +23,7 @@ function makeKey(
 export function useBookmarks(platform: Platform) {
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [showOnly, setShowOnly] = useState(false);
-  const conversationId = getConversationId();
+  const conversationId = getConversationId(platform);
 
   useEffect(() => {
     chrome.storage.local.get(STORAGE_KEY, (result) => {
