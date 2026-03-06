@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
+import type { ThemeId } from '../lib/themes';
+import { THEMES } from '../lib/themes';
 import { bindingLabel } from '../lib/shortcutMatcher';
 
 interface ShortcutSettingsProps {
@@ -8,6 +10,10 @@ interface ShortcutSettingsProps {
   onChange: (config: ShortcutConfig) => void;
   perfEnabled?: boolean;
   onPerfEnabledChange?: (enabled: boolean) => void;
+  theme: ThemeId;
+  onThemeChange: (theme: ThemeId) => void;
+  glass: boolean;
+  onGlassChange: (glass: boolean) => void;
 }
 
 const LABELS: Record<keyof ShortcutConfig, string> = {
@@ -25,6 +31,10 @@ export function ShortcutSettings({
   onChange,
   perfEnabled,
   onPerfEnabledChange,
+  theme,
+  onThemeChange,
+  glass,
+  onGlassChange,
 }: ShortcutSettingsProps) {
   const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(
     null,
@@ -80,6 +90,31 @@ export function ShortcutSettings({
 
   return (
     <div className="chatlog-shortcut-settings">
+      <div className="chatlog-shortcut-row">
+        <span className="chatlog-shortcut-label">Theme</span>
+        <select
+          className="chatlog-theme-select"
+          value={theme}
+          onChange={(e) => onThemeChange(e.target.value as ThemeId)}
+        >
+          {THEMES.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="chatlog-shortcut-row">
+        <label className="chatlog-shortcut-label">
+          <input
+            type="checkbox"
+            checked={glass}
+            onChange={(e) => onGlassChange(e.target.checked)}
+          />
+          Glass effect
+        </label>
+      </div>
+      <div className="chatlog-shortcut-extra-row" />
       {(Object.keys(LABELS) as (keyof ShortcutConfig)[]).map((key) => (
         <div key={key} className="chatlog-shortcut-row">
           <label className="chatlog-shortcut-label">
