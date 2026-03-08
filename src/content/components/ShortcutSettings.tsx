@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
+import { bindingLabel } from '../lib/shortcutMatcher';
 import type { ThemeId } from '../lib/themes';
 import { THEMES } from '../lib/themes';
-import { bindingLabel } from '../lib/shortcutMatcher';
 
 interface ShortcutSettingsProps {
   config: ShortcutConfig;

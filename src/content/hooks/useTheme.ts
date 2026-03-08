@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Platform } from '../../types';
-import type { ThemeId } from '../lib/themes';
-import { PALETTES, getHostCSS, isLightTheme } from '../lib/themes';
 import { getAdapter } from '../lib/adapters/registry';
+import type { ThemeId } from '../lib/themes';
+import { getHostCSS, isLightTheme, PALETTES } from '../lib/themes';
 
 const THEME_KEY = 'chatlog-theme';
 const GLASS_KEY = 'chatlog-glass';

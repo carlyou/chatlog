@@ -291,12 +291,6 @@
   --cl-scrollbar-hover: rgba(101, 123, 131, 0.25);
 }
 
-/* ── Glass toggle: disable glass when data-glass is absent ── */
-:host(:not([data-glass])) .chatlog-sidebar {
-  background: var(--cl-bg-solid) !important;
-  backdrop-filter: none !important;
-}
-
 /* ── Sidebar with glass effect ── */
 .chatlog-sidebar {
   position: fixed;
@@ -315,6 +309,12 @@
     anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
   color: var(--cl-text);
+}
+
+/* ── Glass toggle: disable glass when data-glass is absent ── */
+:host(:not([data-glass])) .chatlog-sidebar {
+  background: var(--cl-bg-solid) !important;
+  backdrop-filter: none !important;
 }
 
 .chatlog-sidebar-right {
@@ -537,8 +537,12 @@
 }
 
 @keyframes chatlog-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .chatlog-empty {
