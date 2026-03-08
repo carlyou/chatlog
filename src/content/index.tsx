@@ -55,8 +55,16 @@ async function init() {
       )
       .join('\n      ');
 
+    const adapterStyles =
+      adapter.id === 'claude-code'
+        ? `
+      .max-w-3xl { max-width: 80% !important; }
+    `
+        : '';
+
     hostStyle.textContent = `
       ${marginRules}
+      ${adapterStyles}
       div[data-chat-input-container="true"] {
         transition: opacity 0.3s ease;
         opacity: var(--chatlog-input-opacity, 1);
@@ -105,7 +113,7 @@ async function init() {
   // Render React app
   ReactDOM.createRoot(mountPoint).render(
     <React.StrictMode>
-      <App platform={platformId} />
+      <App platform={platformId} shadowHost={host} />
     </React.StrictMode>,
   );
 }

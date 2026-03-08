@@ -1,14 +1,305 @@
 @import "tailwindcss";
 
-/* Sidebar with glass effect */
+/* ── CSS custom properties (light defaults) ── */
+:host {
+  --cl-bg-glass: rgba(255, 255, 255, 0.2);
+  --cl-bg-solid: rgb(255, 255, 255);
+  --cl-bg-elevated: rgb(255, 255, 255);
+  --cl-bg-elevated-hover: rgb(248, 248, 248);
+  --cl-bg-subtle: rgba(0, 0, 0, 0.04);
+  --cl-bg-subtle-hover: rgba(0, 0, 0, 0.06);
+  --cl-text: rgba(0, 0, 0, 0.95);
+  --cl-text-secondary: rgba(0, 0, 0, 0.85);
+  --cl-text-tertiary: rgba(0, 0, 0, 0.65);
+  --cl-text-muted: rgba(0, 0, 0, 0.5);
+  --cl-text-faint: rgba(0, 0, 0, 0.4);
+  --cl-border: rgba(0, 0, 0, 0.08);
+  --cl-border-subtle: rgba(0, 0, 0, 0.06);
+  --cl-border-strong: rgba(0, 0, 0, 0.12);
+  --cl-accent: rgb(59, 130, 246);
+  --cl-accent-bg: rgba(59, 130, 246, 0.1);
+  --cl-accent-border: rgba(59, 130, 246, 0.3);
+  --cl-bookmark: rgb(234, 179, 8);
+  --cl-bookmark-bg: rgba(234, 179, 8, 0.1);
+  --cl-highlight: rgba(250, 204, 21, 0.4);
+  --cl-highlight-current: rgba(249, 115, 22, 0.6);
+  --cl-highlight-current-outline: rgba(249, 115, 22, 0.8);
+  --cl-shadow: rgba(31, 38, 135, 0.15);
+  --cl-shadow-strong: rgba(0, 0, 0, 0.12);
+  --cl-glass-border: rgba(255, 255, 255, 0.18);
+  --cl-backdrop-blur: blur(5px);
+  --cl-scrollbar: rgba(0, 0, 0, 0.2);
+  --cl-scrollbar-hover: rgba(0, 0, 0, 0.3);
+}
+
+/* ── System dark mode ── */
+@media (prefers-color-scheme: dark) {
+  :host(:not([data-theme])),
+  :host([data-theme="system"]) {
+    --cl-bg-glass: rgba(10, 10, 10, 0.25);
+    --cl-bg-solid: rgb(33, 33, 33);
+    --cl-bg-elevated: rgb(33, 33, 33);
+    --cl-bg-elevated-hover: rgb(44, 44, 44);
+    --cl-bg-subtle: rgba(255, 255, 255, 0.06);
+    --cl-bg-subtle-hover: rgba(255, 255, 255, 0.08);
+    --cl-text: rgba(255, 255, 255, 0.95);
+    --cl-text-secondary: rgba(255, 255, 255, 0.85);
+    --cl-text-tertiary: rgba(255, 255, 255, 0.65);
+    --cl-text-muted: rgba(255, 255, 255, 0.5);
+    --cl-text-faint: rgba(255, 255, 255, 0.4);
+    --cl-border: rgba(255, 255, 255, 0.08);
+    --cl-border-subtle: rgba(255, 255, 255, 0.06);
+    --cl-border-strong: rgba(255, 255, 255, 0.12);
+    --cl-accent: rgb(96, 165, 250);
+    --cl-accent-bg: rgba(59, 130, 246, 0.15);
+    --cl-accent-border: rgba(59, 130, 246, 0.3);
+    --cl-bookmark: rgb(250, 204, 21);
+    --cl-bookmark-bg: rgba(250, 204, 21, 0.12);
+    --cl-highlight: rgba(250, 204, 21, 0.3);
+    --cl-highlight-current: rgba(249, 115, 22, 0.5);
+    --cl-highlight-current-outline: rgba(249, 115, 22, 0.7);
+    --cl-shadow: rgba(0, 0, 0, 0.5);
+    --cl-shadow-strong: rgba(0, 0, 0, 0.4);
+    --cl-glass-border: rgba(255, 255, 255, 0.15);
+    --cl-backdrop-blur: blur(5px);
+    --cl-scrollbar: rgba(255, 255, 255, 0.2);
+    --cl-scrollbar-hover: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* ── Tokyo Night ── */
+:host([data-theme="tokyo-night"]) {
+  --cl-bg-glass: rgba(26, 27, 38, 0.85);
+  --cl-bg-solid: #1a1b26;
+  --cl-bg-elevated: #1f2030;
+  --cl-bg-elevated-hover: #292e42;
+  --cl-bg-subtle: rgba(255, 255, 255, 0.06);
+  --cl-bg-subtle-hover: rgba(255, 255, 255, 0.08);
+  --cl-text: #c0caf5;
+  --cl-text-secondary: #a9b1d6;
+  --cl-text-tertiary: #9aa5ce;
+  --cl-text-muted: #565f89;
+  --cl-text-faint: #3b4261;
+  --cl-border: rgba(255, 255, 255, 0.08);
+  --cl-border-subtle: rgba(255, 255, 255, 0.05);
+  --cl-border-strong: rgba(255, 255, 255, 0.12);
+  --cl-accent: #7aa2f7;
+  --cl-accent-bg: rgba(122, 162, 247, 0.15);
+  --cl-accent-border: rgba(122, 162, 247, 0.3);
+  --cl-bookmark: #e0af68;
+  --cl-bookmark-bg: rgba(224, 175, 104, 0.12);
+  --cl-highlight: rgba(224, 175, 104, 0.3);
+  --cl-highlight-current: rgba(255, 158, 100, 0.5);
+  --cl-highlight-current-outline: rgba(255, 158, 100, 0.7);
+  --cl-shadow: rgba(0, 0, 0, 0.5);
+  --cl-shadow-strong: rgba(0, 0, 0, 0.4);
+  --cl-glass-border: rgba(122, 162, 247, 0.12);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(255, 255, 255, 0.15);
+  --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Nord ── */
+:host([data-theme="nord"]) {
+  --cl-bg-glass: rgba(46, 52, 64, 0.85);
+  --cl-bg-solid: #2e3440;
+  --cl-bg-elevated: #3b4252;
+  --cl-bg-elevated-hover: #434c5e;
+  --cl-bg-subtle: rgba(255, 255, 255, 0.06);
+  --cl-bg-subtle-hover: rgba(255, 255, 255, 0.08);
+  --cl-text: #eceff4;
+  --cl-text-secondary: #d8dee9;
+  --cl-text-tertiary: #c8ced9;
+  --cl-text-muted: #7b88a1;
+  --cl-text-faint: #4c566a;
+  --cl-border: rgba(255, 255, 255, 0.08);
+  --cl-border-subtle: rgba(255, 255, 255, 0.05);
+  --cl-border-strong: rgba(255, 255, 255, 0.12);
+  --cl-accent: #88c0d0;
+  --cl-accent-bg: rgba(136, 192, 208, 0.15);
+  --cl-accent-border: rgba(136, 192, 208, 0.3);
+  --cl-bookmark: #ebcb8b;
+  --cl-bookmark-bg: rgba(235, 203, 139, 0.12);
+  --cl-highlight: rgba(235, 203, 139, 0.3);
+  --cl-highlight-current: rgba(208, 135, 112, 0.5);
+  --cl-highlight-current-outline: rgba(208, 135, 112, 0.7);
+  --cl-shadow: rgba(0, 0, 0, 0.5);
+  --cl-shadow-strong: rgba(0, 0, 0, 0.4);
+  --cl-glass-border: rgba(136, 192, 208, 0.12);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(255, 255, 255, 0.15);
+  --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Catppuccin Mocha ── */
+:host([data-theme="catppuccin"]) {
+  --cl-bg-glass: rgba(30, 30, 46, 0.85);
+  --cl-bg-solid: #1e1e2e;
+  --cl-bg-elevated: #313244;
+  --cl-bg-elevated-hover: #45475a;
+  --cl-bg-subtle: rgba(255, 255, 255, 0.06);
+  --cl-bg-subtle-hover: rgba(255, 255, 255, 0.08);
+  --cl-text: #cdd6f4;
+  --cl-text-secondary: #bac2de;
+  --cl-text-tertiary: #a6adc8;
+  --cl-text-muted: #6c7086;
+  --cl-text-faint: #45475a;
+  --cl-border: rgba(255, 255, 255, 0.08);
+  --cl-border-subtle: rgba(255, 255, 255, 0.05);
+  --cl-border-strong: rgba(255, 255, 255, 0.12);
+  --cl-accent: #89b4fa;
+  --cl-accent-bg: rgba(137, 180, 250, 0.15);
+  --cl-accent-border: rgba(137, 180, 250, 0.3);
+  --cl-bookmark: #f9e2af;
+  --cl-bookmark-bg: rgba(249, 226, 175, 0.12);
+  --cl-highlight: rgba(249, 226, 175, 0.3);
+  --cl-highlight-current: rgba(250, 179, 135, 0.5);
+  --cl-highlight-current-outline: rgba(250, 179, 135, 0.7);
+  --cl-shadow: rgba(0, 0, 0, 0.5);
+  --cl-shadow-strong: rgba(0, 0, 0, 0.4);
+  --cl-glass-border: rgba(137, 180, 250, 0.12);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(255, 255, 255, 0.15);
+  --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Dracula ── */
+:host([data-theme="dracula"]) {
+  --cl-bg-glass: rgba(40, 42, 54, 0.85);
+  --cl-bg-solid: #282a36;
+  --cl-bg-elevated: #343746;
+  --cl-bg-elevated-hover: #3e4154;
+  --cl-bg-subtle: rgba(255, 255, 255, 0.06);
+  --cl-bg-subtle-hover: rgba(255, 255, 255, 0.08);
+  --cl-text: #f8f8f2;
+  --cl-text-secondary: #e2e2dc;
+  --cl-text-tertiary: #bfbfb9;
+  --cl-text-muted: #6272a4;
+  --cl-text-faint: #44475a;
+  --cl-border: rgba(255, 255, 255, 0.08);
+  --cl-border-subtle: rgba(255, 255, 255, 0.05);
+  --cl-border-strong: rgba(255, 255, 255, 0.12);
+  --cl-accent: #bd93f9;
+  --cl-accent-bg: rgba(189, 147, 249, 0.15);
+  --cl-accent-border: rgba(189, 147, 249, 0.3);
+  --cl-bookmark: #f1fa8c;
+  --cl-bookmark-bg: rgba(241, 250, 140, 0.12);
+  --cl-highlight: rgba(241, 250, 140, 0.3);
+  --cl-highlight-current: rgba(255, 184, 108, 0.5);
+  --cl-highlight-current-outline: rgba(255, 184, 108, 0.7);
+  --cl-shadow: rgba(0, 0, 0, 0.5);
+  --cl-shadow-strong: rgba(0, 0, 0, 0.4);
+  --cl-glass-border: rgba(189, 147, 249, 0.12);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(255, 255, 255, 0.15);
+  --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Solarized Dark ── */
+:host([data-theme="solarized-dark"]) {
+  --cl-bg-glass: rgba(0, 43, 54, 0.85);
+  --cl-bg-solid: #002b36;
+  --cl-bg-elevated: #073642;
+  --cl-bg-elevated-hover: #0a4050;
+  --cl-bg-subtle: rgba(255, 255, 255, 0.06);
+  --cl-bg-subtle-hover: rgba(255, 255, 255, 0.08);
+  --cl-text: #fdf6e3;
+  --cl-text-secondary: #eee8d5;
+  --cl-text-tertiary: #d3cbbf;
+  --cl-text-muted: #839496;
+  --cl-text-faint: #586e75;
+  --cl-border: rgba(255, 255, 255, 0.08);
+  --cl-border-subtle: rgba(255, 255, 255, 0.05);
+  --cl-border-strong: rgba(255, 255, 255, 0.12);
+  --cl-accent: #268bd2;
+  --cl-accent-bg: rgba(38, 139, 210, 0.15);
+  --cl-accent-border: rgba(38, 139, 210, 0.3);
+  --cl-bookmark: #b58900;
+  --cl-bookmark-bg: rgba(181, 137, 0, 0.12);
+  --cl-highlight: rgba(181, 137, 0, 0.3);
+  --cl-highlight-current: rgba(203, 75, 22, 0.5);
+  --cl-highlight-current-outline: rgba(203, 75, 22, 0.7);
+  --cl-shadow: rgba(0, 0, 0, 0.5);
+  --cl-shadow-strong: rgba(0, 0, 0, 0.4);
+  --cl-glass-border: rgba(38, 139, 210, 0.12);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(255, 255, 255, 0.15);
+  --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Rosé Pine Dawn (light) ── */
+:host([data-theme="rose-pine-dawn"]) {
+  --cl-bg-glass: rgba(250, 244, 237, 0.85);
+  --cl-bg-solid: #faf4ed;
+  --cl-bg-elevated: #fffaf3;
+  --cl-bg-elevated-hover: #f2e9e1;
+  --cl-bg-subtle: rgba(87, 82, 121, 0.06);
+  --cl-bg-subtle-hover: rgba(87, 82, 121, 0.1);
+  --cl-text: #575279;
+  --cl-text-secondary: #797593;
+  --cl-text-tertiary: #9893a5;
+  --cl-text-muted: #b4b0be;
+  --cl-text-faint: #cecacd;
+  --cl-border: rgba(87, 82, 121, 0.1);
+  --cl-border-subtle: rgba(87, 82, 121, 0.06);
+  --cl-border-strong: rgba(87, 82, 121, 0.15);
+  --cl-accent: #907aa9;
+  --cl-accent-bg: rgba(144, 122, 169, 0.12);
+  --cl-accent-border: rgba(144, 122, 169, 0.3);
+  --cl-bookmark: #ea9d34;
+  --cl-bookmark-bg: rgba(234, 157, 52, 0.12);
+  --cl-highlight: rgba(234, 157, 52, 0.25);
+  --cl-highlight-current: rgba(215, 130, 126, 0.4);
+  --cl-highlight-current-outline: rgba(215, 130, 126, 0.6);
+  --cl-shadow: rgba(87, 82, 121, 0.1);
+  --cl-shadow-strong: rgba(87, 82, 121, 0.15);
+  --cl-glass-border: rgba(144, 122, 169, 0.15);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(87, 82, 121, 0.15);
+  --cl-scrollbar-hover: rgba(87, 82, 121, 0.25);
+}
+
+/* ── Solarized Light ── */
+:host([data-theme="solarized-light"]) {
+  --cl-bg-glass: rgba(253, 246, 227, 0.85);
+  --cl-bg-solid: #fdf6e3;
+  --cl-bg-elevated: #eee8d5;
+  --cl-bg-elevated-hover: #e6dfcb;
+  --cl-bg-subtle: rgba(101, 123, 131, 0.06);
+  --cl-bg-subtle-hover: rgba(101, 123, 131, 0.1);
+  --cl-text: #657b83;
+  --cl-text-secondary: #586e75;
+  --cl-text-tertiary: #839496;
+  --cl-text-muted: #93a1a1;
+  --cl-text-faint: #a8b4b4;
+  --cl-border: rgba(101, 123, 131, 0.1);
+  --cl-border-subtle: rgba(101, 123, 131, 0.06);
+  --cl-border-strong: rgba(101, 123, 131, 0.15);
+  --cl-accent: #268bd2;
+  --cl-accent-bg: rgba(38, 139, 210, 0.1);
+  --cl-accent-border: rgba(38, 139, 210, 0.3);
+  --cl-bookmark: #b58900;
+  --cl-bookmark-bg: rgba(181, 137, 0, 0.1);
+  --cl-highlight: rgba(181, 137, 0, 0.25);
+  --cl-highlight-current: rgba(203, 75, 22, 0.35);
+  --cl-highlight-current-outline: rgba(203, 75, 22, 0.55);
+  --cl-shadow: rgba(101, 123, 131, 0.1);
+  --cl-shadow-strong: rgba(101, 123, 131, 0.15);
+  --cl-glass-border: rgba(38, 139, 210, 0.15);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(101, 123, 131, 0.15);
+  --cl-scrollbar-hover: rgba(101, 123, 131, 0.25);
+}
+
+/* ── Sidebar with glass effect ── */
 .chatlog-sidebar {
   position: fixed;
   top: 0;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  background: var(--cl-bg-glass);
+  backdrop-filter: var(--cl-backdrop-blur);
+  border: 1px solid var(--cl-glass-border);
+  box-shadow: 0 8px 32px var(--cl-shadow);
   transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
   z-index: 999999;
   display: flex;
@@ -17,16 +308,13 @@
   font-family:
     anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
-  color: rgba(0, 0, 0, 0.95);
+  color: var(--cl-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  .chatlog-sidebar {
-    background: rgba(10, 10, 10, 0.25);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    color: rgba(255, 255, 255, 0.95);
-  }
+/* ── Glass toggle: disable glass when data-glass is absent ── */
+:host(:not([data-glass])) .chatlog-sidebar {
+  background: var(--cl-bg-solid) !important;
+  backdrop-filter: none !important;
 }
 
 .chatlog-sidebar-right {
@@ -88,9 +376,9 @@
   width: 260px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  background: var(--cl-bg-elevated);
+  border: 1px solid var(--cl-border);
+  box-shadow: 0 6px 18px var(--cl-shadow-strong);
   backdrop-filter: blur(8px);
   z-index: 1000000;
   font-size: 11px;
@@ -102,28 +390,12 @@
   font-size: 11px;
   font-weight: 700;
   margin-bottom: 4px;
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--cl-text-secondary);
 }
 
 .chatlog-perf-row {
-  color: rgba(0, 0, 0, 0.78);
+  color: var(--cl-text-tertiary);
   white-space: nowrap;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-perf-overlay {
-    background: rgba(24, 24, 24, 0.96);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  }
-
-  .chatlog-perf-title {
-    color: rgba(255, 255, 255, 0.86);
-  }
-
-  .chatlog-perf-row {
-    color: rgba(255, 255, 255, 0.82);
-  }
 }
 
 /* When sidebar is visible, hide toggles but keep them hoverable */
@@ -153,44 +425,27 @@
   width: 36px;
   padding: 8px;
   border-radius: 8px;
-  background: rgb(255, 255, 255);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--cl-bg-elevated);
+  border: 1px solid var(--cl-border);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--cl-text-muted);
   transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-toggle {
-    background: rgb(33, 33, 33);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  }
+  box-shadow: 0 1px 2px var(--cl-shadow);
 }
 
 .chatlog-toggle:hover {
-  background: rgb(248, 248, 248);
-  border-color: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.8);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-toggle:hover {
-    background: rgb(44, 44, 44);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.9);
-  }
+  background: var(--cl-bg-elevated-hover);
+  border-color: var(--cl-border-strong);
+  color: var(--cl-text-secondary);
 }
 
 .chatlog-toggle.active {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: rgb(59, 130, 246);
+  background: var(--cl-accent-bg);
+  border-color: var(--cl-accent-border);
+  color: var(--cl-accent);
 }
 
 /* Pin button */
@@ -205,52 +460,30 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--cl-text-muted);
   padding: 4px;
 }
 
 .chatlog-pin-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.8);
+  background: var(--cl-bg-subtle-hover);
+  color: var(--cl-text-secondary);
 }
 
 .chatlog-pin-btn.pinned {
-  color: rgba(59, 130, 246, 0.8);
-  background: rgba(59, 130, 246, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-pin-btn {
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  .chatlog-pin-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .chatlog-pin-btn.pinned {
-    color: rgba(59, 130, 246, 0.9);
-    background: rgba(59, 130, 246, 0.15);
-  }
+  color: var(--cl-accent);
+  background: var(--cl-accent-bg);
 }
 
 /* Header */
 .chatlog-outline-header {
   height: 44px;
   padding: 0 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--cl-border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 13px;
   font-weight: 500;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-outline-header {
-    border-bottom-color: rgba(255, 255, 255, 0.06);
-  }
 }
 
 .chatlog-header-actions {
@@ -262,13 +495,7 @@
 .chatlog-outline-count {
   padding-left: 4px;
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-outline-count {
-    color: rgba(255, 255, 255, 0.5);
-  }
+  color: var(--cl-text-muted);
 }
 
 /* Message list */
@@ -281,16 +508,47 @@
   gap: 2px;
 }
 
+/* Shimmer skeleton */
+.chatlog-shimmer-list {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chatlog-shimmer-row {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--cl-bg-subtle) 25%,
+    var(--cl-bg-subtle-hover) 50%,
+    var(--cl-bg-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: chatlog-shimmer 1.4s ease-in-out infinite;
+}
+
+.chatlog-shimmer-accent {
+  height: 10px;
+  margin-top: 4px;
+  opacity: 0.6;
+}
+
+@keyframes chatlog-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .chatlog-empty {
   padding: 20px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.4);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-empty {
-    color: rgba(255, 255, 255, 0.4);
-  }
+  color: var(--cl-text-faint);
 }
 
 /* Message buttons */
@@ -303,27 +561,14 @@
   text-align: left;
   transition: all 0.15s ease;
   position: relative;
-  /*border-radius: 4px;*/
 }
 
 .chatlog-message:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--cl-bg-subtle);
 }
 
 .chatlog-message-active {
-  border-left: 2px solid rgb(59, 130, 246);
-  /*background: rgba(59, 130, 246, 0.06);*/
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-message:hover {
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .chatlog-message-active {
-    border-left-color: rgb(96, 165, 250);
-    background: rgba(96, 165, 250, 0.08);
-  }
+  border-left: 2px solid var(--cl-accent);
 }
 
 .chatlog-message-assistant {
@@ -356,43 +601,25 @@
   border-radius: 6px;
   max-width: 85%;
   width: fit-content;
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.85);
+  background: var(--cl-bg-subtle);
+  color: var(--cl-text-secondary);
 }
 
 .chatlog-bubble-assistant {
   text-align: left;
   padding: 8px 12px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.85);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-bubble-user {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  .chatlog-bubble-assistant {
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.85);
-  }
+  background: var(--cl-bg-subtle);
+  color: var(--cl-text-secondary);
 }
 
 /* Display mode selector */
 .chatlog-mode-selector {
   display: flex;
   gap: 2px;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--cl-bg-subtle);
   border-radius: 4px;
   padding: 2px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-mode-selector {
-    background: rgba(255, 255, 255, 0.06);
-  }
 }
 
 .chatlog-mode-btn {
@@ -404,7 +631,7 @@
   cursor: pointer;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--cl-text-faint);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -413,29 +640,13 @@
 }
 
 .chatlog-mode-btn:hover {
-  color: rgba(0, 0, 0, 0.7);
-  background: rgba(0, 0, 0, 0.04);
+  color: var(--cl-text-tertiary);
+  background: var(--cl-bg-subtle);
 }
 
 .chatlog-mode-btn.active {
-  background: rgba(59, 130, 246, 0.1);
-  color: rgb(59, 130, 246);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-mode-btn {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .chatlog-mode-btn:hover {
-    color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .chatlog-mode-btn.active {
-    background: rgba(59, 130, 246, 0.15);
-    color: rgb(96, 165, 250);
-  }
+  background: var(--cl-accent-bg);
+  color: var(--cl-accent);
 }
 
 /* Structured content container */
@@ -452,15 +663,11 @@
   font-weight: 600;
   line-height: 1.4;
   padding-left: 8px;
-  border-left: 2px solid rgba(0, 0, 0, 0.25);
-  color: rgba(0, 0, 0, 0.9);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-heading {
-    color: rgba(255, 255, 255, 0.92);
-    border-left-color: rgba(255, 255, 255, 0.25);
-  }
+  border-left: 2px solid var(--cl-text-faint);
+  color: var(--cl-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Outline mode: one-line preview under headings */
@@ -481,22 +688,8 @@ pre.chatlog-outline-preview {
   transition: background 0.15s;
 }
 
-.chatlog-heading-section:hover {
-  /*background: rgba(59, 130, 246, 0.06);*/
-}
-
 .chatlog-heading-section:hover .chatlog-structured-heading {
-  border-left-color: rgb(59, 130, 246);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-heading-section:hover {
-    background: rgba(96, 165, 250, 0.08);
-  }
-
-  .chatlog-heading-section:hover .chatlog-structured-heading {
-    border-left-color: rgb(96, 165, 250);
-  }
+  border-left-color: var(--cl-accent);
 }
 
 /* Collapsible heading with chevron at end */
@@ -515,18 +708,12 @@ pre.chatlog-outline-preview {
   opacity: 0;
   transition: opacity 0.15s;
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--cl-text-faint);
   margin-left: 4px;
 }
 
 .chatlog-heading-section:hover .chatlog-chevron {
   opacity: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-chevron {
-    color: rgba(255, 255, 255, 0.4);
-  }
 }
 
 /* Collapse animation using grid */
@@ -560,22 +747,8 @@ pre.chatlog-outline-preview {
 }
 
 /* Active section highlight (scroll sync) */
-.chatlog-section-active {
-  /*background: rgba(59, 130, 246, 0.06);*/
-}
-
 .chatlog-section-active .chatlog-structured-heading {
-  border-left-color: rgb(59, 130, 246);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-section-active {
-    background: rgba(96, 165, 250, 0.08);
-  }
-
-  .chatlog-section-active .chatlog-structured-heading {
-    border-left-color: rgb(96, 165, 250);
-  }
+  border-left-color: var(--cl-accent);
 }
 
 /* Paragraphs */
@@ -583,39 +756,21 @@ pre.chatlog-outline-preview {
   font-size: 11px;
   line-height: 1.5;
   margin: 0;
-  color: rgba(0, 0, 0, 0.65);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-p {
-    color: rgba(255, 255, 255, 0.65);
-  }
+  color: var(--cl-text-tertiary);
 }
 
 /* Horizontal rule / divider */
 .chatlog-structured-hr {
   border: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--cl-border);
   margin: 4px 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-hr {
-    border-top-color: rgba(255, 255, 255, 0.1);
-  }
 }
 
 /* Images */
 .chatlog-structured-img {
   max-width: 100%;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-img {
-    border-color: rgba(255, 255, 255, 0.1);
-  }
+  border: 1px solid var(--cl-border);
 }
 
 .chatlog-message-user-images {
@@ -641,8 +796,8 @@ pre.chatlog-outline-preview {
   max-width: 85%;
   padding: 3px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--cl-border);
+  background: var(--cl-bg-subtle);
   font-size: 11px;
   line-height: 1.3;
 }
@@ -651,7 +806,7 @@ pre.chatlog-outline-preview {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--cl-text-muted);
   flex-shrink: 0;
 }
 
@@ -659,22 +814,7 @@ pre.chatlog-outline-preview {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(0, 0, 0, 0.7);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-file-chip {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .chatlog-file-ext {
-    color: rgba(255, 255, 255, 0.45);
-  }
-
-  .chatlog-file-name {
-    color: rgba(255, 255, 255, 0.7);
-  }
+  color: var(--cl-text-tertiary);
 }
 
 .chatlog-message-user-images .chatlog-structured-img {
@@ -702,7 +842,7 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-structured-li {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--cl-text-tertiary);
   position: relative;
   padding-left: 10px;
   margin-bottom: 2px;
@@ -712,18 +852,8 @@ pre.chatlog-outline-preview {
   content: "•";
   position: absolute;
   left: 0;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--cl-text-faint);
   font-weight: 700;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-li {
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .chatlog-structured-li::before {
-    color: rgba(255, 255, 255, 0.3);
-  }
 }
 
 /* Tables */
@@ -736,52 +866,29 @@ pre.chatlog-outline-preview {
 
 .chatlog-structured-table th,
 .chatlog-structured-table td {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--cl-border);
   padding: 3px 6px;
   text-align: left;
 }
 
 .chatlog-structured-table th {
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.8);
+  background: var(--cl-bg-subtle);
+  color: var(--cl-text-secondary);
 }
 
 .chatlog-structured-table td {
-  color: rgba(0, 0, 0, 0.65);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-table th,
-  .chatlog-structured-table td {
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .chatlog-structured-table th {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  .chatlog-structured-table td {
-    color: rgba(255, 255, 255, 0.65);
-  }
+  color: var(--cl-text-tertiary);
 }
 
 /* Inline code */
 .chatlog-inline-code {
   font-family: "SF Mono", Monaco, "Cascadia Code", "Fira Code", monospace;
   font-size: 0.9em;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--cl-bg-subtle);
   border-radius: 3px;
   padding: 1px 4px;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-inline-code {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.75);
-  }
+  color: var(--cl-text-tertiary);
 }
 
 /* Code blocks - monospace with distinct background */
@@ -790,12 +897,12 @@ pre.chatlog-outline-preview {
   font-family: "SF Mono", Monaco, "Cascadia Code", "Fira Code", monospace;
   font-size: 10px;
   line-height: 1.5;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--cl-bg-subtle);
+  border: 1px solid var(--cl-border-subtle);
   border-radius: 4px;
   padding: 6px 8px;
   margin: 0;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--cl-text-tertiary);
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-all;
@@ -804,14 +911,6 @@ pre.chatlog-outline-preview {
 .chatlog-structured-code code {
   font: inherit;
   color: inherit;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-structured-code {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-  }
 }
 
 /* Branch navigation — standalone line */
@@ -825,7 +924,7 @@ pre.chatlog-outline-preview {
 
 .chatlog-branch-text {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--cl-text-faint);
   margin-right: 2px;
 }
 
@@ -839,7 +938,7 @@ pre.chatlog-outline-preview {
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--cl-text-faint);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -848,8 +947,8 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-branch-btn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--cl-bg-subtle-hover);
+  color: var(--cl-text-tertiary);
 }
 
 .chatlog-branch-btn:disabled {
@@ -859,28 +958,9 @@ pre.chatlog-outline-preview {
 
 .chatlog-branch-label {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--cl-text-muted);
   min-width: 20px;
   text-align: center;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-branch-text {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .chatlog-branch-btn {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .chatlog-branch-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .chatlog-branch-label {
-    color: rgba(255, 255, 255, 0.5);
-  }
 }
 
 /* Shortcut settings panel */
@@ -889,24 +969,16 @@ pre.chatlog-outline-preview {
   bottom: 44px;
   right: 0;
   width: 260px;
-  background: rgb(255, 255, 255);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--cl-bg-elevated);
+  border: 1px solid var(--cl-border);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px var(--cl-shadow-strong);
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   z-index: 999999;
   font-size: 12px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-shortcut-settings {
-    background: rgb(33, 33, 33);
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  }
 }
 
 .chatlog-shortcut-row {
@@ -919,23 +991,13 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-shortcut-row:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--cl-bg-subtle);
 }
 
 .chatlog-shortcut-extra-row {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--cl-border);
   margin-top: 2px;
   padding-top: 8px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-shortcut-row:hover {
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .chatlog-shortcut-extra-row {
-    border-top-color: rgba(255, 255, 255, 0.1);
-  }
 }
 
 .chatlog-shortcut-label {
@@ -943,15 +1005,9 @@ pre.chatlog-outline-preview {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--cl-text-secondary);
   white-space: nowrap;
   cursor: pointer;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-shortcut-label {
-    color: rgba(255, 255, 255, 0.8);
-  }
 }
 
 .chatlog-shortcut-label input[type="checkbox"] {
@@ -960,74 +1016,43 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-shortcut-bind {
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--cl-bg-subtle);
+  border: 1px solid var(--cl-border);
   border-radius: 4px;
   padding: 2px 8px;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--cl-text-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s;
 }
 
 .chatlog-shortcut-bind:hover {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.12);
+  background: var(--cl-bg-subtle-hover);
+  border-color: var(--cl-border-strong);
 }
 
 .chatlog-shortcut-bind.listening {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: rgb(59, 130, 246);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-shortcut-bind {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .chatlog-shortcut-bind:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .chatlog-shortcut-bind.listening {
-    background: rgba(59, 130, 246, 0.15);
-    border-color: rgba(59, 130, 246, 0.3);
-    color: rgb(96, 165, 250);
-  }
+  background: var(--cl-accent-bg);
+  border-color: var(--cl-accent-border);
+  color: var(--cl-accent);
 }
 
 .chatlog-shortcut-reset {
   margin-top: 4px;
   background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--cl-border);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--cl-text-muted);
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .chatlog-shortcut-reset:hover {
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.7);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-shortcut-reset {
-    border-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  .chatlog-shortcut-reset:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.7);
-  }
+  background: var(--cl-bg-subtle);
+  color: var(--cl-text-tertiary);
 }
 
 /* Search bar */
@@ -1036,20 +1061,14 @@ pre.chatlog-outline-preview {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-search-bar {
-    border-bottom-color: rgba(255, 255, 255, 0.06);
-  }
+  border-bottom: 1px solid var(--cl-border-subtle);
 }
 
 .chatlog-search-input {
   flex: 1;
   min-width: 0;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--cl-bg-subtle);
+  border: 1px solid var(--cl-border);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 12px;
@@ -1059,33 +1078,15 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-search-input:focus {
-  border-color: rgba(59, 130, 246, 0.4);
-  background: rgba(59, 130, 246, 0.04);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-search-input {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .chatlog-search-input:focus {
-    border-color: rgba(96, 165, 250, 0.4);
-    background: rgba(96, 165, 250, 0.06);
-  }
+  border-color: var(--cl-accent-border);
+  background: var(--cl-accent-bg);
 }
 
 .chatlog-search-count {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--cl-text-muted);
   white-space: nowrap;
   flex-shrink: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-search-count {
-    color: rgba(255, 255, 255, 0.45);
-  }
 }
 
 .chatlog-search-close {
@@ -1098,26 +1099,15 @@ pre.chatlog-outline-preview {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--cl-text-faint);
   padding: 0;
   flex-shrink: 0;
   transition: all 0.15s;
 }
 
 .chatlog-search-close:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.7);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-search-close {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .chatlog-search-close:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-  }
+  background: var(--cl-bg-subtle-hover);
+  color: var(--cl-text-tertiary);
 }
 
 /* Search dimming and highlight */
@@ -1127,52 +1117,30 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-search-highlight {
-  background: rgba(59, 130, 246, 0.08);
+  background: var(--cl-accent-bg);
   border-radius: 4px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-search-highlight {
-    background: rgba(96, 165, 250, 0.1);
-  }
 }
 
 /* Search text highlight */
 .chatlog-search-mark {
-  background: rgba(250, 204, 21, 0.4);
+  background: var(--cl-highlight);
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .chatlog-search-mark {
-    background: rgba(250, 204, 21, 0.3);
-  }
-}
-
 /* Main conversation search highlight */
 .chatlog-main-highlight {
-  background: rgba(250, 204, 21, 0.4);
+  background: var(--cl-highlight);
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;
 }
 
 .chatlog-main-highlight-current {
-  background: rgba(249, 115, 22, 0.6);
-  outline: 2px solid rgba(249, 115, 22, 0.8);
+  background: var(--cl-highlight-current);
+  outline: 2px solid var(--cl-highlight-current-outline);
   outline-offset: 0px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-main-highlight {
-    background: rgba(250, 204, 21, 0.3);
-  }
-  .chatlog-main-highlight-current {
-    background: rgba(249, 115, 22, 0.5);
-    outline-color: rgba(249, 115, 22, 0.7);
-  }
 }
 
 /* Bookmark button */
@@ -1185,7 +1153,7 @@ pre.chatlog-outline-preview {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--cl-text-faint);
   padding: 0;
   display: flex;
   align-items: center;
@@ -1202,25 +1170,11 @@ pre.chatlog-outline-preview {
 
 .chatlog-bookmark-btn.bookmarked {
   opacity: 1;
-  color: rgb(234, 179, 8);
+  color: var(--cl-bookmark);
 }
 
 .chatlog-bookmark-btn:hover {
-  color: rgb(234, 179, 8);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-bookmark-btn {
-    color: rgba(255, 255, 255, 0.2);
-  }
-
-  .chatlog-bookmark-btn.bookmarked {
-    color: rgb(250, 204, 21);
-  }
-
-  .chatlog-bookmark-btn:hover {
-    color: rgb(250, 204, 21);
-  }
+  color: var(--cl-bookmark);
 }
 
 /* Header filter button (bookmark star in header) */
@@ -1234,45 +1188,24 @@ pre.chatlog-outline-preview {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--cl-text-faint);
   padding: 0;
   transition: all 0.15s;
 }
 
 .chatlog-header-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--cl-bg-subtle-hover);
+  color: var(--cl-text-tertiary);
 }
 
 .chatlog-header-btn.active {
-  color: rgb(234, 179, 8);
-  background: rgba(234, 179, 8, 0.1);
+  color: var(--cl-bookmark);
+  background: var(--cl-bookmark-bg);
 }
 
 .chatlog-header-btn.chatlog-search-active {
-  color: rgb(59, 130, 246);
-  background: rgba(59, 130, 246, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-header-btn {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .chatlog-header-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .chatlog-header-btn.active {
-    color: rgb(250, 204, 21);
-    background: rgba(250, 204, 21, 0.12);
-  }
-
-  .chatlog-header-btn.chatlog-search-active {
-    color: rgb(96, 165, 250);
-    background: rgba(96, 165, 250, 0.12);
-  }
+  color: var(--cl-accent);
+  background: var(--cl-accent-bg);
 }
 
 /* Drag handle */
@@ -1288,13 +1221,7 @@ pre.chatlog-outline-preview {
 }
 
 .chatlog-drag-handle:hover {
-  background: rgba(59, 130, 246, 0.3);
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-drag-handle:hover {
-    background: rgba(96, 165, 250, 0.3);
-  }
+  background: var(--cl-accent-border);
 }
 
 /* Scrollbar */
@@ -1310,25 +1237,32 @@ pre.chatlog-outline-preview {
 
 .chatlog-sidebar::-webkit-scrollbar-thumb,
 .chatlog-outline-messages::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--cl-scrollbar);
   border-radius: 3px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .chatlog-sidebar::-webkit-scrollbar-thumb,
-  .chatlog-outline-messages::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-  }
 }
 
 .chatlog-sidebar::-webkit-scrollbar-thumb:hover,
 .chatlog-outline-messages::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--cl-scrollbar-hover);
 }
 
-@media (prefers-color-scheme: dark) {
-  .chatlog-sidebar::-webkit-scrollbar-thumb:hover,
-  .chatlog-outline-messages::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
+/* Theme selector in settings */
+.chatlog-theme-select {
+  background: var(--cl-bg-subtle);
+  border: 1px solid var(--cl-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--cl-text-secondary);
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+}
+
+.chatlog-theme-select:hover {
+  border-color: var(--cl-border-strong);
+}
+
+.chatlog-theme-select:focus {
+  border-color: var(--cl-accent-border);
 }

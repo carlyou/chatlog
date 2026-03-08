@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ShortcutConfig } from '../../types';
+import type { ThemeId } from '../lib/themes';
 import { PerfOverlay } from './PerfOverlay';
 import { ShortcutSettings } from './ShortcutSettings';
 
@@ -10,6 +11,10 @@ interface ToggleButtonProps {
   onShortcutConfigChange: (config: ShortcutConfig) => void;
   perfEnabled: boolean;
   onPerfEnabledChange: (enabled: boolean) => void;
+  theme: ThemeId;
+  onThemeChange: (theme: ThemeId) => void;
+  glass: boolean;
+  onGlassChange: (glass: boolean) => void;
 }
 
 export function ToggleButton({
@@ -19,6 +24,10 @@ export function ToggleButton({
   onShortcutConfigChange,
   perfEnabled,
   onPerfEnabledChange,
+  theme,
+  onThemeChange,
+  glass,
+  onGlassChange,
 }: ToggleButtonProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -72,6 +81,10 @@ export function ToggleButton({
             onChange={onShortcutConfigChange}
             perfEnabled={perfEnabled}
             onPerfEnabledChange={onPerfEnabledChange}
+            theme={theme}
+            onThemeChange={onThemeChange}
+            glass={glass}
+            onGlassChange={onGlassChange}
           />
         )}
       </div>

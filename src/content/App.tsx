@@ -13,21 +13,27 @@ import { useSearch } from './hooks/useSearch';
 import { useShiftKey } from './hooks/useShiftKey';
 import { useShortcutConfig } from './hooks/useShortcutConfig';
 import { useSidebarWidth } from './hooks/useSidebarWidth';
+import { useTheme } from './hooks/useTheme';
 
 const PEEK_DURATION = 2000;
 
 interface AppProps {
   platform: Platform;
+  shadowHost: HTMLElement;
 }
 
-export function App({ platform }: AppProps) {
+export function App({ platform, shadowHost }: AppProps) {
   const searchPausedRef = useRef(false);
-  const [messages, reconcileMessages] = useMessages(platform, searchPausedRef);
+  const [messages, reconcileMessages, messagesLoading] = useMessages(
+    platform,
+    searchPausedRef,
+  );
   const { active: activeTarget, lockActive } = useActiveMessage(messages);
   const { pinned, toggle } = usePinned();
   const { mode, setMode } = useDisplayMode();
   const { config: shortcutConfig, setConfig: setShortcutConfig } =
     useShortcutConfig();
+  const { theme, setTheme, glass, setGlass } = useTheme(shadowHost, platform);
   const search = useSearch(messages, platform, lockActive);
 
   // Pause message reconciliation while search is active to avoid disrupting match positions
@@ -72,6 +78,7 @@ export function App({ platform }: AppProps) {
       <HoverZone hidden={pinned} />
       <Sidebar
         messages={messages}
+        loading={messagesLoading}
         pinned={pinned}
         peeking={peeking}
         onTogglePin={toggle}
@@ -106,6 +113,10 @@ export function App({ platform }: AppProps) {
         onShortcutConfigChange={setShortcutConfig}
         perfEnabled={perfEnabled}
         onPerfEnabledChange={setPerfEnabled}
+        theme={theme}
+        onThemeChange={setTheme}
+        glass={glass}
+        onGlassChange={setGlass}
       />
     </>
   );
