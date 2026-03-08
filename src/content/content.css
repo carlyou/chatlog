@@ -99,6 +99,10 @@
   --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
 }
 
+:host([data-theme="tokyo-night"]) .chatlog-bubble-user {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* ── Nord ── */
 :host([data-theme="nord"]) {
   --cl-bg-glass: rgba(46, 52, 64, 0.85);

@@ -247,7 +247,7 @@ ${s}, ${s} body {
 /* Tailwind bg-bg-* utility class overrides (Claude.ai) */
 ${s} [class*="bg-bg-000"] { background-color: ${p.bg200} !important; }
 ${s} [class*="bg-bg-100"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-bg-200"] { background-color: ${p.bg200} !important; }
+${s} [class*="bg-bg-200"] { background-color: ${p.bg400} !important; }
 ${s} [class*="bg-bg-300"] { background-color: ${p.bg300} !important; }
 ${s} [class*="bg-bg-400"] { background-color: ${p.bg400} !important; }
 ${s} [class*="bg-bg-500"] { background-color: ${p.bg500} !important; }
@@ -257,6 +257,9 @@ ${s} #main-content button:not([class*="bg-accent"]),
 ${s} main button:not([class*="bg-accent"]) { background-color: ${p.bg300} !important; color: ${p.text200} !important; }
 ${s} #main-content button:hover:not([class*="bg-accent"]),
 ${s} main button:hover:not([class*="bg-accent"]) { background-color: ${p.bg400} !important; }
+/* Thinking status button — blend with parent */
+${s} #main-content button.group\\/status,
+${s} main button.group\\/status { background-color: transparent !important; }
 
 /* Tailwind text-text-* utility class overrides */
 ${s} [class*="text-text-100"] { color: ${p.text100} !important; }
@@ -367,7 +370,6 @@ ${s} code:not(pre code) {
 /* Code blocks */
 ${s} pre {
   background-color: ${p.bg200} !important;
-  border: 1px solid ${p.border200} !important;
   border-radius: 8px !important;
 }
 ${s} pre code {
@@ -483,6 +485,13 @@ ${s} [class*="chat-input"] {
   background-color: ${p.bg300} !important;
   color: ${p.text100} !important;
   border-color: ${p.border200} !important;
+}
+/* Chat input container — transparent inner elements so only fieldset outline shows */
+${s} div[data-chat-input-container="true"] [contenteditable],
+${s} div[data-chat-input-container="true"] textarea,
+${s} .root textarea,
+${s} .root [contenteditable] {
+  background-color: transparent !important;
 }
 
 /* ChatGPT user message bubble */

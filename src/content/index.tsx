@@ -72,6 +72,16 @@ async function init() {
       div[data-chat-input-container="true"]:focus-within {
         opacity: 1 !important;
       }
+      div[data-chat-input-container="true"] > fieldset {
+        border-radius: 1.25rem !important;
+        background: transparent !important;
+      }
+      div[data-chat-input-container="true"] > fieldset > div {
+        background: transparent !important;
+      }
+      button.group\\/status {
+        background: transparent !important;
+      }
     `;
     document.head.appendChild(hostStyle);
   }
