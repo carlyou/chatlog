@@ -8,6 +8,7 @@ import { SearchBar } from './SearchBar';
 
 interface SidebarProps {
   messages: Message[];
+  loading?: boolean;
   pinned: boolean;
   peeking?: boolean;
   onTogglePin: () => void;
@@ -39,8 +40,23 @@ interface SidebarProps {
   onWidthChange?: (w: number) => void;
 }
 
+function ShimmerSkeleton() {
+  return (
+    <div className="chatlog-shimmer-list">
+      {[0.85, 0.6, 0.95, 0.5, 0.75, 0.4, 0.9, 0.55].map((w, i) => (
+        <div
+          key={i}
+          className={`chatlog-shimmer-row${i % 3 === 0 ? ' chatlog-shimmer-accent' : ''}`}
+          style={{ width: `${w * 100}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function Sidebar({
   messages,
+  loading,
   pinned,
   peeking,
   onTogglePin,
@@ -151,20 +167,24 @@ export function Sidebar({
             onClose={onSearchClose}
           />
         )}
-      <MessageList
-        messages={messages}
-        displayMode={displayMode}
-        activeMessageId={activeMessageId}
-        activeSectionIndex={activeSectionIndex}
-        onLockActive={onLockActive}
-        onJumpNavigate={onJumpNavigate}
-        searchQuery={searchQuery}
-        searchMatchIds={searchMatchIds}
-        currentSearchMatchId={currentSearchMatchId}
-        bookmarkFilter={bookmarkFilter}
-        isBookmarked={isBookmarked}
-        onToggleBookmark={onToggleBookmark}
-      />
+      {loading ? (
+        <ShimmerSkeleton />
+      ) : (
+        <MessageList
+          messages={messages}
+          displayMode={displayMode}
+          activeMessageId={activeMessageId}
+          activeSectionIndex={activeSectionIndex}
+          onLockActive={onLockActive}
+          onJumpNavigate={onJumpNavigate}
+          searchQuery={searchQuery}
+          searchMatchIds={searchMatchIds}
+          currentSearchMatchId={currentSearchMatchId}
+          bookmarkFilter={bookmarkFilter}
+          isBookmarked={isBookmarked}
+          onToggleBookmark={onToggleBookmark}
+        />
+      )}
     </div>
   );
 }

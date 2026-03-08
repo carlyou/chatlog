@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { Platform } from '../../types';
 import type { ThemeId } from '../lib/themes';
-import { PALETTES, getHostCSS } from '../lib/themes';
+import { PALETTES, getHostCSS, isLightTheme } from '../lib/themes';
 import { getAdapter } from '../lib/adapters/registry';
 
 const THEME_KEY = 'chatlog-theme';
 const GLASS_KEY = 'chatlog-glass';
 const STYLE_ID = 'chatlog-theme-overrides';
-const BG_MARKER = 'chatlogBg';
+const BG_MARKER = 'chatlogbg';
 
 /**
  * Walk from multiple starting points up to body, setting inline background-color
@@ -61,7 +61,7 @@ function applyBgOverrides(platform: Platform, bgColor: string) {
  * Remove all inline background overrides we previously applied.
  */
 function removeBgOverrides() {
-  for (const el of document.querySelectorAll(`[data-${BG_MARKER}]`)) {
+  for (const el of document.querySelectorAll('[data-chatlogbg]')) {
     const htmlEl = el as HTMLElement;
     htmlEl.style.removeProperty('background-color');
     delete htmlEl.dataset[BG_MARKER];
@@ -91,6 +91,7 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
     if (theme === 'system') {
       shadowHost.removeAttribute('data-theme');
       delete document.documentElement.dataset.chatlogTheme;
+      document.documentElement.style.removeProperty('color-scheme');
     } else {
       shadowHost.dataset.theme = theme;
       document.documentElement.dataset.chatlogTheme = theme;
@@ -107,12 +108,13 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
       }
       styleEl.textContent = css;
     } else if (styleEl) {
-      styleEl.textContent = '';
+      styleEl.remove();
     }
 
-    // JS-based background override: unconditionally set bg on all ancestors
-    // of the message container. No luminance check — just force the color.
+    // Force color-scheme and JS-based background overrides
     if (theme !== 'system') {
+      const scheme = isLightTheme(theme) ? 'light' : 'dark';
+      document.documentElement.style.setProperty('color-scheme', scheme);
       const palette = PALETTES[theme];
       applyBgOverrides(platform, palette.bg100);
     }

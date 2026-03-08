@@ -227,6 +227,70 @@
   --cl-scrollbar-hover: rgba(255, 255, 255, 0.25);
 }
 
+/* ── Rosé Pine Dawn (light) ── */
+:host([data-theme="rose-pine-dawn"]) {
+  --cl-bg-glass: rgba(250, 244, 237, 0.85);
+  --cl-bg-solid: #faf4ed;
+  --cl-bg-elevated: #fffaf3;
+  --cl-bg-elevated-hover: #f2e9e1;
+  --cl-bg-subtle: rgba(87, 82, 121, 0.06);
+  --cl-bg-subtle-hover: rgba(87, 82, 121, 0.1);
+  --cl-text: #575279;
+  --cl-text-secondary: #797593;
+  --cl-text-tertiary: #9893a5;
+  --cl-text-muted: #b4b0be;
+  --cl-text-faint: #cecacd;
+  --cl-border: rgba(87, 82, 121, 0.1);
+  --cl-border-subtle: rgba(87, 82, 121, 0.06);
+  --cl-border-strong: rgba(87, 82, 121, 0.15);
+  --cl-accent: #907aa9;
+  --cl-accent-bg: rgba(144, 122, 169, 0.12);
+  --cl-accent-border: rgba(144, 122, 169, 0.3);
+  --cl-bookmark: #ea9d34;
+  --cl-bookmark-bg: rgba(234, 157, 52, 0.12);
+  --cl-highlight: rgba(234, 157, 52, 0.25);
+  --cl-highlight-current: rgba(215, 130, 126, 0.4);
+  --cl-highlight-current-outline: rgba(215, 130, 126, 0.6);
+  --cl-shadow: rgba(87, 82, 121, 0.1);
+  --cl-shadow-strong: rgba(87, 82, 121, 0.15);
+  --cl-glass-border: rgba(144, 122, 169, 0.15);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(87, 82, 121, 0.15);
+  --cl-scrollbar-hover: rgba(87, 82, 121, 0.25);
+}
+
+/* ── Solarized Light ── */
+:host([data-theme="solarized-light"]) {
+  --cl-bg-glass: rgba(253, 246, 227, 0.85);
+  --cl-bg-solid: #fdf6e3;
+  --cl-bg-elevated: #eee8d5;
+  --cl-bg-elevated-hover: #e6dfcb;
+  --cl-bg-subtle: rgba(101, 123, 131, 0.06);
+  --cl-bg-subtle-hover: rgba(101, 123, 131, 0.1);
+  --cl-text: #657b83;
+  --cl-text-secondary: #586e75;
+  --cl-text-tertiary: #839496;
+  --cl-text-muted: #93a1a1;
+  --cl-text-faint: #a8b4b4;
+  --cl-border: rgba(101, 123, 131, 0.1);
+  --cl-border-subtle: rgba(101, 123, 131, 0.06);
+  --cl-border-strong: rgba(101, 123, 131, 0.15);
+  --cl-accent: #268bd2;
+  --cl-accent-bg: rgba(38, 139, 210, 0.1);
+  --cl-accent-border: rgba(38, 139, 210, 0.3);
+  --cl-bookmark: #b58900;
+  --cl-bookmark-bg: rgba(181, 137, 0, 0.1);
+  --cl-highlight: rgba(181, 137, 0, 0.25);
+  --cl-highlight-current: rgba(203, 75, 22, 0.35);
+  --cl-highlight-current-outline: rgba(203, 75, 22, 0.55);
+  --cl-shadow: rgba(101, 123, 131, 0.1);
+  --cl-shadow-strong: rgba(101, 123, 131, 0.15);
+  --cl-glass-border: rgba(38, 139, 210, 0.15);
+  --cl-backdrop-blur: blur(12px);
+  --cl-scrollbar: rgba(101, 123, 131, 0.15);
+  --cl-scrollbar-hover: rgba(101, 123, 131, 0.25);
+}
+
 /* ── Glass toggle: disable glass when data-glass is absent ── */
 :host(:not([data-glass])) .chatlog-sidebar {
   background: var(--cl-bg-solid) !important;
@@ -444,6 +508,39 @@
   gap: 2px;
 }
 
+/* Shimmer skeleton */
+.chatlog-shimmer-list {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chatlog-shimmer-row {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--cl-bg-subtle) 25%,
+    var(--cl-bg-subtle-hover) 50%,
+    var(--cl-bg-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: chatlog-shimmer 1.4s ease-in-out infinite;
+}
+
+.chatlog-shimmer-accent {
+  height: 10px;
+  margin-top: 4px;
+  opacity: 0.6;
+}
+
+@keyframes chatlog-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .chatlog-empty {
   padding: 20px;
   text-align: center;
@@ -564,6 +661,9 @@
   padding-left: 8px;
   border-left: 2px solid var(--cl-text-faint);
   color: var(--cl-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Outline mode: one-line preview under headings */

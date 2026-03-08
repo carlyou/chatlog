@@ -43,6 +43,7 @@ export function useMessages(
   pausedRef?: React.RefObject<boolean>,
 ) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const containerRef = useRef<Element | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
@@ -93,6 +94,7 @@ export function useMessages(
       if (entry?.message) next.push(entry.message);
     }
     setMessages(next);
+    setLoading(false);
   }, []);
 
   const fullReconcile = useCallback(
@@ -106,6 +108,7 @@ export function useMessages(
           knownRootSetRef.current = new Set();
           dirtyRootsRef.current.clear();
           setMessages([]);
+          setLoading(false);
           return;
         }
 
@@ -346,16 +349,22 @@ export function useMessages(
     scheduleIntervalReconcile,
   ]);
 
-  useUrlChange(() => {
-    clearScheduledReconcile();
-    rebindRef.current();
-    fullReconcile('url-change');
-  });
+  useUrlChange(
+    () => {
+      clearScheduledReconcile();
+      rebindRef.current();
+      fullReconcile('url-change');
+    },
+    () => {
+      setLoading(true);
+      setMessages([]);
+    },
+  );
 
   const reconcile = useCallback(
     () => fullReconcile('interval'),
     [fullReconcile],
   );
 
-  return [messages, reconcile] as const;
+  return [messages, reconcile, loading] as const;
 }
