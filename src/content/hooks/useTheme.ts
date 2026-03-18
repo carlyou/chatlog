@@ -4,8 +4,15 @@ import { getAdapter } from '../lib/adapters/registry';
 import type { ThemeId } from '../lib/themes';
 import { getHostCSS, isLightTheme, PALETTES } from '../lib/themes';
 
-const THEME_KEY = 'chatlog-theme';
+const THEME_KEY_BASE = 'chatlog-theme';
 const GLASS_KEY = 'chatlog-glass';
+
+/** Return a platform-specific storage key for theme preference */
+function themeKey(platform: Platform): string {
+  if (platform === 'claude-code') return `${THEME_KEY_BASE}-claude-code`;
+  if (platform === 'claude') return `${THEME_KEY_BASE}-claude`;
+  return THEME_KEY_BASE;
+}
 const STYLE_ID = 'chatlog-theme-overrides';
 const BG_MARKER = 'chatlogbg';
 
@@ -72,6 +79,8 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
   const [theme, setThemeState] = useState<ThemeId>('system');
   const [glass, setGlassState] = useState(true);
 
+  const THEME_KEY = themeKey(platform);
+
   // Load persisted values
   useEffect(() => {
     chrome.storage.local.get([THEME_KEY, GLASS_KEY], (result) => {
@@ -79,7 +88,7 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
       if (typeof result[GLASS_KEY] === 'boolean')
         setGlassState(result[GLASS_KEY]);
     });
-  }, []);
+  }, [THEME_KEY]);
 
   // Apply theme to shadow host + document
   useEffect(() => {
@@ -99,7 +108,7 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
 
     // Inject CSS overrides into host page
     let styleEl = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
-    const css = getHostCSS(theme);
+    const css = getHostCSS(theme, platform ?? undefined);
     if (css) {
       if (!styleEl) {
         styleEl = document.createElement('style');
@@ -132,7 +141,8 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
 
   const setTheme = (id: ThemeId) => {
     setThemeState(id);
-    chrome.storage.local.set({ [THEME_KEY]: id });
+    const key = themeKey(platform);
+    chrome.storage.local.set({ [key]: id });
   };
 
   const setGlass = (enabled: boolean) => {

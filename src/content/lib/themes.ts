@@ -212,7 +212,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
  * which may compile to static color values. We override both the utility classes
  * AND common CSS variable naming conventions to cover all cases.
  */
-export function buildHostCSS(themeId: Exclude<ThemeId, 'system'>): string {
+export function buildHostCSS(themeId: Exclude<ThemeId, 'system'>, platform?: string): string {
   const p = PALETTES[themeId];
   const s = `html[data-chatlog-theme="${themeId}"]`;
 
@@ -230,7 +230,7 @@ ${s} {
   --color-text-400: ${p.text400}; --color-text-500: ${p.text500};
   --color-border-100: ${p.border100}; --color-border-200: ${p.border200}; --color-border-300: ${p.border300};
   --color-accent-main-100: ${p.accent}; --color-accent-secondary-100: ${p.accent};
-  --bg-100: ${p.bg100}; --bg-200: ${p.bg200}; --bg-300: ${p.bg300};
+  --bg-000: ${p.bg200}; --bg-100: ${p.bg100}; --bg-200: ${p.bg200}; --bg-300: ${p.bg300};
   --text-100: ${p.text100}; --text-200: ${p.text200}; --text-300: ${p.text300};
   --main-surface-primary: ${p.bg100}; --main-surface-secondary: ${p.bg200};
   --main-surface-tertiary: ${p.bg300};
@@ -247,10 +247,23 @@ ${s}, ${s} body {
 /* Tailwind bg-bg-* utility class overrides (Claude.ai) */
 ${s} [class*="bg-bg-000"] { background-color: ${p.bg200} !important; }
 ${s} [class*="bg-bg-100"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-bg-200"] { background-color: ${p.bg400} !important; }
+${s} [class*="bg-bg-200"] { background-color: ${p.bg200} !important; }
 ${s} [class*="bg-bg-300"] { background-color: ${p.bg300} !important; }
 ${s} [class*="bg-bg-400"] { background-color: ${p.bg400} !important; }
 ${s} [class*="bg-bg-500"] { background-color: ${p.bg500} !important; }
+${platform === 'claude-code' ? `
+/* Claude Code: strip bg from sidebar items & thinking blocks, keep user bubbles */
+${s} [class*="bg-bg-200"]:not([class*="text-text-000"]) { background-color: transparent !important; }
+${s} .group[class*="bg-bg-300"] { background-color: transparent !important; }
+/* Hover: restore theme bg for bg-bg-200 and bg-bg-300 items */
+${s} [class*="hover\\:bg-bg-200"]:hover,
+${s} [class*="bg-bg-200"]:not([class*="text-text-000"]):hover { background-color: ${p.bg300} !important; }
+${s} .group[class*="bg-bg-300"]:hover { background-color: ${p.bg300} !important; }
+/* User message bubble — keep visible */
+${s} [class*="bg-bg-200"][class*="text-text-000"] { background-color: ${p.bg400} !important; }
+/* Sidebar session hover gradient overlay */
+${s} .group:hover [style*="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
+` : ''}
 
 /* Buttons — override white backgrounds in content area, keep nav/sidebar buttons natural */
 ${s} #main-content button:not([class*="bg-accent"]),
@@ -518,7 +531,7 @@ ${s} [class*="content-fade"]::after {
 `;
 }
 
-export function getHostCSS(themeId: ThemeId): string {
+export function getHostCSS(themeId: ThemeId, platform?: string): string {
   if (themeId === 'system') return '';
-  return buildHostCSS(themeId);
+  return buildHostCSS(themeId, platform);
 }
