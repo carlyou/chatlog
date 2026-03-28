@@ -8,7 +8,7 @@ import type {
   StructuredContent,
 } from '../../types';
 import { getAdapter } from './adapters/registry';
-import { perfInc, perfRun, perfSet } from './perf';
+import { perfRun } from './perf';
 
 let rootIdCounter = 0;
 const rootIdMap = new WeakMap<Element, string>();
@@ -87,7 +87,7 @@ function extractRichText(el: Element): RichText {
 /** Detect broken fence rendering inside a <pre> block.
  *  Returns 'normal' when the block is a real code block, or 'broken' with
  *  the code portion (before the fence) and markdown portion (after it). */
-function splitAtFence(
+export function splitAtFence(
   text: string,
 ): { type: 'normal' } | { type: 'broken'; code: string; markdown: string } {
   const lines = text.split('\n');
@@ -366,7 +366,7 @@ export function extractStructuredContent(element: Element): StructuredContent {
           type: 'paragraph',
           segments: extractRichText(el),
           _el: el,
-        } as ContentBlock);
+        });
       } else if (tag === 'ul' || tag === 'ol') {
         // Mark all descendant elements as visited to prevent double-parsing
         // (e.g. ChatGPT wraps list-item content in <p> tags)
@@ -467,8 +467,7 @@ export function extractStructuredContent(element: Element): StructuredContent {
           .join('')
           .trim();
         if (text) {
-          // biome-ignore lint/suspicious/noExplicitAny: _el is a temporary property attached during parsing
-          blocks[i] = { type: 'heading', text, element: (b as any)._el };
+          blocks[i] = { type: 'heading', text, element: b._el };
         }
       }
     }
@@ -476,8 +475,7 @@ export function extractStructuredContent(element: Element): StructuredContent {
 
   // Clean up temporary _el references from paragraph blocks
   for (const b of blocks) {
-    // biome-ignore lint/suspicious/noExplicitAny: _el is a temporary property attached during parsing
-    if ('_el' in b) delete (b as any)._el;
+    if (b.type === 'paragraph' && b._el) delete b._el;
   }
 
   // Parse file thumbnails (e.g. uploaded .txt, .pdf files)
@@ -597,27 +595,5 @@ export function parseMessageRoot(
     const adapter = getAdapter(platform);
     if (!adapter) return null;
     return adapter.parseMessageRoot(root);
-  });
-}
-
-export function parseMessages(platform: Platform): Message[] {
-  if (!platform) return [];
-  const adapter = getAdapter(platform);
-  if (!adapter) return [];
-
-  const container = document.querySelector(adapter.selectors.messageContainer);
-  if (!container) return [];
-
-  return perfRun('parseMessagesMs', () => {
-    perfInc('parseMessagesCalls');
-    const roots = getMessageRoots(platform, container);
-    const messages: Message[] = [];
-    for (const root of roots) {
-      const parsed = parseMessageRoot(platform, root);
-      if (parsed) messages.push(parsed);
-    }
-    perfSet('messagesParsedLast', messages.length);
-    perfInc('messagesParsedTotal', messages.length);
-    return messages;
   });
 }

@@ -11,7 +11,7 @@ export type RichText = RichSegment[];
 
 export type ContentBlock =
   | { type: 'heading'; text: string; element?: Element }
-  | { type: 'paragraph'; segments: RichText }
+  | { type: 'paragraph'; segments: RichText; _el?: Element }
   | { type: 'list'; items: RichText[] }
   | { type: 'code'; text: string }
   | { type: 'divider' }

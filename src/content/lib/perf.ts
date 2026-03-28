@@ -211,4 +211,4 @@ export function perfRefreshReportingState(): void {
   else stopReport();
 }
 
-exposeDebugHandle();
+if (isEnabled()) exposeDebugHandle();

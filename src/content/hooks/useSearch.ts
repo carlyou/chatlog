@@ -79,17 +79,27 @@ export function useSearch(
       .map((msg) => msg.id);
   }, [messages, query]);
 
-  // Find which message contains a given DOM element
+  // Map from message root elements to message IDs for O(depth) lookup
+  const messageElementMap = useMemo(() => {
+    const map = new Map<Element, string>();
+    for (const msg of messages) {
+      if (msg.element) map.set(msg.element, msg.id);
+    }
+    return map;
+  }, [messages]);
+
+  // Find which message contains a given DOM element by walking ancestors
   const findMessageForElement = useCallback(
     (el: HTMLElement): string | null => {
-      for (const msg of messages) {
-        if (msg.element && (msg.element as HTMLElement).contains(el)) {
-          return msg.id;
-        }
+      let current: HTMLElement | null = el;
+      while (current) {
+        const id = messageElementMap.get(current);
+        if (id !== undefined) return id;
+        current = current.parentElement;
       }
       return null;
     },
-    [messages],
+    [messageElementMap],
   );
 
   // Apply / clear main-conversation highlights whenever query or open state changes
@@ -172,7 +182,6 @@ export function useSearch(
     matchIds,
     currentMatchMsgId,
     totalMatches: mainMatchCount,
-    mainMatchCount,
     open,
     close,
     toggle,

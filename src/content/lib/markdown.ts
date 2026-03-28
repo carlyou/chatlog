@@ -67,7 +67,12 @@ export function messagesToMarkdown(messages: Message[]): string {
 export function downloadMarkdown(messages: Message[]) {
   const content = messagesToMarkdown(messages);
   const title = document.title || 'conversation';
-  const filename = `${title.replace(/[^a-zA-Z0-9_\- ]/g, '').trim().replace(/\s+/g, '-') || 'conversation'}.md`;
+  const filename = `${
+    title
+      .replace(/[^a-zA-Z0-9_\- ]/g, '')
+      .trim()
+      .replace(/\s+/g, '-') || 'conversation'
+  }.md`;
 
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);

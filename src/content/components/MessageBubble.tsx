@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type {
   BranchInfo,
   ContentBlock,
@@ -10,6 +17,8 @@ import type {
 } from '../../types';
 import type { ActiveTarget } from '../hooks/useActiveMessage';
 import { SCROLL_REF_RATIO } from '../lib/constants';
+import { findScrollableAncestor } from '../lib/dom';
+import { groupIntoSections } from '../lib/sections';
 import { BookmarkButton } from './BookmarkButton';
 
 import { scrollToTopCenter } from './MessageList';
@@ -41,17 +50,10 @@ export function scrollElToRefLine(el: HTMLElement) {
   const target = window.innerHeight * SCROLL_REF_RATIO;
   const delta = el.getBoundingClientRect().top - target + 5;
 
-  // Find the nearest scrollable ancestor
-  let parent = el.parentElement;
-  while (parent) {
-    if (parent.scrollHeight > parent.clientHeight) {
-      const style = getComputedStyle(parent);
-      if (style.overflowY !== 'visible' && style.overflowY !== 'hidden') {
-        parent.scrollBy({ top: delta, behavior: 'smooth' });
-        return;
-      }
-    }
-    parent = parent.parentElement;
+  const parent = findScrollableAncestor(el);
+  if (parent) {
+    parent.scrollBy({ top: delta, behavior: 'smooth' });
+    return;
   }
   // Fallback: document scroll
   window.scrollBy({ top: delta, behavior: 'smooth' });
@@ -225,41 +227,14 @@ function BlockView({ block }: { block: ContentBlock }) {
           className="chatlog-structured-img"
         />
       );
+    case 'file':
+      return (
+        <span className="chatlog-file-chip">
+          {block.ext && <span className="chatlog-file-ext">{block.ext}</span>}
+          <span className="chatlog-file-name">{block.name}</span>
+        </span>
+      );
   }
-}
-
-interface Section {
-  isHeading?: boolean;
-  headingElement?: Element;
-  blocks: ContentBlock[];
-}
-
-function groupIntoSections(blocks: ContentBlock[]): Section[] {
-  const sections: Section[] = [];
-  let current: Section | null = null;
-
-  for (const block of blocks) {
-    if (block.type === 'heading') {
-      current = {
-        isHeading: true,
-        headingElement: block.element,
-        blocks: [block],
-      };
-      sections.push(current);
-    } else if (current) {
-      current.blocks.push(block);
-    } else {
-      // Blocks before the first heading — no anchor
-      if (!sections.length || sections[0].isHeading) {
-        sections.unshift({ blocks: [block] });
-        current = null;
-      } else {
-        sections[0].blocks.push(block);
-      }
-    }
-  }
-
-  return sections;
 }
 
 function StructuredView({
@@ -278,24 +253,22 @@ function StructuredView({
   startCollapsed?: boolean;
 }) {
   const activeSectionRef = useRef<HTMLDivElement | null>(null);
+  const sections = useMemo(
+    () => groupIntoSections(structured.blocks),
+    [structured.blocks],
+  );
+  const headingCount = useMemo(
+    () => sections.filter((s) => s.isHeading).length,
+    [sections],
+  );
   const [collapsed, setCollapsed] = useState<Set<number>>(() => {
     if (!startCollapsed) return new Set();
-    const sections = groupIntoSections(structured.blocks);
-    const count = sections.filter((s) => s.isHeading).length;
-    return new Set(Array.from({ length: count }, (_, i) => i));
+    return new Set(Array.from({ length: headingCount }, (_, i) => i));
   });
   const prevAllCollapsedRef = useRef(allCollapsed);
-  // Track the heading count we've already collapsed so new arrivals can be added incrementally
-  const prevHeadingCountRef = useRef(
-    startCollapsed
-      ? groupIntoSections(structured.blocks).filter((s) => s.isHeading).length
-      : 0,
-  );
+  const prevHeadingCountRef = useRef(startCollapsed ? headingCount : 0);
 
   useEffect(() => {
-    const sections = groupIntoSections(structured.blocks);
-    const headingCount = sections.filter((s) => s.isHeading).length;
-
     if (!prevAllCollapsedRef.current && allCollapsed) {
       // Switched to collapsed: collapse all current headings
       setCollapsed(new Set(Array.from({ length: headingCount }, (_, i) => i)));
@@ -314,7 +287,7 @@ function StructuredView({
 
     prevAllCollapsedRef.current = allCollapsed;
     prevHeadingCountRef.current = headingCount;
-  }, [allCollapsed, structured.blocks]);
+  }, [allCollapsed, headingCount]);
 
   const toggleCollapse = (idx: number) => {
     setCollapsed((prev) => {
@@ -345,8 +318,6 @@ function StructuredView({
       </div>
     );
   }
-
-  const sections = groupIntoSections(structured.blocks);
 
   let headingIdx = 0;
   return (

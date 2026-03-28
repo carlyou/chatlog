@@ -138,6 +138,7 @@ export function useMessages(
     delayedReconcileRef.current = 0;
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pausedRef is a stable ref read at call time, not a reactive dependency
   const scheduleIntervalReconcile = useCallback(() => {
     if (idleReconcileRef.current || delayedReconcileRef.current) return;
     const run = () => {
@@ -155,7 +156,7 @@ export function useMessages(
     }
 
     delayedReconcileRef.current = window.setTimeout(run, PROCESS_DEBOUNCE_MS);
-  }, [fullReconcile, pausedRef?.current]);
+  }, [fullReconcile]);
 
   const processDirtyRoots = useCallback(() => {
     processTimerRef.current = 0;
@@ -202,6 +203,7 @@ export function useMessages(
     }
   }, [commitFromCache, parseRootIfChanged]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pausedRef is a stable ref read at call time, not a reactive dependency
   const scheduleDirtyProcessing = useCallback(() => {
     if (pausedRef?.current) return;
     if (processTimerRef.current) {
@@ -213,13 +215,14 @@ export function useMessages(
       processDirtyRoots,
       PROCESS_DEBOUNCE_MS,
     );
-  }, [processDirtyRoots, pausedRef?.current]);
+  }, [processDirtyRoots]);
 
   const markRootDirty = useCallback((root: Element | null) => {
     if (!root || !knownRootSetRef.current.has(root)) return;
     dirtyRootsRef.current.add(root);
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pausedRef is a stable ref read at call time, not a reactive dependency
   const handleMutations = useCallback(
     (records: MutationRecord[]) => {
       perfInc('observerCallbacks');
@@ -294,7 +297,6 @@ export function useMessages(
       reindexRoots,
       rootSelector,
       scheduleDirtyProcessing,
-      pausedRef?.current,
     ],
   );
 

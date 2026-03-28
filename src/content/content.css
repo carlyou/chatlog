@@ -674,17 +674,6 @@
   text-overflow: ellipsis;
 }
 
-/* Outline mode: one-line preview under headings */
-.chatlog-outline-preview {
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-pre.chatlog-outline-preview {
-  display: block;
-  padding: 2px 6px;
-}
-
 /* Clickable heading sections in detailed view */
 .chatlog-heading-section {
   cursor: pointer;

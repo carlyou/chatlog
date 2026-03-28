@@ -212,7 +212,10 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
  * which may compile to static color values. We override both the utility classes
  * AND common CSS variable naming conventions to cover all cases.
  */
-export function buildHostCSS(themeId: Exclude<ThemeId, 'system'>, platform?: string): string {
+export function buildHostCSS(
+  themeId: Exclude<ThemeId, 'system'>,
+  platform?: string,
+): string {
   const p = PALETTES[themeId];
   const s = `html[data-chatlog-theme="${themeId}"]`;
 
@@ -251,7 +254,9 @@ ${s} [class*="bg-bg-200"] { background-color: ${p.bg200} !important; }
 ${s} [class*="bg-bg-300"] { background-color: ${p.bg300} !important; }
 ${s} [class*="bg-bg-400"] { background-color: ${p.bg400} !important; }
 ${s} [class*="bg-bg-500"] { background-color: ${p.bg500} !important; }
-${platform === 'claude-code' ? `
+${
+  platform === 'claude-code'
+    ? `
 /* Claude Code: strip bg from sidebar items & thinking blocks, keep user bubbles */
 ${s} [class*="bg-bg-200"]:not([class*="text-text-000"]) { background-color: transparent !important; }
 ${s} .group[class*="bg-bg-300"] { background-color: transparent !important; }
@@ -263,7 +268,9 @@ ${s} .group[class*="bg-bg-300"]:hover { background-color: ${p.bg300} !important;
 ${s} [class*="bg-bg-200"][class*="text-text-000"] { background-color: ${p.bg400} !important; }
 /* Sidebar session hover gradient overlay */
 ${s} .group:hover [style*="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
-` : ''}
+`
+    : ''
+}
 
 /* Buttons — override white backgrounds in content area, keep nav/sidebar buttons natural */
 ${s} #main-content button:not([class*="bg-accent"]),
@@ -381,10 +388,6 @@ ${s} code:not(pre code) {
 }
 
 /* Code blocks */
-${s} pre {
-  background-color: ${p.bg200} !important;
-  border-radius: 8px !important;
-}
 ${s} pre code {
   color: ${p.text200} !important;
   background-color: transparent !important;

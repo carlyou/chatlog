@@ -60,8 +60,6 @@ export function SearchBar({
     e.stopPropagation();
   };
 
-  const stopProp = (e: React.SyntheticEvent) => e.stopPropagation();
-
   return (
     <div className="chatlog-search-bar">
       <input
@@ -73,7 +71,6 @@ export function SearchBar({
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
-        onKeyPress={stopProp}
       />
       {query && (
         <span className="chatlog-search-count">

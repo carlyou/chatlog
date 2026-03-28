@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { DisplayMode, Message, ShortcutConfig } from '../../types';
 import { scrollElToRefLine } from '../components/MessageBubble';
+import { findScrollableAncestor } from '../lib/dom';
 import { matchesBinding } from '../lib/shortcutMatcher';
 import type { ActiveTarget } from './useActiveMessage';
 
@@ -31,21 +32,6 @@ function getSearchInput(): HTMLInputElement | null {
   return shadow?.querySelector(
     '.chatlog-search-input',
   ) as HTMLInputElement | null;
-}
-
-/** Walk up from an element to find the nearest scrollable ancestor. */
-function findScrollableAncestor(el: Element): HTMLElement | null {
-  let parent = el.parentElement;
-  while (parent) {
-    if (parent.scrollHeight > parent.clientHeight) {
-      const style = getComputedStyle(parent);
-      if (style.overflowY !== 'visible' && style.overflowY !== 'hidden') {
-        return parent;
-      }
-    }
-    parent = parent.parentElement;
-  }
-  return null;
 }
 
 export function useShiftKey({
