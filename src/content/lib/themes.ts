@@ -491,10 +491,15 @@ ${s} code:not(pre code) {
   padding: 1px 5px;
 }
 
-/* Code blocks */
+/* Code blocks — override inline syntax-highlight colors from light theme.
+   The host highlighter bakes rgb() values into span style attributes;
+   only !important on the spans themselves can override them. */
 ${s} pre code {
   color: ${p.text200} !important;
   background-color: transparent !important;
+}
+${s} pre code span[style*="color:"] {
+  color: inherit !important;
 }
 
 /* Blockquote — purple accent bar */
