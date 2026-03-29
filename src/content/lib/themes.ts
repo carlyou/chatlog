@@ -6,7 +6,10 @@ export type ThemeId =
   | 'dracula'
   | 'solarized-dark'
   | 'rose-pine-dawn'
-  | 'solarized-light';
+  | 'solarized-light'
+  | 'catppuccin-latte'
+  | 'github-light'
+  | 'one-light';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -22,11 +25,17 @@ export const THEMES: ThemeMeta[] = [
   { id: 'solarized-dark', name: 'Solarized Dark' },
   { id: 'rose-pine-dawn', name: 'Rosé Pine Dawn' },
   { id: 'solarized-light', name: 'Solarized Light' },
+  { id: 'catppuccin-latte', name: 'Catppuccin Latte' },
+  { id: 'github-light', name: 'GitHub Light' },
+  { id: 'one-light', name: 'One Light' },
 ];
 
 const LIGHT_THEMES: ReadonlySet<string> = new Set([
   'rose-pine-dawn',
   'solarized-light',
+  'catppuccin-latte',
+  'github-light',
+  'one-light',
 ]);
 
 export function isLightTheme(id: ThemeId): boolean {
@@ -34,6 +43,7 @@ export function isLightTheme(id: ThemeId): boolean {
 }
 
 export interface ThemePalette {
+  bg000: string;
   bg100: string;
   bg200: string;
   bg300: string;
@@ -57,6 +67,7 @@ export interface ThemePalette {
 
 export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
   'tokyo-night': {
+    bg000: '#13131d',
     bg100: '#1a1b26',
     bg200: '#16161e',
     bg300: '#1f2030',
@@ -78,6 +89,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     cyan: '#7dcfff',
   },
   nord: {
+    bg000: '#242933',
     bg100: '#2e3440',
     bg200: '#292e39',
     bg300: '#3b4252',
@@ -99,6 +111,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     cyan: '#8fbcbb',
   },
   catppuccin: {
+    bg000: '#11111b',
     bg100: '#1e1e2e',
     bg200: '#181825',
     bg300: '#313244',
@@ -120,6 +133,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     cyan: '#94e2d5',
   },
   dracula: {
+    bg000: '#1d1e26',
     bg100: '#282a36',
     bg200: '#21222c',
     bg300: '#343746',
@@ -141,6 +155,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     cyan: '#8be9fd',
   },
   'solarized-dark': {
+    bg000: '#001b22',
     bg100: '#002b36',
     bg200: '#00212b',
     bg300: '#073642',
@@ -162,6 +177,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     cyan: '#2aa198',
   },
   'rose-pine-dawn': {
+    bg000: '#fffcf7',
     bg100: '#faf4ed',
     bg200: '#fffaf3',
     bg300: '#f2e9e1',
@@ -183,6 +199,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     cyan: '#56949f',
   },
   'solarized-light': {
+    bg000: '#fffdf5',
     bg100: '#fdf6e3',
     bg200: '#eee8d5',
     bg300: '#e6dfcb',
@@ -203,7 +220,117 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     purple: '#6c71c4',
     cyan: '#2aa198',
   },
+  'catppuccin-latte': {
+    bg000: '#f5f7fb',
+    bg100: '#eff1f5',
+    bg200: '#e6e9ef',
+    bg300: '#dce0e8',
+    bg400: '#ccd0da',
+    bg500: '#bcc0cc',
+    text100: '#4c4f69',
+    text200: '#5c5f77',
+    text300: '#6c6f85',
+    text400: '#8c8fa1',
+    text500: '#9ca0b0',
+    border100: '#dce0e8',
+    border200: '#ccd0da',
+    border300: '#bcc0cc',
+    accent: '#1e66f5',
+    accentHover: '#1a5ae0',
+    green: '#40a02b',
+    yellow: '#df8e1d',
+    purple: '#8839ef',
+    cyan: '#179299',
+  },
+  'github-light': {
+    bg000: '#ffffff',
+    bg100: '#ffffff',
+    bg200: '#f6f8fa',
+    bg300: '#eaeef2',
+    bg400: '#d1d9e0',
+    bg500: '#afb8c1',
+    text100: '#1f2328',
+    text200: '#31363b',
+    text300: '#656d76',
+    text400: '#818b98',
+    text500: '#afb8c1',
+    border100: '#eaeef2',
+    border200: '#d1d9e0',
+    border300: '#b4bcc6',
+    accent: '#0969da',
+    accentHover: '#0757b8',
+    green: '#1a7f37',
+    yellow: '#9a6700',
+    purple: '#8250df',
+    cyan: '#0550ae',
+  },
+  'one-light': {
+    bg000: '#fefefe',
+    bg100: '#fafafa',
+    bg200: '#f0f0f0',
+    bg300: '#e5e5e6',
+    bg400: '#d5d5d6',
+    bg500: '#c5c5c6',
+    text100: '#383a42',
+    text200: '#4f525e',
+    text300: '#696c77',
+    text400: '#a0a1a7',
+    text500: '#b4b5ba',
+    border100: '#e5e5e6',
+    border200: '#d5d5d6',
+    border300: '#c5c5c6',
+    accent: '#4078f2',
+    accentHover: '#3569db',
+    green: '#50a14f',
+    yellow: '#c18401',
+    purple: '#a626a4',
+    cyan: '#0184bc',
+  },
 };
+
+/**
+ * Generate selector overrides for a Tailwind utility class.
+ * Covers: exact token (~=), opacity variant (/50), and ! prefix.
+ * Hover/active/gradient variants are handled by CSS variable overrides
+ * (with !important) so they don't need explicit selectors.
+ */
+function twOverride(
+  s: string,
+  cls: string,
+  prop: string,
+  value: string,
+): string {
+  return `${s} [class~="${cls}"], ${s} [class*="${cls}/"], ${s} [class~="\\!${cls}"], ${s} [class*="\\!${cls}/"] { ${prop}: ${value} !important; }`;
+}
+
+function bgOverrides(s: string, p: ThemePalette): string {
+  return [
+    twOverride(s, 'bg-bg-000', 'background-color', p.bg000),
+    twOverride(s, 'bg-bg-100', 'background-color', p.bg100),
+    twOverride(s, 'bg-bg-200', 'background-color', p.bg200),
+    twOverride(s, 'bg-bg-300', 'background-color', p.bg300),
+    twOverride(s, 'bg-bg-400', 'background-color', p.bg400),
+    twOverride(s, 'bg-bg-500', 'background-color', p.bg500),
+  ].join('\n');
+}
+
+function textOverrides(s: string, p: ThemePalette): string {
+  return [
+    twOverride(s, 'text-text-100', 'color', p.text100),
+    twOverride(s, 'text-text-200', 'color', p.text200),
+    twOverride(s, 'text-text-300', 'color', p.text300),
+    twOverride(s, 'text-text-400', 'color', p.text400),
+    twOverride(s, 'text-text-500', 'color', p.text500),
+  ].join('\n');
+}
+
+function borderOverrides(s: string, p: ThemePalette): string {
+  return [
+    twOverride(s, 'border-border-100', 'border-color', p.border100),
+    twOverride(s, 'border-border-200', 'border-color', p.border200),
+    twOverride(s, 'border-border-300', 'border-color', p.border300),
+  ].join('\n');
+}
 
 /**
  * Build host-page CSS for a given theme.
@@ -224,21 +351,24 @@ export function buildHostCSS(
   return `
 /* === Theme: ${themeId} === */
 
-/* CSS custom properties — covers Tailwind v4 and other variable-based systems */
+/* CSS custom properties — covers Tailwind v4 and other variable-based systems.
+   !important ensures these win over any compiled Tailwind declarations,
+   so gradients (from-bg-*), opacity variants (bg-bg-100/50), hover/active
+   states, etc. all resolve to themed colors automatically. */
 ${s} {
   color-scheme: ${scheme} !important;
-  --color-bg-000: ${p.bg200}; --color-bg-100: ${p.bg100}; --color-bg-200: ${p.bg200}; --color-bg-300: ${p.bg300};
-  --color-bg-400: ${p.bg400}; --color-bg-500: ${p.bg500};
-  --color-text-100: ${p.text100}; --color-text-200: ${p.text200}; --color-text-300: ${p.text300};
-  --color-text-400: ${p.text400}; --color-text-500: ${p.text500};
-  --color-border-100: ${p.border100}; --color-border-200: ${p.border200}; --color-border-300: ${p.border300};
-  --color-accent-main-100: ${p.accent}; --color-accent-secondary-100: ${p.accent};
-  --bg-000: ${p.bg200}; --bg-100: ${p.bg100}; --bg-200: ${p.bg200}; --bg-300: ${p.bg300};
-  --text-100: ${p.text100}; --text-200: ${p.text200}; --text-300: ${p.text300};
-  --main-surface-primary: ${p.bg100}; --main-surface-secondary: ${p.bg200};
-  --main-surface-tertiary: ${p.bg300};
-  --text-primary: ${p.text100}; --text-secondary: ${p.text200};
-  --sidebar-surface-primary: ${p.bg200}; --sidebar-surface-secondary: ${p.bg100};
+  --color-bg-000: ${p.bg000} !important; --color-bg-100: ${p.bg100} !important; --color-bg-200: ${p.bg200} !important; --color-bg-300: ${p.bg300} !important;
+  --color-bg-400: ${p.bg400} !important; --color-bg-500: ${p.bg500} !important;
+  --color-text-100: ${p.text100} !important; --color-text-200: ${p.text200} !important; --color-text-300: ${p.text300} !important;
+  --color-text-400: ${p.text400} !important; --color-text-500: ${p.text500} !important;
+  --color-border-100: ${p.border100} !important; --color-border-200: ${p.border200} !important; --color-border-300: ${p.border300} !important;
+  --color-accent-main-100: ${p.accent} !important; --color-accent-secondary-100: ${p.accent} !important;
+  --bg-000: ${p.bg000} !important; --bg-100: ${p.bg100} !important; --bg-200: ${p.bg200} !important; --bg-300: ${p.bg300} !important;
+  --text-100: ${p.text100} !important; --text-200: ${p.text200} !important; --text-300: ${p.text300} !important;
+  --main-surface-primary: ${p.bg100} !important; --main-surface-secondary: ${p.bg200} !important;
+  --main-surface-tertiary: ${p.bg300} !important;
+  --text-primary: ${p.text100} !important; --text-secondary: ${p.text200} !important;
+  --sidebar-surface-primary: ${p.bg200} !important; --sidebar-surface-secondary: ${p.bg100} !important;
 }
 
 /* Root & body */
@@ -247,87 +377,61 @@ ${s}, ${s} body {
   color: ${p.text100} !important;
 }
 
-/* Tailwind bg-bg-* utility class overrides (Claude.ai) */
-${s} [class*="bg-bg-000"] { background-color: ${p.bg200} !important; }
-${s} [class*="bg-bg-100"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-bg-200"] { background-color: ${p.bg200} !important; }
-${s} [class*="bg-bg-300"] { background-color: ${p.bg300} !important; }
-${s} [class*="bg-bg-400"] { background-color: ${p.bg400} !important; }
-${s} [class*="bg-bg-500"] { background-color: ${p.bg500} !important; }
+/* Tailwind bg-bg-* utility class overrides (Claude.ai)
+   Each level covers: base token, opacity variant (/50), !important prefix,
+   hover: and active: state variants. */
+${bgOverrides(s, p)}
 ${
-  platform === 'claude-code'
+  platform === 'gemini'
     ? `
 /* Claude Code: strip bg from sidebar items & thinking blocks, keep user bubbles */
-${s} [class*="bg-bg-200"]:not([class*="text-text-000"]) { background-color: transparent !important; }
-${s} .group[class*="bg-bg-300"] { background-color: transparent !important; }
+${s} [class~="bg-bg-200"]:not([class~="text-text-000"]) { background-color: transparent !important; }
+${s} .group[class~="bg-bg-300"] { background-color: transparent !important; }
 /* Hover: restore theme bg for bg-bg-200 and bg-bg-300 items */
-${s} [class*="hover\\:bg-bg-200"]:hover,
-${s} [class*="bg-bg-200"]:not([class*="text-text-000"]):hover { background-color: ${p.bg300} !important; }
-${s} .group[class*="bg-bg-300"]:hover { background-color: ${p.bg300} !important; }
+${s} [class~="hover\\:bg-bg-200"]:hover,
+${s} [class~="bg-bg-200"]:not([class~="text-text-000"]):hover { background-color: ${p.bg300} !important; }
+${s} .group[class~="bg-bg-300"]:hover { background-color: ${p.bg300} !important; }
 /* User message bubble — keep visible */
-${s} [class*="bg-bg-200"][class*="text-text-000"] { background-color: ${p.bg400} !important; }
+${s} [class~="bg-bg-200"][class~="text-text-000"] { background-color: ${p.bg400} !important; }
 /* Sidebar session hover gradient overlay */
-${s} .group:hover [style*="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
+${s} .group:hover [style~="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
 `
     : ''
 }
 
 /* Buttons — override white backgrounds in content area, keep nav/sidebar buttons natural */
-${s} #main-content button:not([class*="bg-accent"]),
-${s} main button:not([class*="bg-accent"]) { background-color: ${p.bg300} !important; color: ${p.text200} !important; }
-${s} #main-content button:hover:not([class*="bg-accent"]),
-${s} main button:hover:not([class*="bg-accent"]) { background-color: ${p.bg400} !important; }
+${s} #main-content button:not([class~="bg-accent"]),
+${s} main button:not([class~="bg-accent"]) { background-color: ${p.bg300} !important; color: ${p.text200} !important; }
+${s} #main-content button:hover:not([class~="bg-accent"]),
+${s} main button:hover:not([class~="bg-accent"]) { background-color: ${p.bg400} !important; }
 /* Thinking status button — blend with parent */
 ${s} #main-content button.group\\/status,
 ${s} main button.group\\/status { background-color: transparent !important; }
 
 /* Tailwind text-text-* utility class overrides */
-${s} [class*="text-text-100"] { color: ${p.text100} !important; }
-${s} [class*="text-text-200"] { color: ${p.text200} !important; }
-${s} [class*="text-text-300"] { color: ${p.text300} !important; }
-${s} [class*="text-text-400"] { color: ${p.text400} !important; }
-${s} [class*="text-text-500"] { color: ${p.text500} !important; }
+${textOverrides(s, p)}
 
 /* Tailwind border-border-* utility class overrides */
-${s} [class*="border-border-100"] { border-color: ${p.border100} !important; }
-${s} [class*="border-border-200"] { border-color: ${p.border200} !important; }
-${s} [class*="border-border-300"] { border-color: ${p.border300} !important; }
+${borderOverrides(s, p)}
 
 /* Tailwind accent / highlight classes */
-${s} [class*="bg-accent-main-100"] { background-color: ${p.accent} !important; }
-${s} [class*="text-accent-main-100"] { color: ${p.accent} !important; }
+${s} [class~="bg-accent-main-100"] { background-color: ${p.accent} !important; }
+${s} [class~="text-accent-main-100"] { color: ${p.accent} !important; }
 
 /* ── Light-mode leak overrides ──
-   When OS is in light mode, the host page loads light-colored Tailwind utility
-   classes and arbitrary-value classes that aren't covered by CSS variable
-   overrides. Catch them broadly here. */
-${s} [class*="bg-white"] { background-color: ${p.bg100} !important; }
+   Catch generic Tailwind color utilities that compile to static values
+   (not covered by design-token CSS variable overrides). */
+${s} [class~="bg-white"] { background-color: ${p.bg100} !important; }
 ${s} .bg-\\[\\#fff\\], ${s} .bg-\\[\\#ffffff\\] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-stone"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-gray"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-neutral"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-zinc"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-slate"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-[#f"]:not(pre):not(code):not(button):not([role="button"]) { background-color: ${p.bg100} !important; }
-${s} [class*="bg-[#F"]:not(pre):not(code):not(button):not([role="button"]) { background-color: ${p.bg100} !important; }
-${s} [class*="bg-[#e"]:not(pre):not(code):not(button):not([role="button"]) { background-color: ${p.bg100} !important; }
-${s} [class*="bg-[#E"]:not(pre):not(code):not(button):not([role="button"]) { background-color: ${p.bg100} !important; }
-${s} [class*="bg-[#d"]:not(pre):not(code):not(button):not([role="button"]) { background-color: ${p.bg100} !important; }
+${s} [class*="bg-stone-"], ${s} [class*="bg-gray-"], ${s} [class*="bg-neutral-"], ${s} [class*="bg-zinc-"], ${s} [class*="bg-slate-"] { background-color: ${p.bg100} !important; }
+${s} [class*="bg-[#f"]:not(pre):not(code):not(button):not([role="button"]),
+${s} [class*="bg-[#F"]:not(pre):not(code):not(button):not([role="button"]),
+${s} [class*="bg-[#e"]:not(pre):not(code):not(button):not([role="button"]),
+${s} [class*="bg-[#E"]:not(pre):not(code):not(button):not([role="button"]),
+${s} [class*="bg-[#d"]:not(pre):not(code):not(button):not([role="button"]),
 ${s} [class*="bg-[#D"]:not(pre):not(code):not(button):not([role="button"]) { background-color: ${p.bg100} !important; }
-${s} [class*="text-black"] { color: ${p.text100} !important; }
-${s} [class*="text-stone"] { color: ${p.text100} !important; }
-${s} [class*="text-gray"] { color: ${p.text100} !important; }
-${s} [class*="text-neutral"] { color: ${p.text100} !important; }
-${s} [class*="text-zinc"] { color: ${p.text100} !important; }
-${s} [class*="text-slate"] { color: ${p.text100} !important; }
-${s} [class*="border-stone"] { border-color: ${p.border200} !important; }
-${s} [class*="border-gray"] { border-color: ${p.border200} !important; }
-${s} [class*="border-neutral"] { border-color: ${p.border200} !important; }
-${s} [class*="border-zinc"] { border-color: ${p.border200} !important; }
-${s} [class*="border-slate"] { border-color: ${p.border200} !important; }
-
-/* Kill light-mode compiled gradients on any element */
-${s} [class*="bg-gradient"] { background-image: none !important; }
+${s} [class~="text-black"], ${s} [class*="text-stone-"], ${s} [class*="text-gray-"], ${s} [class*="text-neutral-"], ${s} [class*="text-zinc-"], ${s} [class*="text-slate-"] { color: ${p.text100} !important; }
+${s} [class*="border-stone-"], ${s} [class*="border-gray-"], ${s} [class*="border-neutral-"], ${s} [class*="border-zinc-"], ${s} [class*="border-slate-"] { border-color: ${p.border200} !important; }
 
 /* Known container overrides */
 ${s} #main-content,
@@ -349,7 +453,7 @@ ${s} body > div:not(#chatlog-root) > div > div > div {
 /* Sidebar / nav: force dark bg, kill light-mode gradients, fix link colors */
 ${s} nav, ${s} aside { background-color: ${p.bg200} !important; background-image: none !important; color: ${p.text200} !important; }
 ${s} nav a, ${s} aside a { color: ${p.text200} !important; }
-${s} nav a:hover, ${s} aside a:hover { color: ${p.text100} !important; }
+${s} nav a:hover, ${s} aside a:hover { color: ${p.text100} !important; background-color: ${p.bg300} !important; }
 
 /* ── Content typography — rich syntax highlighting ── */
 
@@ -431,73 +535,66 @@ ${s} td {
 
 /* ── ChatGPT specific ── */
 
-/* ChatGPT token CSS variables */
+/* ChatGPT token CSS variables (with !important to win cascade,
+   same approach as Claude variables above — handles all utility
+   variants through the cascade automatically) */
 ${s} {
-  --token-main-surface-primary: ${p.bg100};
-  --token-main-surface-secondary: ${p.bg200};
-  --token-main-surface-tertiary: ${p.bg300};
-  --token-sidebar-surface-primary: ${p.bg200};
-  --token-sidebar-surface-secondary: ${p.bg300};
-  --token-text-primary: ${p.text100};
-  --token-text-secondary: ${p.text200};
-  --token-text-tertiary: ${p.text300};
-  --token-text-quaternary: ${p.text400};
-  --token-border-medium: ${p.border200};
-  --token-border-light: ${p.border100};
-  --token-border-heavy: ${p.border300};
-  --token-border-xheavy: ${p.border300};
-  --main-surface-primary: ${p.bg100};
-  --main-surface-secondary: ${p.bg200};
-  --main-surface-tertiary: ${p.bg300};
-  --sidebar-surface-primary: ${p.bg200};
-  --sidebar-surface-secondary: ${p.bg300};
-  --sidebar-mask-bg: ${p.bg200};
-  --bg-elevated-secondary: ${p.bg200};
-  --bg-elevated-primary: ${p.bg300};
+  --token-main-surface-primary: ${p.bg100} !important;
+  --token-main-surface-secondary: ${p.bg200} !important;
+  --token-main-surface-tertiary: ${p.bg300} !important;
+  --token-sidebar-surface-primary: ${p.bg200} !important;
+  --token-sidebar-surface-secondary: ${p.bg300} !important;
+  --token-text-primary: ${p.text100} !important;
+  --token-text-secondary: ${p.text200} !important;
+  --token-text-tertiary: ${p.text300} !important;
+  --token-text-quaternary: ${p.text400} !important;
+  --token-border-medium: ${p.border200} !important;
+  --token-border-light: ${p.border100} !important;
+  --token-border-heavy: ${p.border300} !important;
+  --token-border-xheavy: ${p.border300} !important;
+  --token-bg-primary: ${p.bg100} !important;
+  --token-bg-elevated: ${p.bg200} !important;
+  --token-bg-elevated-secondary: ${p.bg200} !important;
+  --token-bg-subtle: ${p.bg200} !important;
+  --token-bg-tertiary: ${p.bg300} !important;
+  --token-surface-hover: ${p.bg300} !important;
+  --token-interactive-bg-secondary-hover: ${p.bg300} !important;
+  --token-interactive-bg-secondary-press: ${p.bg400} !important;
+  --bg-primary: ${p.bg100} !important;
+  --bg-tertiary: ${p.bg300} !important;
+  --bg-elevated-secondary: ${p.bg200} !important;
+  --bg-elevated-primary: ${p.bg300} !important;
+  --surface-hover: ${p.bg300} !important;
+  --composer-surface: ${p.bg300} !important;
+  --message-surface: ${p.bg200} !important;
+  --main-surface-background: ${p.bg100} !important;
+  --main-surface-primary-inverse: ${p.text100} !important;
+  --main-surface-secondary-selected: ${p.bg300} !important;
+  --sidebar-bg: ${p.bg200} !important;
+  --sidebar-mask-bg: ${p.bg200} !important;
+  --sidebar-surface: ${p.bg200} !important;
+  --sidebar-surface-tertiary: ${p.bg300} !important;
 }
 
-/* ChatGPT bg-token-* utility overrides */
-${s} [class*="bg-token-main-surface-primary"] { background-color: ${p.bg100} !important; }
-${s} [class*="bg-token-main-surface-secondary"] { background-color: ${p.bg200} !important; }
-${s} [class*="bg-token-main-surface-tertiary"] { background-color: ${p.bg300} !important; }
-${s} [class*="bg-token-sidebar-surface-primary"] { background-color: ${p.bg200} !important; }
-${s} [class*="bg-token-sidebar-surface-secondary"] { background-color: ${p.bg300} !important; }
-
-/* ChatGPT text-token-* utility overrides */
-${s} [class*="text-token-text-primary"] { color: ${p.text100} !important; }
-${s} [class*="text-token-text-secondary"] { color: ${p.text200} !important; }
-${s} [class*="text-token-text-tertiary"] { color: ${p.text300} !important; }
-${s} [class*="text-token-text-quaternary"] { color: ${p.text400} !important; }
-
-/* ChatGPT border-token-* utility overrides */
-${s} [class*="border-token-border-medium"] { border-color: ${p.border200} !important; }
-${s} [class*="border-token-border-light"] { border-color: ${p.border100} !important; }
-${s} [class*="border-token-border-heavy"] { border-color: ${p.border300} !important; }
-
-/* ChatGPT dark: prefixed classes (compiled Tailwind dark mode) */
-${s} .dark\\:bg-token-main-surface-primary { background-color: ${p.bg100} !important; }
-${s} .dark\\:bg-token-main-surface-secondary { background-color: ${p.bg200} !important; }
-${s} .dark\\:bg-token-main-surface-tertiary { background-color: ${p.bg300} !important; }
-${s} .dark\\:bg-token-sidebar-surface-primary { background-color: ${p.bg200} !important; }
-
-/* ChatGPT sidebar wrapper divs (not nav/aside but parent containers) */
+/* ChatGPT sidebar wrapper divs */
 ${s} [class*="bg-token-sidebar"],
-${s} [class*="sidebar-width"],
-${s} [class*="w-(--sidebar"],
 ${s} [class*="sidebar-mask"],
-${s} [class*="bg-(--sidebar"],
-${s} div[class*="border-token-border-light"][class*="shrink-0"] {
+${s} [class*="bg-(--sidebar"] {
   background-color: ${p.bg200} !important;
   background-image: none !important;
 }
+
+/* ChatGPT dark: arbitrary values — hardcoded hex/gradient that bypass CSS variables */
+${s} [class*="dark:bg-[#"] { background-color: ${p.bg300} !important; }
+${s} [class*="dark:bg-[linear-gradient"] { background-image: none !important; }
 
 /* Input areas — covers both Claude and ChatGPT */
 ${s} textarea,
 ${s} [contenteditable],
 ${s} input[type="text"],
-${s} [id*="prompt"],
-${s} [class*="composer"],
-${s} [class*="chat-input"] {
+${s} [id~="prompt"],
+${s} [class~="composer"],
+${s} [class~="chat-input"] {
   background-color: ${p.bg300} !important;
   color: ${p.text100} !important;
   border-color: ${p.border200} !important;
@@ -517,7 +614,7 @@ ${s} .user-message-bubble-color {
 }
 
 /* ChatGPT source citation badges */
-${s} a[class*="rounded-xl"][class*="text-token-"] {
+${s} a[class~="rounded-xl"][class~="text-token-"] {
   background-color: ${p.bg300} !important;
   color: ${p.text300} !important;
 }
@@ -527,7 +624,7 @@ ${s} footer { background-color: ${p.bg100} !important; color: ${p.text300} !impo
 
 /* ChatGPT composer bottom fade — ::after pseudo with white gradient */
 ${s} #thread-bottom-container::after,
-${s} [class*="content-fade"]::after {
+${s} [class~="content-fade"]::after {
   background-image: linear-gradient(transparent, ${p.bg100}) !important;
   background-color: transparent !important;
 }
