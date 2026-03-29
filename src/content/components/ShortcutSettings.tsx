@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
 import { bindingLabel } from '../lib/shortcutMatcher';
+import type { FontId } from '../lib/fonts';
+import { FONTS } from '../lib/fonts';
 import type { ThemeId } from '../lib/themes';
 import { THEMES } from '../lib/themes';
 
@@ -14,6 +16,8 @@ interface ShortcutSettingsProps {
   onThemeChange: (theme: ThemeId) => void;
   glass: boolean;
   onGlassChange: (glass: boolean) => void;
+  font: FontId;
+  onFontChange: (font: FontId) => void;
 }
 
 const LABELS: Record<keyof ShortcutConfig, string> = {
@@ -35,6 +39,8 @@ export function ShortcutSettings({
   onThemeChange,
   glass,
   onGlassChange,
+  font,
+  onFontChange,
 }: ShortcutSettingsProps) {
   const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(
     null,
@@ -100,6 +106,20 @@ export function ShortcutSettings({
           {THEMES.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="chatlog-shortcut-row">
+        <span className="chatlog-shortcut-label">Font</span>
+        <select
+          className="chatlog-theme-select"
+          value={font}
+          onChange={(e) => onFontChange(e.target.value as FontId)}
+        >
+          {FONTS.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
             </option>
           ))}
         </select>

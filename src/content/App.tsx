@@ -13,6 +13,7 @@ import { useSearch } from './hooks/useSearch';
 import { useShiftKey } from './hooks/useShiftKey';
 import { useShortcutConfig } from './hooks/useShortcutConfig';
 import { useSidebarWidth } from './hooks/useSidebarWidth';
+import { useFont } from './hooks/useFont';
 import { useTheme } from './hooks/useTheme';
 
 const PEEK_DURATION = 2000;
@@ -34,6 +35,7 @@ export function App({ platform, shadowHost }: AppProps) {
   const { config: shortcutConfig, setConfig: setShortcutConfig } =
     useShortcutConfig();
   const { theme, setTheme, glass, setGlass } = useTheme(shadowHost, platform);
+  const { font, setFont } = useFont(shadowHost, platform);
   const search = useSearch(messages, platform, lockActive);
 
   // Pause message reconciliation while search is active to avoid disrupting match positions
@@ -117,6 +119,8 @@ export function App({ platform, shadowHost }: AppProps) {
         onThemeChange={setTheme}
         glass={glass}
         onGlassChange={setGlass}
+        font={font}
+        onFontChange={setFont}
       />
     </>
   );

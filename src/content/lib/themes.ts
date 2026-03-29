@@ -9,7 +9,9 @@ export type ThemeId =
   | 'solarized-light'
   | 'catppuccin-latte'
   | 'github-light'
-  | 'one-light';
+  | 'one-light'
+  | 'gruvbox-light'
+  | 'ayu-light';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -28,6 +30,8 @@ export const THEMES: ThemeMeta[] = [
   { id: 'catppuccin-latte', name: 'Catppuccin Latte' },
   { id: 'github-light', name: 'GitHub Light' },
   { id: 'one-light', name: 'One Light' },
+  { id: 'gruvbox-light', name: 'Gruvbox Light' },
+  { id: 'ayu-light', name: 'Ayu Light' },
 ];
 
 const LIGHT_THEMES: ReadonlySet<string> = new Set([
@@ -36,6 +40,8 @@ const LIGHT_THEMES: ReadonlySet<string> = new Set([
   'catppuccin-latte',
   'github-light',
   'one-light',
+  'gruvbox-light',
+  'ayu-light',
 ]);
 
 export function isLightTheme(id: ThemeId): boolean {
@@ -285,6 +291,50 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     yellow: '#c18401',
     purple: '#a626a4',
     cyan: '#0184bc',
+  },
+  'gruvbox-light': {
+    bg000: '#fbf1c7',
+    bg100: '#fbf1c7',
+    bg200: '#f2e5bc',
+    bg300: '#ebdbb2',
+    bg400: '#d5c4a1',
+    bg500: '#bdae93',
+    text100: '#3c3836',
+    text200: '#504945',
+    text300: '#665c54',
+    text400: '#7c6f64',
+    text500: '#928374',
+    border100: '#ebdbb2',
+    border200: '#d5c4a1',
+    border300: '#bdae93',
+    accent: '#076678',
+    accentHover: '#055b6a',
+    green: '#79740e',
+    yellow: '#b57614',
+    purple: '#8f3f71',
+    cyan: '#427b58',
+  },
+  'ayu-light': {
+    bg000: '#fcfcfc',
+    bg100: '#fafafa',
+    bg200: '#f0ede6',
+    bg300: '#e7e3dc',
+    bg400: '#d8d4cd',
+    bg500: '#c9c5be',
+    text100: '#5c6166',
+    text200: '#6b7178',
+    text300: '#8b9198',
+    text400: '#a3a8ae',
+    text500: '#b8bcc2',
+    border100: '#e7e3dc',
+    border200: '#d8d4cd',
+    border300: '#c9c5be',
+    accent: '#399ee6',
+    accentHover: '#2d8ad0',
+    green: '#86b300',
+    yellow: '#f2ae49',
+    purple: '#a37acc',
+    cyan: '#4cbf99',
   },
 };
 
