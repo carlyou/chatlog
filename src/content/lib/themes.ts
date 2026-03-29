@@ -394,7 +394,7 @@ ${s} .group[class~="bg-bg-300"]:hover { background-color: ${p.bg300} !important;
 /* User message bubble — keep visible */
 ${s} [class~="bg-bg-200"][class~="text-text-000"] { background-color: ${p.bg400} !important; }
 /* Sidebar session hover gradient overlay */
-${s} .group:hover [style~="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
+${s} .group:hover [style*="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
 `
     : ''
 }
@@ -592,7 +592,7 @@ ${s} [class*="dark:bg-[linear-gradient"] { background-image: none !important; }
 ${s} textarea,
 ${s} [contenteditable],
 ${s} input[type="text"],
-${s} [id~="prompt"],
+${s} [id*="prompt"],
 ${s} [class~="composer"],
 ${s} [class~="chat-input"] {
   background-color: ${p.bg300} !important;
