@@ -58,7 +58,7 @@ async function init() {
     const adapterStyles =
       adapter.id === 'claude-code'
         ? `
-      .max-w-3xl { max-width: 80% !important; }
+      .max-w-3xl { max-width: none !important; }
     `
         : '';
 
