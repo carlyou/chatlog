@@ -525,7 +525,8 @@
   z-index: 1000000;
   display: flex;
   gap: 8px;
-  transition: opacity 0.2s;
+  opacity: var(--chatlog-input-opacity, 1);
+  transition: opacity 0.3s ease;
 }
 
 .chatlog-perf-overlay {
@@ -557,12 +558,6 @@
   white-space: nowrap;
 }
 
-/* When sidebar is visible, hide toggles but keep them hoverable */
-.chatlog-sidebar.pinned ~ .chatlog-toggles,
-.chatlog-sidebar.peeking ~ .chatlog-toggles {
-  opacity: 0;
-}
-
 .chatlog-toggles::before {
   content: "";
   position: absolute;
@@ -574,8 +569,8 @@
   position: relative;
 }
 
-.chatlog-sidebar.pinned ~ .chatlog-toggles:hover,
-.chatlog-sidebar.peeking ~ .chatlog-toggles:hover {
+.chatlog-toggles:hover,
+.chatlog-toggles:focus-within {
   opacity: 1;
 }
 
