@@ -352,6 +352,10 @@ export function extractStructuredContent(element: Element): StructuredContent {
       if (visited.has(el)) return;
       visited.add(el);
 
+      // Skip screen-reader-only elements (e.g. Claude.ai/chat injects
+      // h2.sr-only "Claude responded:" / "You said:" labels for accessibility)
+      if (el.classList.contains('sr-only')) return;
+
       const tag = el.tagName.toLowerCase();
 
       if (/^h[1-6]$/.test(tag)) {
@@ -528,7 +532,11 @@ export function computeBaseSignature(role: string, root: Element): string {
   const textDigest = digestTextSample(root.textContent || '');
   const childCount = root.childElementCount;
   const hasCode = root.querySelector('pre') ? '1' : '0';
-  const hasHeading = root.querySelector('h1,h2,h3,h4,h5,h6') ? '1' : '0';
+  const hasHeading = root.querySelector(
+    'h1:not(.sr-only),h2:not(.sr-only),h3:not(.sr-only),h4:not(.sr-only),h5:not(.sr-only),h6:not(.sr-only)',
+  )
+    ? '1'
+    : '0';
   const hasList = root.querySelector('ul,ol') ? '1' : '0';
   const hasMedia = root.querySelector('img,[data-testid="file-thumbnail"]')
     ? '1'

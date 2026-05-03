@@ -339,6 +339,27 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
 };
 
 /**
+ * Convert a hex color (#rrggbb) to space-separated HSL components
+ * (e.g. "220 13% 18%") for use in CSS variables consumed via hsl().
+ */
+function hexToHsl(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return `0 0% ${Math.round(l * 100)}%`;
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+/**
  * Generate selector overrides for a Tailwind utility class.
  * Covers: exact token (~=), opacity variant (/50), and ! prefix.
  * Hover/active/gradient variants are handled by CSS variable overrides
@@ -413,8 +434,11 @@ ${s} {
   --color-text-400: ${p.text400} !important; --color-text-500: ${p.text500} !important;
   --color-border-100: ${p.border100} !important; --color-border-200: ${p.border200} !important; --color-border-300: ${p.border300} !important;
   --color-accent-main-100: ${p.accent} !important; --color-accent-secondary-100: ${p.accent} !important;
-  --bg-000: ${p.bg000} !important; --bg-100: ${p.bg100} !important; --bg-200: ${p.bg200} !important; --bg-300: ${p.bg300} !important;
-  --text-100: ${p.text100} !important; --text-200: ${p.text200} !important; --text-300: ${p.text300} !important;
+  --bg-000: ${hexToHsl(p.bg000)} !important; --bg-100: ${hexToHsl(p.bg100)} !important; --bg-200: ${hexToHsl(p.bg200)} !important; --bg-300: ${hexToHsl(p.bg300)} !important;
+  --bg-400: ${hexToHsl(p.bg400)} !important; --bg-500: ${hexToHsl(p.bg500)} !important;
+  --text-100: ${hexToHsl(p.text100)} !important; --text-200: ${hexToHsl(p.text200)} !important; --text-300: ${hexToHsl(p.text300)} !important;
+  --text-400: ${hexToHsl(p.text400)} !important; --text-500: ${hexToHsl(p.text500)} !important;
+  --border-100: ${hexToHsl(p.border100)} !important; --border-200: ${hexToHsl(p.border200)} !important; --border-300: ${hexToHsl(p.border300)} !important;
   --main-surface-primary: ${p.bg100} !important; --main-surface-secondary: ${p.bg200} !important;
   --main-surface-tertiary: ${p.bg300} !important;
   --text-primary: ${p.text100} !important; --text-secondary: ${p.text200} !important;
@@ -432,23 +456,76 @@ ${s}, ${s} body {
    hover: and active: state variants. */
 ${bgOverrides(s, p)}
 ${
-  platform === 'gemini'
+  platform === 'claude-code'
     ? `
-/* Claude Code: strip bg from sidebar items & thinking blocks, keep user bubbles */
-${s} [class~="bg-bg-200"]:not([class~="text-text-000"]) { background-color: transparent !important; }
-${s} .group[class~="bg-bg-300"] { background-color: transparent !important; }
-/* Hover: restore theme bg for bg-bg-200 and bg-bg-300 items */
-${s} [class~="hover\\:bg-bg-200"]:hover,
-${s} [class~="bg-bg-200"]:not([class~="text-text-000"]):hover { background-color: ${p.bg300} !important; }
-${s} .group[class~="bg-bg-300"]:hover { background-color: ${p.bg300} !important; }
-/* User message bubble — keep visible */
-${s} [class~="bg-bg-200"][class~="text-text-000"] { background-color: ${p.bg400} !important; }
-/* Sidebar session hover gradient overlay */
-${s} .group:hover [style*="linear-gradient"] { background: linear-gradient(to right, transparent, ${p.bg300} 40%) !important; }
+/* Claude Code (epitaxy): neutral token scale --t1…t9 */
+${s} {
+  --t1: ${p.bg200} !important;
+  --t2: ${p.bg300} !important;
+  --t3: ${p.bg400} !important;
+  --t4: ${p.text500} !important;
+  --t5: ${p.text400} !important;
+  --t6: ${p.text300} !important;
+  --t7: ${p.text200} !important;
+  --t8: ${p.text100} !important;
+  --t9: ${p.text100} !important;
+  --always-black: ${hexToHsl(p.bg000)} !important;
+  --accent: ${p.accent} !important;
+  --accent-hover: ${p.accentHover} !important;
+  --accent-brand: ${p.accent} !important;
+  --accent-100: ${hexToHsl(p.accent)} !important;
+  --surface-primary: ${p.bg100} !important;
+  --surface-primary-elevated: ${p.bg200} !important;
+  --ui-user-message-background: ${p.bg400} !important;
+  --ui-user-message-primary-text: ${p.text100} !important;
+  --fill-uncontained-default: transparent !important;
+  --fill-uncontained-hover: ${p.bg300} !important;
+  --fill-uncontained-selected: ${p.bg400} !important;
+  --fill-contained-default: ${p.bg300} !important;
+  --fill-contained-hover: ${p.bg400} !important;
+  --text-uncontained-default: ${p.text200} !important;
+  --text-uncontained-hover: ${p.text100} !important;
+  --text-uncontained-selected: ${p.text100} !important;
+  --text-contained-default: ${p.text100} !important;
+  --text-contained-hover: ${p.text100} !important;
+  --df-surface-primary: ${hexToHsl(p.bg200)} !important;
+  --df-hover: ${p.bg300} !important;
+}
+/* Claude Code: message text color — override CDS data-mode="light" defaults */
+${s} [data-epitaxy-entry] { color: ${p.text200} !important; }
+/* Claude Code: surface data attributes */
+${s} [data-surface] { background-color: ${p.bg200} !important; }
+${s} .epitaxy-markdown { background-color: transparent !important; }
+${s} .dframe-content-inner { background-color: ${p.bg100} !important; }
+${s} .dframe-sidebar-body { background-color: ${p.bg200} !important; }
+/* Claude Code: buttons — transparent by default in epitaxy */
+${s} main button { background-color: transparent !important; color: inherit !important; }
+${s} main button:hover { background-color: ${p.bg300} !important; }
+/* Claude Code: prompt surface */
+${s} .epitaxy-prompt { background-color: ${p.bg200} !important; }
+${s} .epitaxy-prompt [contenteditable] { color: ${p.text100} !important; }
+/* Claude Code: override CDS data-mode tokens (closer ancestor beats html-level) */
+${s} .cds-root, ${s} [data-mode] {
+  color-scheme: ${scheme} !important;
+  --t1: ${p.bg200} !important; --t2: ${p.bg300} !important; --t3: ${p.bg400} !important;
+  --t4: ${p.text400} !important; --t5: ${p.text300} !important; --t6: ${p.text200} !important;
+  --t7: ${p.text200} !important; --t8: ${p.text100} !important; --t9: ${p.text100} !important;
+}
+/* Claude Code: code blocks — force dark token variant */
+${s} .epitaxy-diff { background-color: ${p.bg200} !important; color: ${p.text100} !important; color-scheme: ${scheme} !important; }
+${s} diffs-container { color: ${p.text100} !important; color-scheme: ${scheme} !important; }
+${s} [data-content] span[style*="--diffs-token-dark"] { color: var(--diffs-token-dark) !important; }
+${s} [data-gutter] [data-line-number-content] { color: ${p.text500} !important; }
+/* Claude Code: scroll fade scrims */
+${s} .epitaxy-top-scrim { background: linear-gradient(to bottom, ${p.bg100}, transparent) !important; }
+${s} .epitaxy-bottom-scrim { background: linear-gradient(to top, ${p.bg100}, transparent) !important; }
 `
     : ''
 }
 
+${
+  platform !== 'claude-code'
+    ? `
 /* Buttons — override white backgrounds in content area, keep nav/sidebar buttons natural */
 ${s} #main-content button:not([class~="bg-accent"]),
 ${s} main button:not([class~="bg-accent"]) { background-color: ${p.bg300} !important; color: ${p.text200} !important; }
@@ -457,6 +534,9 @@ ${s} main button:hover:not([class~="bg-accent"]) { background-color: ${p.bg400} 
 /* Thinking status button — blend with parent */
 ${s} #main-content button.group\\/status,
 ${s} main button.group\\/status { background-color: transparent !important; }
+`
+    : ''
+}
 
 /* Tailwind text-text-* utility class overrides */
 ${textOverrides(s, p)}
@@ -486,6 +566,7 @@ ${s} [class*="border-stone-"], ${s} [class*="border-gray-"], ${s} [class*="borde
 /* Known container overrides */
 ${s} #main-content,
 ${s} .root,
+${s} .dframe-content-inner,
 ${s} main,
 ${s} header {
   background-color: ${p.bg100} !important;
@@ -658,7 +739,11 @@ ${s} [class~="chat-input"] {
 ${s} div[data-chat-input-container="true"] [contenteditable],
 ${s} div[data-chat-input-container="true"] textarea,
 ${s} .root textarea,
-${s} .root [contenteditable] {
+${s} .root [contenteditable],
+${s} .dframe-content-inner textarea,
+${s} .dframe-content-inner [contenteditable],
+${s} .epitaxy-prompt textarea,
+${s} .epitaxy-prompt [contenteditable] {
   background-color: transparent !important;
 }
 

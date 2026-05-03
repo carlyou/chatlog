@@ -10,32 +10,27 @@ import type { PlatformAdapter } from './types';
 const claudeCodeAdapter: PlatformAdapter = {
   id: 'claude-code',
   selectors: {
-    conversationItem: '.group\\/message',
-    messageContainer: '#cli-button-container',
+    conversationItem: '[data-epitaxy-entry]',
+    messageContainer: '[data-testid="epitaxy-virtual-transcript"]',
   },
-  messageRootSelector: 'div[class*="content-visibility"]',
+  messageRootSelector: '[data-epitaxy-entry]',
   conversationIdPattern: /\/code\/([^/]+)/,
-  pinnedMarginSelectors: ['.root'],
+  pinnedMarginSelectors: ['.dframe-content-inner'],
 
   getMessageRole(root: Element): 'user' | 'assistant' | null {
-    // User messages have a child div with items-end class
-    if (
-      root.querySelector(':scope > div.items-end, :scope > .flex.items-end')
-    ) {
+    // User messages contain an element with the user-message-background class
+    if (root.querySelector('[class*="ui-user-message-background"]')) {
       return 'user';
     }
-    // Check for the flex-col items-end pattern more broadly
-    const firstChild = root.firstElementChild;
-    if (firstChild?.className?.includes('items-end')) {
-      return 'user';
-    }
-    // Assistant messages have div.mb-1 as first child
-    if (root.querySelector(':scope > div.mb-1')) {
+    // Assistant messages contain epitaxy-markdown content
+    if (root.querySelector('.epitaxy-markdown')) {
       return 'assistant';
     }
-    // Fallback: if it has group/message elements, it's assistant
-    if (root.querySelector('.group\\/message')) {
-      return 'assistant';
+    // Fallback: check the data-epitaxy-entry value format
+    const entryId = root.getAttribute('data-epitaxy-entry');
+    if (entryId) {
+      if (entryId.startsWith('msg_')) return 'assistant';
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(entryId)) return 'user';
     }
     return null;
   },
@@ -49,8 +44,8 @@ const claudeCodeAdapter: PlatformAdapter = {
     if (!role) return null;
 
     if (role === 'user') {
-      // User bubble is in div.bg-bg-200
-      const bubble = root.querySelector('.bg-bg-200') || root;
+      const bubble =
+        root.querySelector('[class*="ui-user-message-background"]') || root;
       const structured = extractStructuredContent(bubble);
       return {
         id,
@@ -61,20 +56,16 @@ const claudeCodeAdapter: PlatformAdapter = {
       };
     }
 
-    // Assistant: collect all sub-messages and tool-use sections
+    // Assistant: collect content from .epitaxy-markdown elements
     const allBlocks: ContentBlock[] = [];
     const textParts: string[] = [];
 
-    // Find all group/message elements (text sub-messages)
-    const subMessages = root.querySelectorAll('.group\\/message');
-    for (const msg of subMessages) {
-      const contentDiv = msg.querySelector('.space-y-2');
-      if (contentDiv) {
-        const t = contentDiv.textContent?.trim();
-        if (t) textParts.push(t);
-        const { blocks } = extractStructuredContent(contentDiv);
-        allBlocks.push(...blocks);
-      }
+    const markdownSections = root.querySelectorAll('.epitaxy-markdown');
+    for (const section of markdownSections) {
+      const t = section.textContent?.trim();
+      if (t) textParts.push(t);
+      const { blocks } = extractStructuredContent(section);
+      allBlocks.push(...blocks);
     }
 
     const fullText = textParts.join('\n') || text;

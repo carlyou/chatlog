@@ -58,12 +58,11 @@ async function init() {
     const adapterStyles =
       adapter.id === 'claude-code'
         ? `
-      .max-w-3xl { max-width: none !important; }
-      div.z-header:has(section#turn-form) {
+      .epitaxy-prompt {
         transition: opacity 0.3s ease;
         opacity: var(--chatlog-input-opacity, 1);
       }
-      div.z-header:has(section#turn-form):focus-within {
+      .epitaxy-prompt:focus-within {
         opacity: 1 !important;
       }
     `
