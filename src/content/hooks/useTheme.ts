@@ -15,6 +15,32 @@ function themeKey(platform: Platform): string {
 }
 const STYLE_ID = 'chatlog-theme-overrides';
 const BG_MARKER = 'chatlogbg';
+const ORIG_MODE_ATTR = 'data-chatlog-orig-mode';
+
+/**
+ * Claude Code defines its semantic color tokens (--text-assistant-primary,
+ * --ui-user-message-primary-text, derived t/z scales, etc.) per data-mode.
+ * If we override only the bottom-most palette but leave data-mode="light",
+ * descendants like the Accept-edits button or user message bubble still
+ * resolve to the page's light-mode dark text. Flip data-mode in lockstep
+ * with our theme so the page's own dark-mode rules apply.
+ */
+function syncPageDataMode(platform: Platform, themeId: ThemeId): void {
+  if (platform !== 'claude-code') return;
+  const html = document.documentElement;
+  if (themeId === 'system') {
+    const orig = html.getAttribute(ORIG_MODE_ATTR);
+    if (orig === null) return;
+    if (orig === '') html.removeAttribute('data-mode');
+    else html.setAttribute('data-mode', orig);
+    html.removeAttribute(ORIG_MODE_ATTR);
+    return;
+  }
+  if (!html.hasAttribute(ORIG_MODE_ATTR)) {
+    html.setAttribute(ORIG_MODE_ATTR, html.getAttribute('data-mode') ?? '');
+  }
+  html.setAttribute('data-mode', isLightTheme(themeId) ? 'light' : 'dark');
+}
 
 // Skip transparent fixed-position overlays (e.g. Claude Code's epitaxy-root
 // at z:60 with pointer-events:none). Painting them solid would occlude the
@@ -108,6 +134,7 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
 
     // Always clean up previous overrides first
     removeBgOverrides();
+    syncPageDataMode(platform, theme);
 
     if (theme === 'system') {
       shadowHost.removeAttribute('data-theme');
