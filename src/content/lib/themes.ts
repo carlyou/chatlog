@@ -469,7 +469,7 @@ ${s} {
   --t7: ${p.text200} !important;
   --t8: ${p.text100} !important;
   --t9: ${p.text100} !important;
-  --always-black: ${hexToHsl(p.bg000)} !important;
+  --always-black: ${isLightTheme(themeId) ? '0 0% 0%' : '0 0% 100%'} !important;
   --accent: ${p.accent} !important;
   --accent-hover: ${p.accentHover} !important;
   --accent-brand: ${p.accent} !important;
@@ -504,8 +504,10 @@ ${s} main button:hover { background-color: ${p.bg300} !important; }
 /* Claude Code: prompt surface */
 ${s} .epitaxy-prompt { background-color: ${p.bg200} !important; }
 ${s} .epitaxy-prompt [contenteditable] { color: ${p.text100} !important; }
-/* Claude Code: override CDS data-mode tokens (closer ancestor beats html-level) */
-${s} .cds-root, ${s} [data-mode] {
+/* Claude Code: override CDS data-mode tokens (closer ancestor beats html-level).
+   .epitaxy-root sets its own --t* scale, so we have to override there too —
+   otherwise descendants like .text-t9 read the unthemed (light) values. */
+${s} .cds-root, ${s} [data-mode], ${s} .epitaxy-root {
   color-scheme: ${scheme} !important;
   --t1: ${p.bg200} !important; --t2: ${p.bg300} !important; --t3: ${p.bg400} !important;
   --t4: ${p.text400} !important; --t5: ${p.text300} !important; --t6: ${p.text200} !important;
