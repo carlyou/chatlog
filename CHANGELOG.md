@@ -5,6 +5,26 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] — 2026-05-30
+
+### Fixed
+
+- **Clicking an unmounted message in the sidebar did nothing.** When
+  the user clicked a sidebar entry whose DOM element had been evicted
+  by claude.ai/code's virtualizer, `scrollIntoView` ran on a detached
+  node and went nowhere. The click handler now goes through a resolver
+  that re-queries the live tree by stable entry id, and — if still not
+  mounted — iteratively scrolls the virtual container toward the
+  message's cached `data-index` until the entry mounts, then scrolls
+  it into view. Bounded at 8 attempts so a bad cache can't loop.
+
+### Changed
+
+- claude.ai/code messages now use `data-epitaxy-entry` as their
+  internal id (was the counter-based fallback). This keeps cache keys
+  aligned with the host page's own per-entry id, so messages survive
+  virtualizer remounts cleanly.
+
 ## [1.4.1] — 2026-05-30
 
 ### Fixed

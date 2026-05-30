@@ -19,6 +19,7 @@ interface SidebarProps {
   activeSectionIndex: number | null;
   onLockActive: (target: ActiveTarget) => void;
   onJumpNavigate?: () => void;
+  findMessageElement?: (id: string) => Promise<HTMLElement | null>;
   // Search
   searchOpen?: boolean;
   searchQuery?: string;
@@ -67,6 +68,7 @@ export function Sidebar({
   activeSectionIndex,
   onLockActive,
   onJumpNavigate,
+  findMessageElement,
   searchOpen,
   searchQuery,
   onSearchQueryChange,
@@ -198,6 +200,7 @@ export function Sidebar({
           activeSectionIndex={activeSectionIndex}
           onLockActive={onLockActive}
           onJumpNavigate={onJumpNavigate}
+          findMessageElement={findMessageElement}
           searchQuery={searchQuery}
           searchMatchIds={searchMatchIds}
           currentSearchMatchId={currentSearchMatchId}

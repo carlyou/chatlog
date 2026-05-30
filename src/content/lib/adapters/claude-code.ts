@@ -302,7 +302,10 @@ const claudeCodeAdapter: PlatformAdapter = {
     const text = root.textContent?.trim();
     if (!text) return null;
 
-    const id = getStableRootId(root);
+    // Prefer the host page's own per-entry id (data-epitaxy-entry) so the
+    // message survives virtualizer remounts — the counter-based fallback
+    // re-numbers on each new element instance, breaking cache keys.
+    const id = root.getAttribute('data-epitaxy-entry') || getStableRootId(root);
     const role = this.getMessageRole(root);
     if (!role) return null;
 

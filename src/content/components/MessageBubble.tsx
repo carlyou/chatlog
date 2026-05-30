@@ -66,6 +66,7 @@ interface MessageBubbleProps {
   activeSectionIndex?: number | null;
   onLockActive?: (target: ActiveTarget) => void;
   onJumpNavigate?: () => void;
+  findMessageElement?: (id: string) => Promise<HTMLElement | null>;
   searchQuery?: string;
   bookmarked?: boolean;
   onToggleBookmark?: () => void;
@@ -512,6 +513,7 @@ export function MessageBubble({
   activeSectionIndex,
   onLockActive,
   onJumpNavigate,
+  findMessageElement,
   searchQuery,
   bookmarked,
   onToggleBookmark,
@@ -537,7 +539,14 @@ export function MessageBubble({
     }
     onJumpNavigate?.();
     onLockActive?.({ messageId: message.id, sectionIndex: null });
-    if (message.element) {
+    // Prefer the resolver — it re-queries the live tree and iteratively
+    // scrolls the virtualizer when the entry has been evicted. Fall back
+    // to the cached element for adapters that don't expose one.
+    if (findMessageElement) {
+      findMessageElement(message.id).then((el) => {
+        if (el) scrollElToRefLine(el);
+      });
+    } else if (message.element) {
       scrollElToRefLine(message.element as HTMLElement);
     }
   };

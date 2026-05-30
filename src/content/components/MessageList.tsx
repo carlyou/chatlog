@@ -39,6 +39,7 @@ interface MessageListProps {
   activeSectionIndex: number | null;
   onLockActive: (target: ActiveTarget) => void;
   onJumpNavigate?: () => void;
+  findMessageElement?: (id: string) => Promise<HTMLElement | null>;
   searchQuery?: string;
   searchMatchIds?: string[];
   currentSearchMatchId?: string | null;
@@ -54,6 +55,7 @@ export function MessageList({
   activeSectionIndex,
   onLockActive,
   onJumpNavigate,
+  findMessageElement,
   searchQuery,
   searchMatchIds,
   currentSearchMatchId,
@@ -136,6 +138,7 @@ export function MessageList({
               }
               onLockActive={onLockActive}
               onJumpNavigate={onJumpNavigate}
+              findMessageElement={findMessageElement}
               searchQuery={hasSearch ? searchQuery : undefined}
               bookmarked={isBookmarked?.(msg.id)}
               onToggleBookmark={

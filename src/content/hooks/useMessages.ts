@@ -423,5 +423,117 @@ export function useMessages(
     [fullReconcile],
   );
 
-  return [messages, reconcile, loading] as const;
+  // Locate the live DOM element for a message id. The cached `message.element`
+  // may be stale (the virtualizer mounts new element instances for the same
+  // entry as you scroll), so we always re-query the live tree first.
+  const findEntryElement = useCallback(
+    (id: string): HTMLElement | null => {
+      const container = containerRef.current ?? resolveContainer();
+      if (!container) return null;
+      if (adapter?.getStableEntryId) {
+        return container.querySelector(
+          `[data-epitaxy-entry="${CSS.escape(id)}"]`,
+        ) as HTMLElement | null;
+      }
+      // Fall back to the cached element (claude /chat, chatgpt — no virtualization).
+      for (const root of rootOrderRef.current) {
+        const entry = cacheRef.current.get(root);
+        if (entry?.message?.id === id) return root as HTMLElement;
+      }
+      return null;
+    },
+    [adapter, resolveContainer],
+  );
+
+  // Iteratively scroll the virtual container until the target entry mounts.
+  // Each pass:
+  //   1. If the target is already in DOM, hand off to the caller.
+  //   2. Otherwise look at the currently-mounted index window and estimate
+  //      the offset of the target index using the average height of the
+  //      currently-mounted items.
+  //   3. Jump the scroll there and wait one frame for the virtualizer to
+  //      re-window.
+  // Bounded by MAX_SCROLL_ATTEMPTS so a missing/garbage cache can't loop
+  // forever.
+  const ITERATIVE_SCROLL_ATTEMPTS = 8;
+  const ITERATIVE_SCROLL_SETTLE_MS = 120;
+
+  const scrollVirtualToIndex = useCallback(
+    async (id: string, targetIndex: number): Promise<HTMLElement | null> => {
+      const container = containerRef.current ?? resolveContainer();
+      if (!container) return null;
+      for (let attempt = 0; attempt < ITERATIVE_SCROLL_ATTEMPTS; attempt++) {
+        const found = findEntryElement(id);
+        if (found) return found;
+
+        const wrappers =
+          container.querySelectorAll<HTMLElement>('[data-index]');
+        if (wrappers.length === 0) return null;
+        let minIdx = Number.POSITIVE_INFINITY;
+        let maxIdx = Number.NEGATIVE_INFINITY;
+        for (const w of wrappers) {
+          const i = Number(w.getAttribute('data-index'));
+          if (Number.isNaN(i)) continue;
+          if (i < minIdx) minIdx = i;
+          if (i > maxIdx) maxIdx = i;
+        }
+        if (minIdx === Number.POSITIVE_INFINITY) return null;
+
+        const firstW = container.querySelector<HTMLElement>(
+          `[data-index="${minIdx}"]`,
+        );
+        const lastW = container.querySelector<HTMLElement>(
+          `[data-index="${maxIdx}"]`,
+        );
+        if (!firstW || !lastW) return null;
+
+        const containerRect = container.getBoundingClientRect();
+        const scrollTop = (container as HTMLElement).scrollTop;
+        const firstTopAbs =
+          firstW.getBoundingClientRect().top - containerRect.top + scrollTop;
+        const lastBottomAbs =
+          lastW.getBoundingClientRect().bottom - containerRect.top + scrollTop;
+        const itemCount = maxIdx - minIdx + 1;
+        const avgItemHeight = Math.max(
+          1,
+          (lastBottomAbs - firstTopAbs) / itemCount,
+        );
+
+        let nextTop: number;
+        if (targetIndex < minIdx) {
+          nextTop = firstTopAbs - (minIdx - targetIndex) * avgItemHeight;
+        } else if (targetIndex > maxIdx) {
+          nextTop =
+            lastBottomAbs + (targetIndex - maxIdx - 1) * avgItemHeight - 200;
+        } else {
+          // In range but not findable — let the virtualizer settle.
+          await new Promise((r) => setTimeout(r, ITERATIVE_SCROLL_SETTLE_MS));
+          continue;
+        }
+        const maxScroll = container.scrollHeight - container.clientHeight;
+        nextTop = Math.max(0, Math.min(nextTop, maxScroll));
+        (container as HTMLElement).scrollTop = nextTop;
+        await new Promise((r) => setTimeout(r, ITERATIVE_SCROLL_SETTLE_MS));
+      }
+      return findEntryElement(id);
+    },
+    [findEntryElement, resolveContainer],
+  );
+
+  // Public: jump to a message by id. If the entry is currently in DOM we
+  // resolve immediately; otherwise iteratively scroll the virtual container
+  // until the entry mounts, then resolve with the mounted element. Returns
+  // null if we still can't find it (e.g. id not in the persistent cache).
+  const findMessageElement = useCallback(
+    async (id: string): Promise<HTMLElement | null> => {
+      const direct = findEntryElement(id);
+      if (direct) return direct;
+      const cached = persistentCacheRef.current.get(id);
+      if (!cached || !Number.isFinite(cached.index)) return null;
+      return scrollVirtualToIndex(id, cached.index);
+    },
+    [findEntryElement, scrollVirtualToIndex],
+  );
+
+  return [messages, reconcile, loading, findMessageElement] as const;
 }

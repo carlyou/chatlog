@@ -25,10 +25,8 @@ interface AppProps {
 
 export function App({ platform, shadowHost }: AppProps) {
   const searchPausedRef = useRef(false);
-  const [messages, reconcileMessages, messagesLoading] = useMessages(
-    platform,
-    searchPausedRef,
-  );
+  const [messages, reconcileMessages, messagesLoading, findMessageElement] =
+    useMessages(platform, searchPausedRef);
   const { active: activeTarget, lockActive } = useActiveMessage(messages);
   const { pinned, toggle } = usePinned();
   const { mode, setMode } = useDisplayMode();
@@ -90,6 +88,7 @@ export function App({ platform, shadowHost }: AppProps) {
         activeSectionIndex={activeTarget.sectionIndex}
         onLockActive={lockActive}
         onJumpNavigate={pushToHistory}
+        findMessageElement={findMessageElement}
         searchOpen={search.isOpen}
         searchQuery={search.query}
         onSearchQueryChange={search.setQuery}
