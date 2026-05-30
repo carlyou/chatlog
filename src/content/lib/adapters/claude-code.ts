@@ -4,11 +4,152 @@ import {
   extractStructuredContent,
   getStableRootId,
 } from '../parsers';
-import { hexToHsl, isLightTheme, type ThemePalette } from '../themes';
+import {
+  hexToHsl,
+  isLightTheme,
+  PALETTES,
+  type ThemeId,
+  type ThemePalette,
+} from '../themes';
 import { registerAdapter } from './registry';
-import type { PlatformAdapter } from './types';
+import type { PlatformAdapter, ThemeScheme } from './types';
 
 const ORIG_MODE_ATTR = 'data-chatlog-orig-mode';
+const CODE_STYLE_ID = 'chatlog-code-tokens';
+
+/**
+ * Map of Claude Code's syntax-highlighter token hex values to palette
+ * buckets. Each map covers one host mode (light or dark) because the
+ * highlighter ships separate hex values per mode in the same span style
+ * attribute (`--diffs-token-light` / `--diffs-token-dark`).
+ *
+ * The buckets come from inspecting which highlighter color shows up on
+ * which token kind in a representative TypeScript block:
+ *   comment, keyword, type, punctuation, function, identifier, string.
+ */
+type TokenBucket =
+  | 'comment'
+  | 'keyword'
+  | 'type'
+  | 'punctuation'
+  | 'function'
+  | 'identifier'
+  | 'string';
+
+const DARK_TOKEN_HEX: Record<string, TokenBucket> = {
+  '#737373': 'comment',
+  '#FA832E': 'keyword',
+  '#B796FF': 'type',
+  '#A6A6A6': 'punctuation',
+  '#0099FF': 'function',
+  '#EDEDED': 'identifier',
+  '#32D74B': 'string',
+};
+
+const LIGHT_TOKEN_HEX: Record<string, TokenBucket> = {
+  '#999999': 'comment',
+  '#C5621B': 'keyword',
+  '#8E6BD9': 'type',
+  '#737373': 'punctuation',
+  '#0073E6': 'function',
+  '#1A1A1A': 'identifier',
+  '#1E9E3C': 'string',
+};
+
+function bucketColor(b: TokenBucket, p: ThemePalette): string {
+  switch (b) {
+    case 'comment':
+      return p.text500;
+    case 'keyword':
+      return p.yellow;
+    case 'type':
+      return p.purple;
+    case 'punctuation':
+      return p.text400;
+    case 'function':
+      return p.cyan;
+    case 'identifier':
+      return p.text100;
+    case 'string':
+      return p.green;
+  }
+}
+
+/**
+ * Build the CSS injected into each `<diffs-container>` shadow root to
+ * recolor syntax tokens to the active theme. Matches via attribute
+ * substring on the inline `style="--diffs-token-*: #XXX"`, since the
+ * highlighter doesn't put token-type classes on spans.
+ */
+function buildCodeTokenCSS(p: ThemePalette, scheme: ThemeScheme): string {
+  const map = scheme === 'dark' ? DARK_TOKEN_HEX : LIGHT_TOKEN_HEX;
+  const prop = scheme === 'dark' ? '--diffs-token-dark' : '--diffs-token-light';
+  const rules: string[] = [];
+  for (const [hex, bucket] of Object.entries(map)) {
+    rules.push(
+      `span[style*="${prop}:${hex}"] { color: ${bucketColor(bucket, p)} !important; }`,
+    );
+  }
+  return rules.join('\n');
+}
+
+let codeBlockObserver: MutationObserver | null = null;
+let activeTokenCSS: string | null = null;
+
+function injectIntoContainer(container: Element, css: string | null): void {
+  const sr = (container as HTMLElement & { shadowRoot: ShadowRoot | null })
+    .shadowRoot;
+  if (!sr) return;
+  let style = sr.querySelector<HTMLStyleElement>(`#${CODE_STYLE_ID}`);
+  if (css === null) {
+    style?.remove();
+    return;
+  }
+  if (!style) {
+    style = document.createElement('style');
+    style.id = CODE_STYLE_ID;
+    sr.appendChild(style);
+  }
+  if (style.textContent !== css) style.textContent = css;
+}
+
+function applyToAllContainers(css: string | null): void {
+  for (const dc of document.querySelectorAll('diffs-container')) {
+    injectIntoContainer(dc, css);
+  }
+}
+
+function syncCodeBlockStyles(theme: ThemeId): void {
+  if (theme === 'system') {
+    codeBlockObserver?.disconnect();
+    codeBlockObserver = null;
+    applyToAllContainers(null);
+    activeTokenCSS = null;
+    return;
+  }
+  const palette = PALETTES[theme];
+  const scheme: ThemeScheme = isLightTheme(theme) ? 'light' : 'dark';
+  activeTokenCSS = buildCodeTokenCSS(palette, scheme);
+  applyToAllContainers(activeTokenCSS);
+  if (codeBlockObserver) return;
+  codeBlockObserver = new MutationObserver((records) => {
+    if (!activeTokenCSS) return;
+    for (const r of records) {
+      for (const node of r.addedNodes) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+        const el = node as Element;
+        if (el.matches?.('diffs-container')) {
+          injectIntoContainer(el, activeTokenCSS);
+        } else {
+          for (const dc of el.querySelectorAll?.('diffs-container') ?? []) {
+            injectIntoContainer(dc, activeTokenCSS);
+          }
+        }
+      }
+    }
+  });
+  codeBlockObserver.observe(document.body, { childList: true, subtree: true });
+}
 
 /**
  * Claude Code defines its semantic color tokens (--text-assistant-primary,
@@ -211,6 +352,7 @@ const claudeCodeAdapter: PlatformAdapter = {
 
   applyThemeSideEffects(theme) {
     syncPageDataMode(theme);
+    syncCodeBlockStyles(theme);
   },
 };
 
