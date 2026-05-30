@@ -15,7 +15,7 @@ const claudeCodeAdapter: PlatformAdapter = {
   },
   messageRootSelector: '[data-epitaxy-entry]',
   conversationIdPattern: /\/code\/([^/]+)/,
-  pinnedMarginSelectors: ['.dframe-content-inner'],
+  pinnedMarginSelectors: ['main.dframe-content'],
 
   getMessageRole(root: Element): 'user' | 'assistant' | null {
     // User messages contain an element with the user-message-background class

@@ -15,7 +15,8 @@ export function detectPlatform(): string | null {
   const pathname = window.location.pathname;
 
   if (hostname.includes('claude.ai')) {
-    if (pathname.startsWith('/code/')) return 'claude-code';
+    if (pathname === '/code' || pathname.startsWith('/code/'))
+      return 'claude-code';
     return 'claude';
   }
   if (hostname.includes('chatgpt.com')) return 'chatgpt';
