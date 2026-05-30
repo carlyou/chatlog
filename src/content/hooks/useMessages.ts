@@ -24,6 +24,30 @@ interface CacheEntry {
   message: Message | null;
 }
 
+interface PersistentEntry {
+  id: string;
+  message: Message;
+  signature: string;
+  // Position within the virtual list (claude.ai/code sets `data-index` on
+  // each entry's wrapper). Used as the sort key when commit-emitting the
+  // full message list. Infinity for entries with no index attribute — they
+  // sort to the end.
+  index: number;
+}
+
+// Read the virtual-list index off a mounted root. claude.ai/code wraps
+// every entry in <div data-index="N"> where N is monotonic across the
+// whole conversation, so we can preserve order even after the element is
+// unmounted from DOM.
+function readVirtualIndex(root: Element): number {
+  const wrapper = root.closest('[data-index]');
+  if (!wrapper) return Number.POSITIVE_INFINITY;
+  const raw = wrapper.getAttribute('data-index');
+  if (raw === null) return Number.POSITIVE_INFINITY;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+}
+
 function isMeaningfulTextMutation(node: Node): boolean {
   if (node.nodeType === Node.TEXT_NODE) {
     return !!node.textContent?.trim();
@@ -54,9 +78,16 @@ export function useMessages(
   const rootOrderRef = useRef<Element[]>([]);
   const dirtyRootsRef = useRef<Set<Element>>(new Set());
   const cacheRef = useRef<WeakMap<Element, CacheEntry>>(new WeakMap());
+  // Persistent cache for platforms whose adapters expose getStableEntryId
+  // (i.e. claude.ai/code, where the virtual scroller unmounts entries the
+  // user has scrolled past). Survives mount/unmount cycles so the sidebar
+  // can show the full conversation, not just what's on screen.
+  const persistentCacheRef = useRef<Map<string, PersistentEntry>>(new Map());
   const knownRootSetRef = useRef<Set<Element>>(new Set());
   const rebindRef = useRef<() => void>(() => undefined);
   const rootSelector = getMessageRootSelector(platform);
+  const adapter = platform ? getAdapter(platform) : null;
+  const usePersistentCache = !!adapter?.getStableEntryId;
 
   const resolveContainer = useCallback((): Element | null => {
     if (!platform) return null;
@@ -82,20 +113,42 @@ export function useMessages(
       if (prev && prev.signature === nextSig) return false;
       const parsed = parseMessageRoot(platform, root);
       cacheRef.current.set(root, { signature: nextSig, message: parsed });
+
+      // Mirror into the persistent (id-keyed) cache when the adapter exposes
+      // a stable per-entry id. The element cache above is still authoritative
+      // for "does this currently-mounted element need re-parsing" — this is
+      // additive, holding messages whose elements have since been unmounted.
+      if (parsed && adapter?.getStableEntryId) {
+        const id = adapter.getStableEntryId(root);
+        if (id) {
+          persistentCacheRef.current.set(id, {
+            id,
+            message: parsed,
+            signature: nextSig,
+            index: readVirtualIndex(root),
+          });
+        }
+      }
       return true;
     },
-    [platform],
+    [adapter, platform],
   );
 
   const commitFromCache = useCallback(() => {
-    const next: Message[] = [];
-    for (const root of rootOrderRef.current) {
-      const entry = cacheRef.current.get(root);
-      if (entry?.message) next.push(entry.message);
+    if (usePersistentCache) {
+      const all = [...persistentCacheRef.current.values()];
+      all.sort((a, b) => a.index - b.index);
+      setMessages(all.map((e) => e.message));
+    } else {
+      const next: Message[] = [];
+      for (const root of rootOrderRef.current) {
+        const entry = cacheRef.current.get(root);
+        if (entry?.message) next.push(entry.message);
+      }
+      setMessages(next);
     }
-    setMessages(next);
     setLoading(false);
-  }, []);
+  }, [usePersistentCache]);
 
   const fullReconcile = useCallback(
     (reason: 'init' | 'interval' | 'url-change' | 'rebind') => {
@@ -343,6 +396,7 @@ export function useMessages(
       dirtyRootsRef.current.clear();
       rootOrderRef.current = [];
       knownRootSetRef.current.clear();
+      persistentCacheRef.current.clear();
     };
   }, [
     clearScheduledReconcile,
@@ -354,6 +408,7 @@ export function useMessages(
   useUrlChange(
     () => {
       clearScheduledReconcile();
+      persistentCacheRef.current.clear();
       rebindRef.current();
       fullReconcile('url-change');
     },

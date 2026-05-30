@@ -346,6 +346,10 @@ const claudeCodeAdapter: PlatformAdapter = {
     return computeBaseSignature(role, root);
   },
 
+  getStableEntryId(root: Element): string | null {
+    return root.getAttribute('data-epitaxy-entry');
+  },
+
   themeCSS(scope, palette, scheme) {
     return claudeCodeThemeCSS(scope, palette, scheme);
   },

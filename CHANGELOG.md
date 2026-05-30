@@ -5,6 +5,19 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] — 2026-05-30
+
+### Fixed
+
+- **Missing messages on long claude.ai/code conversations.** The page's
+  virtual scroller unmounts entries the user has scrolled past, so the
+  sidebar was only ever showing what was currently rendered (typically
+  10–15 entries out of the full conversation). The hook now keeps a
+  persistent id-keyed cache for adapters that expose
+  `getStableEntryId`, ordered by the virtual list's `data-index`. Once
+  an entry has been mounted at least once, it stays in the sidebar even
+  after the virtualizer evicts it. Cache is cleared on session change.
+
 ## [1.4.0] — 2026-05-30
 
 ### Added
