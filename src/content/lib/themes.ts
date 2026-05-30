@@ -1,3 +1,5 @@
+import { getAdapter } from './adapters/registry';
+
 export type ThemeId =
   | 'system'
   | 'tokyo-night'
@@ -342,7 +344,7 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
  * Convert a hex color (#rrggbb) to space-separated HSL components
  * (e.g. "220 13% 18%") for use in CSS variables consumed via hsl().
  */
-function hexToHsl(hex: string): string {
+export function hexToHsl(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;
@@ -365,67 +367,30 @@ function hexToHsl(hex: string): string {
  * Hover/active/gradient variants are handled by CSS variable overrides
  * (with !important) so they don't need explicit selectors.
  */
-function twOverride(
-  s: string,
+export function twOverride(
+  scope: string,
   cls: string,
   prop: string,
   value: string,
 ): string {
-  return `${s} [class~="${cls}"], ${s} [class*="${cls}/"], ${s} [class~="\\!${cls}"], ${s} [class*="\\!${cls}/"] { ${prop}: ${value} !important; }`;
-}
-
-function bgOverrides(s: string, p: ThemePalette): string {
-  return [
-    twOverride(s, 'bg-bg-000', 'background-color', p.bg000),
-    twOverride(s, 'bg-bg-100', 'background-color', p.bg100),
-    twOverride(s, 'bg-bg-200', 'background-color', p.bg200),
-    twOverride(s, 'bg-bg-300', 'background-color', p.bg300),
-    twOverride(s, 'bg-bg-400', 'background-color', p.bg400),
-    twOverride(s, 'bg-bg-500', 'background-color', p.bg500),
-  ].join('\n');
-}
-
-function textOverrides(s: string, p: ThemePalette): string {
-  return [
-    twOverride(s, 'text-text-100', 'color', p.text100),
-    twOverride(s, 'text-text-200', 'color', p.text200),
-    twOverride(s, 'text-text-300', 'color', p.text300),
-    twOverride(s, 'text-text-400', 'color', p.text400),
-    twOverride(s, 'text-text-500', 'color', p.text500),
-  ].join('\n');
-}
-
-function borderOverrides(s: string, p: ThemePalette): string {
-  return [
-    twOverride(s, 'border-border-100', 'border-color', p.border100),
-    twOverride(s, 'border-border-200', 'border-color', p.border200),
-    twOverride(s, 'border-border-300', 'border-color', p.border300),
-  ].join('\n');
+  return `${scope} [class~="${cls}"], ${scope} [class*="${cls}/"], ${scope} [class~="\\!${cls}"], ${scope} [class*="\\!${cls}/"] { ${prop}: ${value} !important; }`;
 }
 
 /**
- * Build host-page CSS for a given theme.
+ * Generic CSS that applies to every supported platform. Sets up the design-
+ * token-style CSS variables (covering common Tailwind / token naming
+ * conventions), Tailwind utility-class overrides for the bg/text/border
+ * palette, content typography, and the light-mode-leak heuristics that catch
+ * Tailwind utilities compiled to static color values.
  *
- * Claude.ai uses Tailwind utility classes (bg-bg-100, text-text-200, etc.)
- * which may compile to static color values. We override both the utility classes
- * AND common CSS variable naming conventions to cover all cases.
+ * Platform-specific rules live on the adapters via `themeCSS()`.
  */
-export function buildHostCSS(
-  themeId: Exclude<ThemeId, 'system'>,
-  platform?: string,
+function commonThemeCSS(
+  s: string,
+  p: ThemePalette,
+  scheme: 'light' | 'dark',
 ): string {
-  const p = PALETTES[themeId];
-  const s = `html[data-chatlog-theme="${themeId}"]`;
-
-  const scheme = isLightTheme(themeId) ? 'light' : 'dark';
-
   return `
-/* === Theme: ${themeId} === */
-
-/* CSS custom properties — covers Tailwind v4 and other variable-based systems.
-   !important ensures these win over any compiled Tailwind declarations,
-   so gradients (from-bg-*), opacity variants (bg-bg-100/50), hover/active
-   states, etc. all resolve to themed colors automatically. */
 ${s} {
   color-scheme: ${scheme} !important;
   --color-bg-000: ${p.bg000} !important; --color-bg-100: ${p.bg100} !important; --color-bg-200: ${p.bg200} !important; --color-bg-300: ${p.bg300} !important;
@@ -445,112 +410,30 @@ ${s} {
   --sidebar-surface-primary: ${p.bg200} !important; --sidebar-surface-secondary: ${p.bg100} !important;
 }
 
-/* Root & body */
 ${s}, ${s} body {
   background-color: ${p.bg100} !important;
   color: ${p.text100} !important;
 }
 
-/* Tailwind bg-bg-* utility class overrides (Claude.ai)
-   Each level covers: base token, opacity variant (/50), !important prefix,
-   hover: and active: state variants. */
-${bgOverrides(s, p)}
-${
-  platform === 'claude-code'
-    ? `
-/* Claude Code (epitaxy): neutral token scale --t1…t9 */
-${s} {
-  --t1: ${p.bg200} !important;
-  --t2: ${p.bg300} !important;
-  --t3: ${p.bg400} !important;
-  --t4: ${p.text500} !important;
-  --t5: ${p.text400} !important;
-  --t6: ${p.text300} !important;
-  --t7: ${p.text200} !important;
-  --t8: ${p.text100} !important;
-  --t9: ${p.text100} !important;
-  --always-black: ${hexToHsl(p.bg000)} !important;
-  --accent: ${p.accent} !important;
-  --accent-hover: ${p.accentHover} !important;
-  --accent-brand: ${p.accent} !important;
-  --accent-100: ${hexToHsl(p.accent)} !important;
-  --surface-primary: ${p.bg100} !important;
-  --surface-primary-elevated: ${p.bg200} !important;
-  --ui-user-message-background: ${p.bg400} !important;
-  --ui-user-message-primary-text: ${p.text100} !important;
-  --fill-uncontained-default: transparent !important;
-  --fill-uncontained-hover: ${p.bg300} !important;
-  --fill-uncontained-selected: ${p.bg400} !important;
-  --fill-contained-default: ${p.bg300} !important;
-  --fill-contained-hover: ${p.bg400} !important;
-  --text-uncontained-default: ${p.text200} !important;
-  --text-uncontained-hover: ${p.text100} !important;
-  --text-uncontained-selected: ${p.text100} !important;
-  --text-contained-default: ${p.text100} !important;
-  --text-contained-hover: ${p.text100} !important;
-  --df-surface-primary: ${hexToHsl(p.bg200)} !important;
-  --df-hover: ${p.bg300} !important;
-}
-/* Claude Code: message text color — override CDS data-mode="light" defaults */
-${s} [data-epitaxy-entry] { color: ${p.text200} !important; }
-/* Claude Code: surface data attributes */
-${s} [data-surface] { background-color: ${p.bg200} !important; }
-${s} .epitaxy-markdown { background-color: transparent !important; }
-${s} .dframe-content-inner { background-color: ${p.bg100} !important; }
-${s} .dframe-sidebar-body { background-color: ${p.bg200} !important; }
-/* Claude Code: buttons — transparent by default in epitaxy */
-${s} main button { background-color: transparent !important; color: inherit !important; }
-${s} main button:hover { background-color: ${p.bg300} !important; }
-/* Claude Code: prompt surface */
-${s} .epitaxy-prompt { background-color: ${p.bg200} !important; }
-${s} .epitaxy-prompt [contenteditable] { color: ${p.text100} !important; }
-/* Claude Code: override CDS data-mode tokens (closer ancestor beats html-level) */
-${s} .cds-root, ${s} [data-mode] {
-  color-scheme: ${scheme} !important;
-  --t1: ${p.bg200} !important; --t2: ${p.bg300} !important; --t3: ${p.bg400} !important;
-  --t4: ${p.text400} !important; --t5: ${p.text300} !important; --t6: ${p.text200} !important;
-  --t7: ${p.text200} !important; --t8: ${p.text100} !important; --t9: ${p.text100} !important;
-}
-/* Claude Code: code blocks — force dark token variant */
-${s} .epitaxy-diff { background-color: ${p.bg200} !important; color: ${p.text100} !important; color-scheme: ${scheme} !important; }
-${s} diffs-container { color: ${p.text100} !important; color-scheme: ${scheme} !important; }
-${s} [data-content] span[style*="--diffs-token-dark"] { color: var(--diffs-token-dark) !important; }
-${s} [data-gutter] [data-line-number-content] { color: ${p.text500} !important; }
-/* Claude Code: scroll fade scrims */
-${s} .epitaxy-top-scrim { background: linear-gradient(to bottom, ${p.bg100}, transparent) !important; }
-${s} .epitaxy-bottom-scrim { background: linear-gradient(to top, ${p.bg100}, transparent) !important; }
-`
-    : ''
-}
-
-${
-  platform !== 'claude-code'
-    ? `
-/* Buttons — override white backgrounds in content area, keep nav/sidebar buttons natural */
-${s} #main-content button:not([class~="bg-accent"]),
-${s} main button:not([class~="bg-accent"]) { background-color: ${p.bg300} !important; color: ${p.text200} !important; }
-${s} #main-content button:hover:not([class~="bg-accent"]),
-${s} main button:hover:not([class~="bg-accent"]) { background-color: ${p.bg400} !important; }
-/* Thinking status button — blend with parent */
-${s} #main-content button.group\\/status,
-${s} main button.group\\/status { background-color: transparent !important; }
-`
-    : ''
-}
-
-/* Tailwind text-text-* utility class overrides */
-${textOverrides(s, p)}
-
-/* Tailwind border-border-* utility class overrides */
-${borderOverrides(s, p)}
-
-/* Tailwind accent / highlight classes */
+${twOverride(s, 'bg-bg-000', 'background-color', p.bg000)}
+${twOverride(s, 'bg-bg-100', 'background-color', p.bg100)}
+${twOverride(s, 'bg-bg-200', 'background-color', p.bg200)}
+${twOverride(s, 'bg-bg-300', 'background-color', p.bg300)}
+${twOverride(s, 'bg-bg-400', 'background-color', p.bg400)}
+${twOverride(s, 'bg-bg-500', 'background-color', p.bg500)}
+${twOverride(s, 'text-text-100', 'color', p.text100)}
+${twOverride(s, 'text-text-200', 'color', p.text200)}
+${twOverride(s, 'text-text-300', 'color', p.text300)}
+${twOverride(s, 'text-text-400', 'color', p.text400)}
+${twOverride(s, 'text-text-500', 'color', p.text500)}
+${twOverride(s, 'border-border-100', 'border-color', p.border100)}
+${twOverride(s, 'border-border-200', 'border-color', p.border200)}
+${twOverride(s, 'border-border-300', 'border-color', p.border300)}
 ${s} [class~="bg-accent-main-100"] { background-color: ${p.accent} !important; }
 ${s} [class~="text-accent-main-100"] { color: ${p.accent} !important; }
 
-/* ── Light-mode leak overrides ──
-   Catch generic Tailwind color utilities that compile to static values
-   (not covered by design-token CSS variable overrides). */
+/* Light-mode-leak overrides: Tailwind utilities that compile to static
+   color values and aren't covered by the design-token vars above. */
 ${s} [class~="bg-white"] { background-color: ${p.bg100} !important; }
 ${s} .bg-\\[\\#fff\\], ${s} .bg-\\[\\#ffffff\\] { background-color: ${p.bg100} !important; }
 ${s} [class*="bg-stone-"], ${s} [class*="bg-gray-"], ${s} [class*="bg-neutral-"], ${s} [class*="bg-zinc-"], ${s} [class*="bg-slate-"] { background-color: ${p.bg100} !important; }
@@ -563,17 +446,11 @@ ${s} [class*="bg-[#D"]:not(pre):not(code):not(button):not([role="button"]) { bac
 ${s} [class~="text-black"], ${s} [class*="text-stone-"], ${s} [class*="text-gray-"], ${s} [class*="text-neutral-"], ${s} [class*="text-zinc-"], ${s} [class*="text-slate-"] { color: ${p.text100} !important; }
 ${s} [class*="border-stone-"], ${s} [class*="border-gray-"], ${s} [class*="border-neutral-"], ${s} [class*="border-zinc-"], ${s} [class*="border-slate-"] { border-color: ${p.border200} !important; }
 
-/* Known container overrides */
-${s} #main-content,
-${s} .root,
-${s} .dframe-content-inner,
-${s} main,
-${s} header {
+/* Container & app-root wrappers */
+${s} #main-content, ${s} .root, ${s} main, ${s} header {
   background-color: ${p.bg100} !important;
   color: ${p.text100} !important;
 }
-
-/* App root wrappers — catch nested React mount divs that cover the viewport */
 ${s} body > div:not(#chatlog-root),
 ${s} body > div:not(#chatlog-root) > div,
 ${s} body > div:not(#chatlog-root) > div > div,
@@ -581,59 +458,38 @@ ${s} body > div:not(#chatlog-root) > div > div > div {
   background-color: transparent !important;
 }
 
-/* Sidebar / nav: force dark bg, kill light-mode gradients, fix link colors */
+/* Nav / sidebar */
 ${s} nav, ${s} aside { background-color: ${p.bg200} !important; background-image: none !important; color: ${p.text200} !important; }
 ${s} nav a, ${s} aside a { color: ${p.text200} !important; }
 ${s} nav a:hover, ${s} aside a:hover { color: ${p.text100} !important; background-color: ${p.bg300} !important; }
 
-/* ── Content typography — rich syntax highlighting ── */
-
-/* Heading hierarchy: each level gets a distinct theme color.
-   Uses doubled attribute selector to beat text-text-* utility overrides
-   (specificity 0,2,2 vs 0,2,1). */
+/* Content typography */
+/* Doubled-attribute selectors give specificity (0,2,2), beating the
+   text-text-* utility overrides above. */
 ${s}[data-chatlog-theme] h1 { color: ${p.accent} !important; }
 ${s}[data-chatlog-theme] h2 { color: ${p.purple} !important; }
 ${s}[data-chatlog-theme] h3 { color: ${p.cyan} !important; }
 ${s}[data-chatlog-theme] h4 { color: ${p.green} !important; }
 ${s}[data-chatlog-theme] h5, ${s}[data-chatlog-theme] h6 { color: ${p.text200} !important; }
-
-/* Emphasis — also needs specificity boost */
 ${s}[data-chatlog-theme] strong, ${s}[data-chatlog-theme] b { color: ${p.yellow} !important; }
 ${s}[data-chatlog-theme] em, ${s}[data-chatlog-theme] i { color: ${p.purple} !important; font-style: italic; }
-
-/* Links — only in main content area, not sidebar nav */
 ${s}[data-chatlog-theme] #main-content a, ${s}[data-chatlog-theme] main a, ${s}[data-chatlog-theme] article a { color: ${p.accent} !important; }
 ${s}[data-chatlog-theme] #main-content a:hover, ${s}[data-chatlog-theme] main a:hover, ${s}[data-chatlog-theme] article a:hover { color: ${p.accentHover} !important; }
 
-/* Body text inherits */
 ${s} p, ${s} span, ${s} div { color: inherit; }
-
-/* Lists — colored markers, themed text */
-${s} ul, ${s} ol { color: ${p.text200} !important; }
-${s} li { color: ${p.text200} !important; }
+${s} ul, ${s} ol, ${s} li { color: ${p.text200} !important; }
 ${s} ul > li::marker { color: ${p.green} !important; }
 ${s} ol > li::marker { color: ${p.cyan} !important; }
 
-/* Inline code — accent colored with subtle background */
 ${s} code:not(pre code) {
   color: ${p.green} !important;
   background-color: ${p.bg300} !important;
   border-radius: 4px;
   padding: 1px 5px;
 }
+${s} pre code { color: ${p.text200} !important; background-color: transparent !important; }
+${s} pre code span[style*="color:"] { color: inherit !important; }
 
-/* Code blocks — override inline syntax-highlight colors from light theme.
-   The host highlighter bakes rgb() values into span style attributes;
-   only !important on the spans themselves can override them. */
-${s} pre code {
-  color: ${p.text200} !important;
-  background-color: transparent !important;
-}
-${s} pre code span[style*="color:"] {
-  color: inherit !important;
-}
-
-/* Blockquote — purple accent bar */
 ${s} blockquote {
   border-left: 3px solid ${p.purple} !important;
   background-color: ${p.bg300} !important;
@@ -641,90 +497,16 @@ ${s} blockquote {
   padding: 8px 12px !important;
   border-radius: 0 4px 4px 0 !important;
 }
+${s} hr { border-color: ${p.border200} !important; }
+${s} mark { background-color: ${p.bg400} !important; color: ${p.text100} !important; }
+${s} ::selection { background-color: ${p.accent} !important; color: ${p.bg100} !important; }
 
-/* Horizontal rule */
-${s} hr {
-  border-color: ${p.border200} !important;
-}
-
-/* Selection */
-${s} mark {
-  background-color: ${p.bg400} !important;
-  color: ${p.text100} !important;
-}
-${s} ::selection {
-  background-color: ${p.accent} !important;
-  color: ${p.bg100} !important;
-}
-
-/* Tables */
 ${s} table { border-color: ${p.border200} !important; }
-${s} th {
-  background-color: ${p.bg300} !important;
-  color: ${p.accent} !important;
-  font-weight: 600;
-}
-${s} td {
-  border-color: ${p.border100} !important;
-  color: ${p.text200} !important;
-}
+${s} th { background-color: ${p.bg300} !important; color: ${p.accent} !important; font-weight: 600; }
+${s} td { border-color: ${p.border100} !important; color: ${p.text200} !important; }
 
-/* ── ChatGPT specific ── */
-
-/* ChatGPT token CSS variables (with !important to win cascade,
-   same approach as Claude variables above — handles all utility
-   variants through the cascade automatically) */
-${s} {
-  --token-main-surface-primary: ${p.bg100} !important;
-  --token-main-surface-secondary: ${p.bg200} !important;
-  --token-main-surface-tertiary: ${p.bg300} !important;
-  --token-sidebar-surface-primary: ${p.bg200} !important;
-  --token-sidebar-surface-secondary: ${p.bg300} !important;
-  --token-text-primary: ${p.text100} !important;
-  --token-text-secondary: ${p.text200} !important;
-  --token-text-tertiary: ${p.text300} !important;
-  --token-text-quaternary: ${p.text400} !important;
-  --token-border-medium: ${p.border200} !important;
-  --token-border-light: ${p.border100} !important;
-  --token-border-heavy: ${p.border300} !important;
-  --token-border-xheavy: ${p.border300} !important;
-  --token-bg-primary: ${p.bg100} !important;
-  --token-bg-elevated: ${p.bg200} !important;
-  --token-bg-elevated-secondary: ${p.bg200} !important;
-  --token-bg-subtle: ${p.bg200} !important;
-  --token-bg-tertiary: ${p.bg300} !important;
-  --token-surface-hover: ${p.bg300} !important;
-  --token-interactive-bg-secondary-hover: ${p.bg300} !important;
-  --token-interactive-bg-secondary-press: ${p.bg400} !important;
-  --bg-primary: ${p.bg100} !important;
-  --bg-tertiary: ${p.bg300} !important;
-  --bg-elevated-secondary: ${p.bg200} !important;
-  --bg-elevated-primary: ${p.bg300} !important;
-  --surface-hover: ${p.bg300} !important;
-  --composer-surface: ${p.bg300} !important;
-  --message-surface: ${p.bg200} !important;
-  --main-surface-background: ${p.bg100} !important;
-  --main-surface-primary-inverse: ${p.text100} !important;
-  --main-surface-secondary-selected: ${p.bg300} !important;
-  --sidebar-bg: ${p.bg200} !important;
-  --sidebar-mask-bg: ${p.bg200} !important;
-  --sidebar-surface: ${p.bg200} !important;
-  --sidebar-surface-tertiary: ${p.bg300} !important;
-}
-
-/* ChatGPT sidebar wrapper divs */
-${s} [class*="bg-token-sidebar"],
-${s} [class*="sidebar-mask"],
-${s} [class*="bg-(--sidebar"] {
-  background-color: ${p.bg200} !important;
-  background-image: none !important;
-}
-
-/* ChatGPT dark: arbitrary values — hardcoded hex/gradient that bypass CSS variables */
-${s} [class*="dark:bg-[#"] { background-color: ${p.bg300} !important; }
-${s} [class*="dark:bg-[linear-gradient"] { background-image: none !important; }
-
-/* Input areas — covers both Claude and ChatGPT */
+/* Generic input theming (claude /chat and chatgpt fall back to this; the
+   adapters scope further with transparent overrides where they need to). */
 ${s} textarea,
 ${s} [contenteditable],
 ${s} input[type="text"],
@@ -735,40 +517,21 @@ ${s} [class~="chat-input"] {
   color: ${p.text100} !important;
   border-color: ${p.border200} !important;
 }
-/* Chat input container — transparent inner elements so only fieldset outline shows */
-${s} div[data-chat-input-container="true"] [contenteditable],
-${s} div[data-chat-input-container="true"] textarea,
-${s} .root textarea,
-${s} .root [contenteditable],
-${s} .dframe-content-inner textarea,
-${s} .dframe-content-inner [contenteditable],
-${s} .epitaxy-prompt textarea,
-${s} .epitaxy-prompt [contenteditable] {
-  background-color: transparent !important;
-}
 
-/* ChatGPT user message bubble */
-${s} .user-message-bubble-color {
-  background-color: ${p.bg400} !important;
-  color: ${p.text100} !important;
-}
-
-/* ChatGPT source citation badges */
-${s} a[class~="rounded-xl"][class~="text-token-"] {
-  background-color: ${p.bg300} !important;
-  color: ${p.text300} !important;
-}
-
-/* Footer / bottom bar */
 ${s} footer { background-color: ${p.bg100} !important; color: ${p.text300} !important; }
-
-/* ChatGPT composer bottom fade — ::after pseudo with white gradient */
-${s} #thread-bottom-container::after,
-${s} [class~="content-fade"]::after {
-  background-image: linear-gradient(transparent, ${p.bg100}) !important;
-  background-color: transparent !important;
-}
 `;
+}
+
+function buildHostCSS(
+  themeId: Exclude<ThemeId, 'system'>,
+  platform?: string,
+): string {
+  const p = PALETTES[themeId];
+  const s = `html[data-chatlog-theme="${themeId}"]`;
+  const scheme = isLightTheme(themeId) ? 'light' : 'dark';
+  const adapter = platform ? getAdapter(platform) : null;
+  const adapterCSS = adapter?.themeCSS(s, p, scheme) ?? '';
+  return `/* === Theme: ${themeId} === */\n${commonThemeCSS(s, p, scheme)}\n${adapterCSS}`;
 }
 
 export function getHostCSS(themeId: ThemeId, platform?: string): string {

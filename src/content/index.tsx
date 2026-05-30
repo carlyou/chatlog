@@ -48,21 +48,34 @@ async function init() {
     const hostStyle = document.createElement('style');
     hostStyle.id = 'chatlog-host-styles';
 
+    // Apply both margin-right (shrinks static-positioned containers) and an
+    // explicit width cap (works on absolute containers pinned via inset:0
+    // where margin-right is layout-inert). One of the two takes effect per
+    // container; the other is harmless.
     const marginRules = adapter.pinnedMarginSelectors
       .map(
         (sel) =>
-          `body.chatlog-right-pinned ${sel} { margin-right: var(--chatlog-sidebar-width, 320px); }`,
+          `body.chatlog-right-pinned ${sel} { margin-right: var(--chatlog-sidebar-width, 320px); width: calc(100% - var(--chatlog-sidebar-width, 320px)); }`,
       )
       .join('\n      ');
 
+    // Float the chat-input column over the transcript instead of pushing it
+    // out of layout flow. This keeps the document height stable when fading,
+    // so scrolling at the bottom doesn't jump as the input reveals/hides.
     const adapterStyles =
       adapter.id === 'claude-code'
         ? `
-      .epitaxy-prompt {
-        transition: opacity 0.3s ease;
+      .epitaxy-chat-column:has(.epitaxy-prompt) {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 5;
+        transition: opacity 0.15s ease;
         opacity: var(--chatlog-input-opacity, 1);
       }
-      .epitaxy-prompt:focus-within {
+      .epitaxy-chat-column:has(.epitaxy-prompt):focus-within,
+      .epitaxy-chat-column:has(.epitaxy-prompt):hover {
         opacity: 1 !important;
       }
     `

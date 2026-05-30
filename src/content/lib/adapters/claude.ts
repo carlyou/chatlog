@@ -5,8 +5,35 @@ import {
   extractStructuredContent,
   getStableRootId,
 } from '../parsers';
+import type { ThemePalette } from '../themes';
 import { registerAdapter } from './registry';
 import type { PlatformAdapter } from './types';
+
+function claudeThemeCSS(s: string, p: ThemePalette): string {
+  return `
+/* Claude /chat: content-area buttons — override white backgrounds; keep
+   nav/sidebar buttons natural so they inherit nav theming. */
+${s} #main-content button:not([class~="bg-accent"]),
+${s} main button:not([class~="bg-accent"]) {
+  background-color: ${p.bg300} !important;
+  color: ${p.text200} !important;
+}
+${s} #main-content button:hover:not([class~="bg-accent"]),
+${s} main button:hover:not([class~="bg-accent"]) {
+  background-color: ${p.bg400} !important;
+}
+/* Thinking-status button blends with parent */
+${s} #main-content button.group\\/status,
+${s} main button.group\\/status { background-color: transparent !important; }
+
+/* Chat input container — transparent inner elements so the fieldset is the
+   only visible chrome. */
+${s} div[data-chat-input-container="true"] [contenteditable],
+${s} div[data-chat-input-container="true"] textarea {
+  background-color: transparent !important;
+}
+`;
+}
 
 const claudeAdapter: PlatformAdapter = {
   id: 'claude',
@@ -90,6 +117,10 @@ const claudeAdapter: PlatformAdapter = {
   computeSignature(root: Element): string {
     const role = root.className.includes('bg-bg-300') ? 'user' : 'assistant';
     return computeBaseSignature(role, root);
+  },
+
+  themeCSS(scope, palette) {
+    return claudeThemeCSS(scope, palette);
   },
 };
 
