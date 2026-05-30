@@ -16,6 +16,14 @@ function themeKey(platform: Platform): string {
 const STYLE_ID = 'chatlog-theme-overrides';
 const BG_MARKER = 'chatlogbg';
 
+// Skip transparent fixed-position overlays (e.g. Claude Code's epitaxy-root
+// at z:60 with pointer-events:none). Painting them solid would occlude the
+// entire viewport.
+function isTransparentOverlay(el: HTMLElement): boolean {
+  const s = getComputedStyle(el);
+  return s.position === 'fixed' && s.pointerEvents === 'none';
+}
+
 /**
  * Walk from multiple starting points up to body, setting inline background-color
  * on every ancestor. This is the only reliable way to override backgrounds
@@ -44,7 +52,11 @@ function applyBgOverrides(platform: Platform, bgColor: string) {
 
     let el: HTMLElement | null = container as HTMLElement;
     while (el && el !== document.documentElement) {
-      if (el.id !== 'chatlog-root' && !overridden.has(el)) {
+      if (
+        el.id !== 'chatlog-root' &&
+        !overridden.has(el) &&
+        !isTransparentOverlay(el)
+      ) {
         overridden.add(el);
         el.dataset[BG_MARKER] = '';
         el.style.setProperty('background-color', bgColor, 'important');
@@ -57,10 +69,10 @@ function applyBgOverrides(platform: Platform, bgColor: string) {
   for (const child of document.body.children) {
     const htmlChild = child as HTMLElement;
     if (htmlChild.id === 'chatlog-root' || !htmlChild.style) continue;
-    if (!overridden.has(htmlChild)) {
-      htmlChild.dataset[BG_MARKER] = '';
-      htmlChild.style.setProperty('background-color', bgColor, 'important');
-    }
+    if (overridden.has(htmlChild)) continue;
+    if (isTransparentOverlay(htmlChild)) continue;
+    htmlChild.dataset[BG_MARKER] = '';
+    htmlChild.style.setProperty('background-color', bgColor, 'important');
   }
 }
 
