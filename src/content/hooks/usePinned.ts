@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
+import type { Platform } from '../../types';
+import { readPlatformPref, writePlatformPref } from '../lib/platformStorage';
 
-const STORAGE_KEY = 'chatlog-pinned';
+const STORAGE_KEY_BASE = 'chatlog-pinned';
 
-export function usePinned() {
+export function usePinned(platform: Platform) {
   const [pinned, setPinned] = useState(false);
 
   useEffect(() => {
-    chrome.storage.local.get(STORAGE_KEY, (result) => {
-      const stored = result[STORAGE_KEY];
-      if (typeof stored === 'boolean') {
-        setPinned(stored);
-      }
+    readPlatformPref<boolean>(STORAGE_KEY_BASE, platform, (value) => {
+      if (typeof value === 'boolean') setPinned(value);
     });
-  }, []);
+  }, [platform]);
 
   useEffect(() => {
     if (pinned) {
@@ -25,7 +24,7 @@ export function usePinned() {
   const toggle = () => {
     setPinned((p) => {
       const next = !p;
-      chrome.storage.local.set({ [STORAGE_KEY]: next });
+      writePlatformPref(STORAGE_KEY_BASE, platform, next);
       return next;
     });
   };

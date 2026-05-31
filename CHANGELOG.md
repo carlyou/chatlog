@@ -5,6 +5,18 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — 2026-05-30
+
+### Changed
+
+- **Independent preferences per platform.** Theme, glass, font, font
+  size, display mode, sidebar pin state, and sidebar width are now
+  stored per-platform (`chatlog-theme:claude`, `chatlog-theme:claude-
+  code`, `chatlog-theme:chatgpt`, etc.) instead of shared across the
+  whole extension — so e.g. a dark theme on claude.ai/code doesn't
+  follow you to claude.ai/chat. Existing users keep their current
+  values via a one-time fallback read from the legacy shared key.
+
 ## [1.5.0] — 2026-05-30
 
 ### Added

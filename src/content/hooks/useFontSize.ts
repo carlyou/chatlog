@@ -6,8 +6,9 @@ import {
   DEFAULT_FONT_SIZE,
   type FontSize,
 } from '../lib/fontSize';
+import { readPlatformPref, writePlatformPref } from '../lib/platformStorage';
 
-const FONT_SIZE_KEY = 'chatlog-font-size';
+const FONT_SIZE_KEY_BASE = 'chatlog-font-size';
 const STYLE_ID = 'chatlog-font-size-overrides';
 
 export function useFontSize(
@@ -18,11 +19,10 @@ export function useFontSize(
 
   // Load persisted value
   useEffect(() => {
-    chrome.storage.local.get(FONT_SIZE_KEY, (result) => {
-      const raw = result[FONT_SIZE_KEY];
-      if (typeof raw === 'number') setFontSizeState(clampFontSize(raw));
+    readPlatformPref<number>(FONT_SIZE_KEY_BASE, platform, (value) => {
+      if (typeof value === 'number') setFontSizeState(clampFontSize(value));
     });
-  }, []);
+  }, [platform]);
 
   // Apply to host page
   useEffect(() => {
@@ -51,7 +51,7 @@ export function useFontSize(
   const setFontSize = (n: FontSize) => {
     const clamped = clampFontSize(n);
     setFontSizeState(clamped);
-    chrome.storage.local.set({ [FONT_SIZE_KEY]: clamped });
+    writePlatformPref(FONT_SIZE_KEY_BASE, platform, clamped);
   };
 
   return { fontSize, setFontSize };

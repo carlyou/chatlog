@@ -2,19 +2,20 @@ import { useEffect, useState } from 'react';
 import type { Platform } from '../../types';
 import type { FontId } from '../lib/fonts';
 import { buildFontCSS } from '../lib/fonts';
+import { readPlatformPref, writePlatformPref } from '../lib/platformStorage';
 
-const FONT_KEY = 'chatlog-font';
+const FONT_KEY_BASE = 'chatlog-font';
 const STYLE_ID = 'chatlog-font-overrides';
 
-export function useFont(shadowHost: HTMLElement | null, _platform: Platform) {
+export function useFont(shadowHost: HTMLElement | null, platform: Platform) {
   const [font, setFontState] = useState<FontId>('system');
 
   // Load persisted value
   useEffect(() => {
-    chrome.storage.local.get(FONT_KEY, (result) => {
-      if (result[FONT_KEY]) setFontState(result[FONT_KEY]);
+    readPlatformPref<FontId>(FONT_KEY_BASE, platform, (value) => {
+      if (value) setFontState(value);
     });
-  }, []);
+  }, [platform]);
 
   // Apply font to host page
   useEffect(() => {
@@ -43,7 +44,7 @@ export function useFont(shadowHost: HTMLElement | null, _platform: Platform) {
 
   const setFont = (id: FontId) => {
     setFontState(id);
-    chrome.storage.local.set({ [FONT_KEY]: id });
+    writePlatformPref(FONT_KEY_BASE, platform, id);
   };
 
   return { font, setFont };

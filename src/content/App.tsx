@@ -31,8 +31,8 @@ export function App({ platform, shadowHost }: AppProps) {
     searchPausedRef,
   );
   const { active: activeTarget, lockActive } = useActiveMessage(messages);
-  const { pinned, toggle } = usePinned();
-  const { mode, setMode } = useDisplayMode();
+  const { pinned, toggle } = usePinned(platform);
+  const { mode, setMode } = useDisplayMode(platform);
   const { config: shortcutConfig, setConfig: setShortcutConfig } =
     useShortcutConfig();
   const { theme, setTheme, glass, setGlass } = useTheme(shadowHost, platform);
@@ -47,7 +47,7 @@ export function App({ platform, shadowHost }: AppProps) {
   }, [search.isOpen, reconcileMessages]);
 
   const bookmarks = useBookmarks(platform);
-  const { width, setWidth } = useSidebarWidth();
+  const { width, setWidth } = useSidebarWidth(platform);
   const { enabled: perfEnabled, setEnabled: setPerfEnabled } = usePerfMode();
 
   // Temporarily slide sidebar in on shortcut use while not pinned
