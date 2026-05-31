@@ -1410,3 +1410,77 @@
 .chatlog-theme-select:focus {
   border-color: var(--cl-accent-border);
 }
+
+/* Font-size stepper: − [ 100 ] % + */
+.chatlog-font-size-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: 140px;
+  justify-content: flex-end;
+}
+
+.chatlog-font-size-input {
+  background: var(--cl-bg-subtle);
+  border: 1px solid var(--cl-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--cl-text-secondary);
+  outline: none;
+  font-family: inherit;
+  width: 48px;
+  text-align: right;
+  /* Hide the browser's default number spinner — we provide our own. */
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.chatlog-font-size-input::-webkit-outer-spin-button,
+.chatlog-font-size-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.chatlog-font-size-input:hover {
+  border-color: var(--cl-border-strong);
+}
+
+.chatlog-font-size-input:focus {
+  border-color: var(--cl-accent-border);
+}
+
+.chatlog-font-size-unit {
+  font-size: 11px;
+  color: var(--cl-text-secondary);
+  margin-left: -2px;
+}
+
+.chatlog-font-size-btn {
+  background: var(--cl-bg-subtle);
+  border: 1px solid var(--cl-border);
+  border-radius: 4px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--cl-text-secondary);
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatlog-font-size-btn:hover:not(:disabled) {
+  border-color: var(--cl-border-strong);
+  color: var(--cl-text-primary);
+}
+
+.chatlog-font-size-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

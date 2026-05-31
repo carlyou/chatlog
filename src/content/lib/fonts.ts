@@ -2,6 +2,7 @@ export type FontId =
   | 'system'
   // Sans-serif
   | 'inter'
+  | 'lato'
   | 'helvetica-neue'
   | 'verdana'
   | 'roboto'
@@ -32,6 +33,7 @@ export const FONTS: FontMeta[] = [
   { id: 'system', name: 'System default' },
   // Sans-serif
   { id: 'inter', name: 'Inter', group: 'Sans-serif' },
+  { id: 'lato', name: 'Lato', group: 'Sans-serif' },
   { id: 'helvetica-neue', name: 'Helvetica Neue', group: 'Sans-serif' },
   { id: 'verdana', name: 'Verdana', group: 'Sans-serif' },
   { id: 'roboto', name: 'Roboto', group: 'Sans-serif' },
@@ -70,6 +72,8 @@ export function fontFamily(id: FontId): string | null {
     // Sans-serif
     case 'inter':
       return 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    case 'lato':
+      return 'Lato, "Helvetica Neue", Helvetica, Arial, sans-serif';
     case 'helvetica-neue':
       return '"Helvetica Neue", Helvetica, Arial, sans-serif';
     case 'verdana':
@@ -116,11 +120,16 @@ export function buildFontCSS(fontId: FontId): string {
   if (!family) return '';
 
   const s = `html[data-chatlog-font="${fontId}"]`;
+  // Don't clobber icon glyphs: claude.ai/code marks icon-bearing spans with
+  // an inline `font-family: var(--font-anthropicons, ...)` (often via
+  // `data-cds="Icon"`). Our `!important` would otherwise override that
+  // inline style and render private-use-area glyphs as missing rectangles.
+  const iconSkip = ':not([data-cds="Icon"]):not([style*="anthropicons" i]):not([style*="Anthropicons" i])';
   return `
 /* === Font: ${fontId} === */
 ${s} body,
 ${s} p,
-${s} span,
+${s} span${iconSkip},
 ${s} div,
 ${s} li,
 ${s} td,
@@ -135,7 +144,7 @@ ${s} blockquote,
 ${s} label,
 ${s} input,
 ${s} textarea,
-${s} button,
+${s} button${iconSkip},
 ${s} a {
   font-family: ${family} !important;
 }

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import type { Platform } from '../../types';
 import {
   buildFontSizeCSS,
+  clampFontSize,
   DEFAULT_FONT_SIZE,
   type FontSize,
-  isFontSize,
 } from '../lib/fontSize';
 
 const FONT_SIZE_KEY = 'chatlog-font-size';
@@ -20,7 +20,7 @@ export function useFontSize(
   useEffect(() => {
     chrome.storage.local.get(FONT_SIZE_KEY, (result) => {
       const raw = result[FONT_SIZE_KEY];
-      if (typeof raw === 'number' && isFontSize(raw)) setFontSizeState(raw);
+      if (typeof raw === 'number') setFontSizeState(clampFontSize(raw));
     });
   }, []);
 
@@ -49,8 +49,9 @@ export function useFontSize(
   }, [fontSize, shadowHost, platform]);
 
   const setFontSize = (n: FontSize) => {
-    setFontSizeState(n);
-    chrome.storage.local.set({ [FONT_SIZE_KEY]: n });
+    const clamped = clampFontSize(n);
+    setFontSizeState(clamped);
+    chrome.storage.local.set({ [FONT_SIZE_KEY]: clamped });
   };
 
   return { fontSize, setFontSize };

@@ -1,13 +1,24 @@
 import { getAdapter } from './adapters/registry';
 
-/** Discrete font-size scaling percentages. 100 means "page default". */
-export const FONT_SIZES = [80, 90, 100, 110, 120, 130, 150] as const;
-export type FontSize = (typeof FONT_SIZES)[number];
+/**
+ * Font-size scaling as a percentage. 100 means "page default". The UI is a
+ * stepper (- / + 10%) bounded by [MIN, MAX]; we store the integer.
+ */
+export type FontSize = number;
 
 export const DEFAULT_FONT_SIZE: FontSize = 100;
+export const MIN_FONT_SIZE: FontSize = 50;
+export const MAX_FONT_SIZE: FontSize = 300;
+export const FONT_SIZE_STEP = 10;
 
-export function isFontSize(n: number): n is FontSize {
-  return (FONT_SIZES as readonly number[]).includes(n);
+export function clampFontSize(n: number): FontSize {
+  if (!Number.isFinite(n)) return DEFAULT_FONT_SIZE;
+  return Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, Math.round(n)));
+}
+
+/** Snap a value to the nearest multiple of FONT_SIZE_STEP, then clamp. */
+export function snapFontSize(n: number): FontSize {
+  return clampFontSize(Math.round(n / FONT_SIZE_STEP) * FONT_SIZE_STEP);
 }
 
 /**

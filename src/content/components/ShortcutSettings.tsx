@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
-import { FONT_SIZES, type FontSize } from '../lib/fontSize';
+import {
+  clampFontSize,
+  FONT_SIZE_STEP,
+  type FontSize,
+  MAX_FONT_SIZE,
+  MIN_FONT_SIZE,
+  snapFontSize,
+} from '../lib/fontSize';
 import type { FontId, FontMeta } from '../lib/fonts';
 import { FONTS } from '../lib/fonts';
 import { bindingLabel } from '../lib/shortcutMatcher';
@@ -159,17 +166,49 @@ export function ShortcutSettings({
       </div>
       <div className="chatlog-shortcut-row">
         <span className="chatlog-shortcut-label">Font size</span>
-        <select
-          className="chatlog-theme-select"
-          value={fontSize}
-          onChange={(e) => onFontSizeChange(Number(e.target.value) as FontSize)}
-        >
-          {FONT_SIZES.map((n) => (
-            <option key={n} value={n}>
-              {n}%
-            </option>
-          ))}
-        </select>
+        <div className="chatlog-font-size-stepper">
+          <button
+            type="button"
+            className="chatlog-font-size-btn"
+            aria-label="Decrease font size"
+            disabled={fontSize <= MIN_FONT_SIZE}
+            onClick={() =>
+              onFontSizeChange(snapFontSize(fontSize - FONT_SIZE_STEP))
+            }
+          >
+            −
+          </button>
+          <input
+            type="number"
+            className="chatlog-font-size-input"
+            inputMode="numeric"
+            min={MIN_FONT_SIZE}
+            max={MAX_FONT_SIZE}
+            step={FONT_SIZE_STEP}
+            value={fontSize}
+            onChange={(e) => {
+              const raw = Number(e.target.value);
+              if (Number.isFinite(raw)) onFontSizeChange(clampFontSize(raw));
+            }}
+            onBlur={(e) => {
+              // Snap to nearest step on blur to keep the displayed value tidy.
+              const raw = Number(e.target.value);
+              if (Number.isFinite(raw)) onFontSizeChange(snapFontSize(raw));
+            }}
+          />
+          <span className="chatlog-font-size-unit">%</span>
+          <button
+            type="button"
+            className="chatlog-font-size-btn"
+            aria-label="Increase font size"
+            disabled={fontSize >= MAX_FONT_SIZE}
+            onClick={() =>
+              onFontSizeChange(snapFontSize(fontSize + FONT_SIZE_STEP))
+            }
+          >
+            +
+          </button>
+        </div>
       </div>
       <div className="chatlog-shortcut-row">
         <label className="chatlog-shortcut-label">
