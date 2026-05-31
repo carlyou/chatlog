@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
-import { bindingLabel } from '../lib/shortcutMatcher';
-import type { FontId } from '../lib/fonts';
+import { FONT_SIZES, type FontSize } from '../lib/fontSize';
+import type { FontId, FontMeta } from '../lib/fonts';
 import { FONTS } from '../lib/fonts';
+import { bindingLabel } from '../lib/shortcutMatcher';
 import type { ThemeId } from '../lib/themes';
 import { THEMES } from '../lib/themes';
 
@@ -18,6 +19,24 @@ interface ShortcutSettingsProps {
   onGlassChange: (glass: boolean) => void;
   font: FontId;
   onFontChange: (font: FontId) => void;
+  fontSize: FontSize;
+  onFontSizeChange: (size: FontSize) => void;
+}
+
+/** Group fonts by `FontMeta.group`, preserving the order they appear in
+ *  FONTS so the <select> renders <optgroup>s with predictable ordering. */
+function groupedFonts(): Array<{ group: string | null; fonts: FontMeta[] }> {
+  const groups: Array<{ group: string | null; fonts: FontMeta[] }> = [];
+  for (const f of FONTS) {
+    const g = f.group ?? null;
+    let bucket = groups[groups.length - 1];
+    if (!bucket || bucket.group !== g) {
+      bucket = { group: g, fonts: [] };
+      groups.push(bucket);
+    }
+    bucket.fonts.push(f);
+  }
+  return groups;
 }
 
 const LABELS: Record<keyof ShortcutConfig, string> = {
@@ -41,6 +60,8 @@ export function ShortcutSettings({
   onGlassChange,
   font,
   onFontChange,
+  fontSize,
+  onFontSizeChange,
 }: ShortcutSettingsProps) {
   const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(
     null,
@@ -117,9 +138,35 @@ export function ShortcutSettings({
           value={font}
           onChange={(e) => onFontChange(e.target.value as FontId)}
         >
-          {FONTS.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.name}
+          {groupedFonts().map(({ group, fonts }) =>
+            group ? (
+              <optgroup key={group} label={group}>
+                {fonts.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </optgroup>
+            ) : (
+              fonts.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))
+            ),
+          )}
+        </select>
+      </div>
+      <div className="chatlog-shortcut-row">
+        <span className="chatlog-shortcut-label">Font size</span>
+        <select
+          className="chatlog-theme-select"
+          value={fontSize}
+          onChange={(e) => onFontSizeChange(Number(e.target.value) as FontSize)}
+        >
+          {FONT_SIZES.map((n) => (
+            <option key={n} value={n}>
+              {n}%
             </option>
           ))}
         </select>

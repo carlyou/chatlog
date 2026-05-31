@@ -5,6 +5,21 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — 2026-05-30
+
+### Added
+
+- **More font choices.** The Font picker is now grouped by Sans-serif /
+  Serif / Monospace and ships with Inter, Roboto, Charter, JetBrains
+  Mono, Fira Code, Cascadia Code, IBM Plex Mono, Source Code Pro, and
+  Consolas in addition to the previous list. Each entry uses a sensible
+  fallback stack so the choice degrades gracefully on systems where the
+  named face isn't installed.
+- **Font size scaling.** New Font-size picker in shortcut settings:
+  80%, 90%, 100%, 110%, 120%, 130%, 150%. Applied via CSS `zoom` on the
+  platform's message-content container so every length scales uniformly
+  (not just rem-based typography). Stored per platform.
+
 ## [1.4.0] — 2026-05-30
 
 ### Added

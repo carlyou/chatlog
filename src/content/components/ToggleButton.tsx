@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ShortcutConfig } from '../../types';
 import type { FontId } from '../lib/fonts';
+import type { FontSize } from '../lib/fontSize';
 import type { ThemeId } from '../lib/themes';
 import { PerfOverlay } from './PerfOverlay';
 import { ShortcutSettings } from './ShortcutSettings';
@@ -18,6 +19,8 @@ interface ToggleButtonProps {
   onGlassChange: (glass: boolean) => void;
   font: FontId;
   onFontChange: (font: FontId) => void;
+  fontSize: FontSize;
+  onFontSizeChange: (size: FontSize) => void;
 }
 
 export function ToggleButton({
@@ -33,6 +36,8 @@ export function ToggleButton({
   onGlassChange,
   font,
   onFontChange,
+  fontSize,
+  onFontSizeChange,
 }: ToggleButtonProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -92,6 +97,8 @@ export function ToggleButton({
             onGlassChange={onGlassChange}
             font={font}
             onFontChange={onFontChange}
+            fontSize={fontSize}
+            onFontSizeChange={onFontSizeChange}
           />
         )}
       </div>

@@ -6,6 +6,8 @@ import { ToggleButton } from './components/ToggleButton';
 import { useActiveMessage } from './hooks/useActiveMessage';
 import { useBookmarks } from './hooks/useBookmarks';
 import { useDisplayMode } from './hooks/useDisplayMode';
+import { useFont } from './hooks/useFont';
+import { useFontSize } from './hooks/useFontSize';
 import { useMessages } from './hooks/useMessages';
 import { usePerfMode } from './hooks/usePerfMode';
 import { usePinned } from './hooks/usePinned';
@@ -13,7 +15,6 @@ import { useSearch } from './hooks/useSearch';
 import { useShiftKey } from './hooks/useShiftKey';
 import { useShortcutConfig } from './hooks/useShortcutConfig';
 import { useSidebarWidth } from './hooks/useSidebarWidth';
-import { useFont } from './hooks/useFont';
 import { useTheme } from './hooks/useTheme';
 
 const PEEK_DURATION = 2000;
@@ -36,6 +37,7 @@ export function App({ platform, shadowHost }: AppProps) {
     useShortcutConfig();
   const { theme, setTheme, glass, setGlass } = useTheme(shadowHost, platform);
   const { font, setFont } = useFont(shadowHost, platform);
+  const { fontSize, setFontSize } = useFontSize(shadowHost, platform);
   const search = useSearch(messages, platform, lockActive);
 
   // Pause message reconciliation while search is active to avoid disrupting match positions
@@ -121,6 +123,8 @@ export function App({ platform, shadowHost }: AppProps) {
         onGlassChange={setGlass}
         font={font}
         onFontChange={setFont}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
       />
     </>
   );
