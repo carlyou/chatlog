@@ -1,27 +1,23 @@
 import { useEffect, useState } from 'react';
-import type { DisplayMode } from '../../types';
+import type { DisplayMode, Platform } from '../../types';
+import { readPlatformPref, writePlatformPref } from '../lib/platformStorage';
 
-const STORAGE_KEY = 'chatlog-display-mode';
+const STORAGE_KEY_BASE = 'chatlog-display-mode';
 
-export function useDisplayMode() {
+export function useDisplayMode(platform: Platform) {
   const [mode, setModeState] = useState<DisplayMode>('compact');
 
   useEffect(() => {
-    chrome.storage.local.get(STORAGE_KEY, (result) => {
-      const stored = result[STORAGE_KEY];
-      if (
-        stored === 'compact' ||
-        stored === 'outline' ||
-        stored === 'detailed'
-      ) {
-        setModeState(stored);
+    readPlatformPref<DisplayMode>(STORAGE_KEY_BASE, platform, (value) => {
+      if (value === 'compact' || value === 'outline' || value === 'detailed') {
+        setModeState(value);
       }
     });
-  }, []);
+  }, [platform]);
 
   const setMode = (newMode: DisplayMode) => {
     setModeState(newMode);
-    chrome.storage.local.set({ [STORAGE_KEY]: newMode });
+    writePlatformPref(STORAGE_KEY_BASE, platform, newMode);
   };
 
   return { mode, setMode };

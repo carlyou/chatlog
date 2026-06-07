@@ -1,64 +1,113 @@
 export type FontId =
   | 'system'
+  // Sans-serif
+  | 'inter'
+  | 'lato'
+  | 'helvetica-neue'
+  | 'verdana'
+  | 'roboto'
+  // Serif
+  | 'georgia'
+  | 'charter'
+  // Monospace (programming-friendly)
+  | 'sf-mono'
   | 'monaco'
   | 'menlo'
+  | 'jetbrains-mono'
+  | 'fira-code'
+  | 'cascadia-code'
+  | 'ibm-plex-mono'
+  | 'source-code-pro'
+  | 'consolas'
   | 'courier-new'
-  | 'andale-mono'
-  | 'sf-mono'
-  | 'georgia'
-  | 'helvetica-neue'
-  | 'verdana';
+  | 'andale-mono';
 
 export interface FontMeta {
   id: FontId;
   name: string;
+  /** Optional group label for the <optgroup>. Adapters render fonts grouped. */
+  group?: 'Sans-serif' | 'Serif' | 'Monospace';
 }
 
 export const FONTS: FontMeta[] = [
   { id: 'system', name: 'System default' },
-  { id: 'monaco', name: 'Monaco' },
-  { id: 'menlo', name: 'Menlo' },
-  { id: 'sf-mono', name: 'SF Mono' },
-  { id: 'courier-new', name: 'Courier New' },
-  { id: 'andale-mono', name: 'Andale Mono' },
-  { id: 'georgia', name: 'Georgia' },
-  { id: 'helvetica-neue', name: 'Helvetica Neue' },
-  { id: 'verdana', name: 'Verdana' },
+  // Sans-serif
+  { id: 'inter', name: 'Inter', group: 'Sans-serif' },
+  { id: 'lato', name: 'Lato', group: 'Sans-serif' },
+  { id: 'helvetica-neue', name: 'Helvetica Neue', group: 'Sans-serif' },
+  { id: 'verdana', name: 'Verdana', group: 'Sans-serif' },
+  { id: 'roboto', name: 'Roboto', group: 'Sans-serif' },
+  // Serif
+  { id: 'georgia', name: 'Georgia', group: 'Serif' },
+  { id: 'charter', name: 'Charter', group: 'Serif' },
+  // Monospace
+  { id: 'sf-mono', name: 'SF Mono', group: 'Monospace' },
+  { id: 'monaco', name: 'Monaco', group: 'Monospace' },
+  { id: 'menlo', name: 'Menlo', group: 'Monospace' },
+  { id: 'jetbrains-mono', name: 'JetBrains Mono', group: 'Monospace' },
+  { id: 'fira-code', name: 'Fira Code', group: 'Monospace' },
+  { id: 'cascadia-code', name: 'Cascadia Code', group: 'Monospace' },
+  { id: 'ibm-plex-mono', name: 'IBM Plex Mono', group: 'Monospace' },
+  { id: 'source-code-pro', name: 'Source Code Pro', group: 'Monospace' },
+  { id: 'consolas', name: 'Consolas', group: 'Monospace' },
+  { id: 'courier-new', name: 'Courier New', group: 'Monospace' },
+  { id: 'andale-mono', name: 'Andale Mono', group: 'Monospace' },
 ];
 
-const MONO_FONTS: ReadonlySet<string> = new Set([
-  'monaco',
-  'menlo',
-  'sf-mono',
-  'courier-new',
-  'andale-mono',
-]);
+const MONO_FONTS: ReadonlySet<string> = new Set(
+  FONTS.filter((f) => f.group === 'Monospace').map((f) => f.id),
+);
 
 export function isMonoFont(id: FontId): boolean {
   return MONO_FONTS.has(id);
 }
 
-/** Map font ID to CSS font-family stack */
+/** Map font ID to CSS font-family stack. Stacks include sensible fallbacks
+ *  so the choice degrades gracefully on systems where the named face isn't
+ *  installed. */
 export function fontFamily(id: FontId): string | null {
   switch (id) {
     case 'system':
       return null;
-    case 'monaco':
-      return 'Monaco, monospace';
-    case 'menlo':
-      return 'Menlo, monospace';
-    case 'sf-mono':
-      return '"SF Mono", SFMono-Regular, monospace';
-    case 'courier-new':
-      return '"Courier New", Courier, monospace';
-    case 'andale-mono':
-      return '"Andale Mono", monospace';
-    case 'georgia':
-      return 'Georgia, "Times New Roman", serif';
+    // Sans-serif
+    case 'inter':
+      return 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    case 'lato':
+      return 'Lato, "Helvetica Neue", Helvetica, Arial, sans-serif';
     case 'helvetica-neue':
       return '"Helvetica Neue", Helvetica, Arial, sans-serif';
     case 'verdana':
       return 'Verdana, Geneva, sans-serif';
+    case 'roboto':
+      return 'Roboto, system-ui, -apple-system, "Segoe UI", sans-serif';
+    // Serif
+    case 'georgia':
+      return 'Georgia, "Times New Roman", serif';
+    case 'charter':
+      return 'Charter, "Bitstream Charter", "Sitka Text", Cambria, serif';
+    // Monospace
+    case 'sf-mono':
+      return '"SF Mono", SFMono-Regular, ui-monospace, monospace';
+    case 'monaco':
+      return 'Monaco, ui-monospace, monospace';
+    case 'menlo':
+      return 'Menlo, ui-monospace, monospace';
+    case 'jetbrains-mono':
+      return '"JetBrains Mono", ui-monospace, monospace';
+    case 'fira-code':
+      return '"Fira Code", ui-monospace, monospace';
+    case 'cascadia-code':
+      return '"Cascadia Code", "Cascadia Mono", ui-monospace, monospace';
+    case 'ibm-plex-mono':
+      return '"IBM Plex Mono", ui-monospace, monospace';
+    case 'source-code-pro':
+      return '"Source Code Pro", ui-monospace, monospace';
+    case 'consolas':
+      return 'Consolas, "Lucida Console", ui-monospace, monospace';
+    case 'courier-new':
+      return '"Courier New", Courier, monospace';
+    case 'andale-mono':
+      return '"Andale Mono", ui-monospace, monospace';
   }
 }
 
@@ -70,38 +119,44 @@ export function buildFontCSS(fontId: FontId): string {
   const family = fontFamily(fontId);
   if (!family) return '';
 
+  const s = `html[data-chatlog-font="${fontId}"]`;
+  // Don't clobber icon glyphs: claude.ai/code marks icon-bearing spans with
+  // an inline `font-family: var(--font-anthropicons, ...)` (often via
+  // `data-cds="Icon"`). Our `!important` would otherwise override that
+  // inline style and render private-use-area glyphs as missing rectangles.
+  const iconSkip = ':not([data-cds="Icon"]):not([style*="anthropicons" i]):not([style*="Anthropicons" i])';
   return `
 /* === Font: ${fontId} === */
-html[data-chatlog-font="${fontId}"] body,
-html[data-chatlog-font="${fontId}"] p,
-html[data-chatlog-font="${fontId}"] span,
-html[data-chatlog-font="${fontId}"] div,
-html[data-chatlog-font="${fontId}"] li,
-html[data-chatlog-font="${fontId}"] td,
-html[data-chatlog-font="${fontId}"] th,
-html[data-chatlog-font="${fontId}"] h1,
-html[data-chatlog-font="${fontId}"] h2,
-html[data-chatlog-font="${fontId}"] h3,
-html[data-chatlog-font="${fontId}"] h4,
-html[data-chatlog-font="${fontId}"] h5,
-html[data-chatlog-font="${fontId}"] h6,
-html[data-chatlog-font="${fontId}"] blockquote,
-html[data-chatlog-font="${fontId}"] label,
-html[data-chatlog-font="${fontId}"] input,
-html[data-chatlog-font="${fontId}"] textarea,
-html[data-chatlog-font="${fontId}"] button,
-html[data-chatlog-font="${fontId}"] a {
+${s} body,
+${s} p,
+${s} span${iconSkip},
+${s} div,
+${s} li,
+${s} td,
+${s} th,
+${s} h1,
+${s} h2,
+${s} h3,
+${s} h4,
+${s} h5,
+${s} h6,
+${s} blockquote,
+${s} label,
+${s} input,
+${s} textarea,
+${s} button${iconSkip},
+${s} a {
   font-family: ${family} !important;
 }
 ${
-    isMonoFont(fontId)
-      ? `/* Monospace font — apply to code blocks too */
-html[data-chatlog-font="${fontId}"] pre,
-html[data-chatlog-font="${fontId}"] pre code,
-html[data-chatlog-font="${fontId}"] code {
+  isMonoFont(fontId)
+    ? `/* Monospace font — apply to code blocks too */
+${s} pre,
+${s} pre code,
+${s} code {
   font-family: ${family} !important;
 }`
-      : ''
-  }
+    : ''
+}
 `;
 }

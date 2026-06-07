@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { Platform } from '../../types';
 import { getAdapter } from '../lib/adapters/registry';
+import { readPlatformPref, writePlatformPref } from '../lib/platformStorage';
 import type { ThemeId } from '../lib/themes';
 import { getHostCSS, isLightTheme, PALETTES } from '../lib/themes';
 
 const THEME_KEY_BASE = 'chatlog-theme';
-const GLASS_KEY = 'chatlog-glass';
-
-/** Return a platform-specific storage key for theme preference */
-function themeKey(platform: Platform): string {
-  if (platform === 'claude-code') return `${THEME_KEY_BASE}-claude-code`;
-  if (platform === 'claude') return `${THEME_KEY_BASE}-claude`;
-  return THEME_KEY_BASE;
-}
+const GLASS_KEY_BASE = 'chatlog-glass';
 const STYLE_ID = 'chatlog-theme-overrides';
 const BG_MARKER = 'chatlogbg';
 
@@ -91,16 +85,15 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
   const [theme, setThemeState] = useState<ThemeId>('system');
   const [glass, setGlassState] = useState(true);
 
-  const THEME_KEY = themeKey(platform);
-
   // Load persisted values
   useEffect(() => {
-    chrome.storage.local.get([THEME_KEY, GLASS_KEY], (result) => {
-      if (result[THEME_KEY]) setThemeState(result[THEME_KEY]);
-      if (typeof result[GLASS_KEY] === 'boolean')
-        setGlassState(result[GLASS_KEY]);
+    readPlatformPref<ThemeId>(THEME_KEY_BASE, platform, (value) => {
+      if (value) setThemeState(value);
     });
-  }, [THEME_KEY]);
+    readPlatformPref<boolean>(GLASS_KEY_BASE, platform, (value) => {
+      if (typeof value === 'boolean') setGlassState(value);
+    });
+  }, [platform]);
 
   // Apply theme to shadow host + document
   useEffect(() => {
@@ -155,13 +148,12 @@ export function useTheme(shadowHost: HTMLElement | null, platform: Platform) {
 
   const setTheme = (id: ThemeId) => {
     setThemeState(id);
-    const key = themeKey(platform);
-    chrome.storage.local.set({ [key]: id });
+    writePlatformPref(THEME_KEY_BASE, platform, id);
   };
 
   const setGlass = (enabled: boolean) => {
     setGlassState(enabled);
-    chrome.storage.local.set({ [GLASS_KEY]: enabled });
+    writePlatformPref(GLASS_KEY_BASE, platform, enabled);
   };
 
   return { theme, setTheme, glass, setGlass };

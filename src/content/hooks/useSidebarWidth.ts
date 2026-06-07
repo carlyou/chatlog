@@ -1,21 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { Platform } from '../../types';
+import { readPlatformPref, writePlatformPref } from '../lib/platformStorage';
 
-const STORAGE_KEY = 'chatlog-sidebar-width';
+const STORAGE_KEY_BASE = 'chatlog-sidebar-width';
 const DEFAULT_WIDTH = 320;
 const MIN_WIDTH = 200;
 const MAX_WIDTH_VW = 60;
 
-export function useSidebarWidth() {
+export function useSidebarWidth(platform: Platform) {
   const [width, setWidthState] = useState(DEFAULT_WIDTH);
 
   useEffect(() => {
-    chrome.storage.local.get(STORAGE_KEY, (result) => {
-      const stored = result[STORAGE_KEY];
-      if (typeof stored === 'number' && stored >= MIN_WIDTH) {
-        setWidthState(stored);
+    readPlatformPref<number>(STORAGE_KEY_BASE, platform, (value) => {
+      if (typeof value === 'number' && value >= MIN_WIDTH) {
+        setWidthState(value);
       }
     });
-  }, []);
+  }, [platform]);
 
   // Sync CSS variable on host page for margin adjustment
   useEffect(() => {
@@ -25,12 +26,15 @@ export function useSidebarWidth() {
     );
   }, [width]);
 
-  const setWidth = useCallback((w: number) => {
-    const maxPx = (window.innerWidth * MAX_WIDTH_VW) / 100;
-    const clamped = Math.max(MIN_WIDTH, Math.min(w, maxPx));
-    setWidthState(clamped);
-    chrome.storage.local.set({ [STORAGE_KEY]: clamped });
-  }, []);
+  const setWidth = useCallback(
+    (w: number) => {
+      const maxPx = (window.innerWidth * MAX_WIDTH_VW) / 100;
+      const clamped = Math.max(MIN_WIDTH, Math.min(w, maxPx));
+      setWidthState(clamped);
+      writePlatformPref(STORAGE_KEY_BASE, platform, clamped);
+    },
+    [platform],
+  );
 
   return { width, setWidth, minWidth: MIN_WIDTH, maxWidthVw: MAX_WIDTH_VW };
 }

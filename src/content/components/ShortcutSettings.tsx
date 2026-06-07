@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ShortcutBinding, ShortcutConfig } from '../../types';
 import { DEFAULT_SHORTCUTS } from '../hooks/useShortcutConfig';
-import { bindingLabel } from '../lib/shortcutMatcher';
-import type { FontId } from '../lib/fonts';
+import {
+  clampFontSize,
+  FONT_SIZE_STEP,
+  type FontSize,
+  MAX_FONT_SIZE,
+  MIN_FONT_SIZE,
+  snapFontSize,
+} from '../lib/fontSize';
+import type { FontId, FontMeta } from '../lib/fonts';
 import { FONTS } from '../lib/fonts';
+import { bindingLabel } from '../lib/shortcutMatcher';
 import type { ThemeId } from '../lib/themes';
 import { THEMES } from '../lib/themes';
 
@@ -18,6 +26,24 @@ interface ShortcutSettingsProps {
   onGlassChange: (glass: boolean) => void;
   font: FontId;
   onFontChange: (font: FontId) => void;
+  fontSize: FontSize;
+  onFontSizeChange: (size: FontSize) => void;
+}
+
+/** Group fonts by `FontMeta.group`, preserving the order they appear in
+ *  FONTS so the <select> renders <optgroup>s with predictable ordering. */
+function groupedFonts(): Array<{ group: string | null; fonts: FontMeta[] }> {
+  const groups: Array<{ group: string | null; fonts: FontMeta[] }> = [];
+  for (const f of FONTS) {
+    const g = f.group ?? null;
+    let bucket = groups[groups.length - 1];
+    if (!bucket || bucket.group !== g) {
+      bucket = { group: g, fonts: [] };
+      groups.push(bucket);
+    }
+    bucket.fonts.push(f);
+  }
+  return groups;
 }
 
 const LABELS: Record<keyof ShortcutConfig, string> = {
@@ -41,6 +67,8 @@ export function ShortcutSettings({
   onGlassChange,
   font,
   onFontChange,
+  fontSize,
+  onFontSizeChange,
 }: ShortcutSettingsProps) {
   const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(
     null,
@@ -117,12 +145,70 @@ export function ShortcutSettings({
           value={font}
           onChange={(e) => onFontChange(e.target.value as FontId)}
         >
-          {FONTS.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.name}
-            </option>
-          ))}
+          {groupedFonts().map(({ group, fonts }) =>
+            group ? (
+              <optgroup key={group} label={group}>
+                {fonts.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </optgroup>
+            ) : (
+              fonts.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))
+            ),
+          )}
         </select>
+      </div>
+      <div className="chatlog-shortcut-row">
+        <span className="chatlog-shortcut-label">Font size</span>
+        <div className="chatlog-font-size-stepper">
+          <button
+            type="button"
+            className="chatlog-font-size-btn"
+            aria-label="Decrease font size"
+            disabled={fontSize <= MIN_FONT_SIZE}
+            onClick={() =>
+              onFontSizeChange(snapFontSize(fontSize - FONT_SIZE_STEP))
+            }
+          >
+            −
+          </button>
+          <input
+            type="number"
+            className="chatlog-font-size-input"
+            inputMode="numeric"
+            min={MIN_FONT_SIZE}
+            max={MAX_FONT_SIZE}
+            step={FONT_SIZE_STEP}
+            value={fontSize}
+            onChange={(e) => {
+              const raw = Number(e.target.value);
+              if (Number.isFinite(raw)) onFontSizeChange(clampFontSize(raw));
+            }}
+            onBlur={(e) => {
+              // Snap to nearest step on blur to keep the displayed value tidy.
+              const raw = Number(e.target.value);
+              if (Number.isFinite(raw)) onFontSizeChange(snapFontSize(raw));
+            }}
+          />
+          <span className="chatlog-font-size-unit">%</span>
+          <button
+            type="button"
+            className="chatlog-font-size-btn"
+            aria-label="Increase font size"
+            disabled={fontSize >= MAX_FONT_SIZE}
+            onClick={() =>
+              onFontSizeChange(snapFontSize(fontSize + FONT_SIZE_STEP))
+            }
+          >
+            +
+          </button>
+        </div>
       </div>
       <div className="chatlog-shortcut-row">
         <label className="chatlog-shortcut-label">
