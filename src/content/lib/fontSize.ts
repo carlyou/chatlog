@@ -2,14 +2,14 @@ import { getAdapter } from './adapters/registry';
 
 /**
  * Font-size scaling as a percentage. 100 means "page default". The UI is a
- * stepper (- / + 10%) bounded by [MIN, MAX]; we store the integer.
+ * stepper (- / + 5%) bounded by [MIN, MAX]; we store the integer.
  */
 export type FontSize = number;
 
 export const DEFAULT_FONT_SIZE: FontSize = 100;
 export const MIN_FONT_SIZE: FontSize = 50;
 export const MAX_FONT_SIZE: FontSize = 300;
-export const FONT_SIZE_STEP = 10;
+export const FONT_SIZE_STEP = 5;
 
 export function clampFontSize(n: number): FontSize {
   if (!Number.isFinite(n)) return DEFAULT_FONT_SIZE;

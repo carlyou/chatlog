@@ -13,7 +13,9 @@ export type ThemeId =
   | 'github-light'
   | 'one-light'
   | 'gruvbox-light'
-  | 'ayu-light';
+  | 'ayu-light'
+  | 'alucard'
+  | 'everforest-light';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -34,6 +36,8 @@ export const THEMES: ThemeMeta[] = [
   { id: 'one-light', name: 'One Light' },
   { id: 'gruvbox-light', name: 'Gruvbox Light' },
   { id: 'ayu-light', name: 'Ayu Light' },
+  { id: 'alucard', name: 'Alucard (Dracula Light)' },
+  { id: 'everforest-light', name: 'Everforest Light' },
 ];
 
 const LIGHT_THEMES: ReadonlySet<string> = new Set([
@@ -44,10 +48,33 @@ const LIGHT_THEMES: ReadonlySet<string> = new Set([
   'one-light',
   'gruvbox-light',
   'ayu-light',
+  'alucard',
+  'everforest-light',
 ]);
 
 export function isLightTheme(id: ThemeId): boolean {
   return LIGHT_THEMES.has(id);
+}
+
+/**
+ * Themes split into "System" / "Light" / "Dark" sections, alphabetised by
+ * name within each, for rendering as <optgroup>s in the picker. `system` is
+ * neither light nor dark, so it gets its own leading section.
+ */
+export function groupedThemes(): Array<{ group: string; themes: ThemeMeta[] }> {
+  const byName = (a: ThemeMeta, b: ThemeMeta) => a.name.localeCompare(b.name);
+  const named = THEMES.filter((t) => t.id !== 'system');
+  return [
+    { group: 'System', themes: THEMES.filter((t) => t.id === 'system') },
+    {
+      group: 'Light',
+      themes: named.filter((t) => isLightTheme(t.id)).sort(byName),
+    },
+    {
+      group: 'Dark',
+      themes: named.filter((t) => !isLightTheme(t.id)).sort(byName),
+    },
+  ];
 }
 
 export interface ThemePalette {
@@ -337,6 +364,54 @@ export const PALETTES: Record<Exclude<ThemeId, 'system'>, ThemePalette> = {
     yellow: '#f2ae49',
     purple: '#a37acc',
     cyan: '#4cbf99',
+  },
+  // Alucard — the official light variant of Dracula.
+  // https://github.com/dracula/dracula-theme
+  alucard: {
+    bg000: '#fffefa',
+    bg100: '#fffbeb',
+    bg200: '#f7f2df',
+    bg300: '#efe9d2',
+    bg400: '#e2dcc4',
+    bg500: '#ccc6ad',
+    text100: '#1f1f1f',
+    text200: '#3a3730',
+    text300: '#6c664b',
+    text400: '#8a8467',
+    text500: '#aaa488',
+    border100: '#efe9d2',
+    border200: '#e2dcc4',
+    border300: '#ccc6ad',
+    accent: '#644ac9',
+    accentHover: '#5339b0',
+    green: '#14710a',
+    yellow: '#846e15',
+    purple: '#644ac9',
+    cyan: '#036a96',
+  },
+  // Everforest — light medium variant.
+  // https://github.com/sainnhe/everforest
+  'everforest-light': {
+    bg000: '#fffbef',
+    bg100: '#fdf6e3',
+    bg200: '#f4f0d9',
+    bg300: '#efebd4',
+    bg400: '#e6e2cc',
+    bg500: '#d5d0b8',
+    text100: '#4e565c',
+    text200: '#5c6a72',
+    text300: '#829181',
+    text400: '#939f91',
+    text500: '#a6b0a0',
+    border100: '#efebd4',
+    border200: '#e6e2cc',
+    border300: '#d5d0b8',
+    accent: '#8da101',
+    accentHover: '#798a00',
+    green: '#8da101',
+    yellow: '#dfa000',
+    purple: '#df69ba',
+    cyan: '#35a77c',
   },
 };
 

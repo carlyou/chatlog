@@ -11,9 +11,17 @@ import {
 } from '../lib/fontSize';
 import type { FontId, FontMeta } from '../lib/fonts';
 import { FONTS } from '../lib/fonts';
+import {
+  clampFontWeight,
+  FONT_WEIGHT_STEP,
+  type FontWeight,
+  MAX_FONT_WEIGHT,
+  MIN_FONT_WEIGHT,
+  snapFontWeight,
+} from '../lib/fontWeight';
 import { bindingLabel } from '../lib/shortcutMatcher';
 import type { ThemeId } from '../lib/themes';
-import { THEMES } from '../lib/themes';
+import { groupedThemes } from '../lib/themes';
 
 interface ShortcutSettingsProps {
   config: ShortcutConfig;
@@ -28,6 +36,8 @@ interface ShortcutSettingsProps {
   onFontChange: (font: FontId) => void;
   fontSize: FontSize;
   onFontSizeChange: (size: FontSize) => void;
+  fontWeight: FontWeight;
+  onFontWeightChange: (weight: FontWeight) => void;
 }
 
 /** Group fonts by `FontMeta.group`, preserving the order they appear in
@@ -69,6 +79,8 @@ export function ShortcutSettings({
   onFontChange,
   fontSize,
   onFontSizeChange,
+  fontWeight,
+  onFontWeightChange,
 }: ShortcutSettingsProps) {
   const [listeningKey, setListeningKey] = useState<keyof ShortcutConfig | null>(
     null,
@@ -131,10 +143,14 @@ export function ShortcutSettings({
           value={theme}
           onChange={(e) => onThemeChange(e.target.value as ThemeId)}
         >
-          {THEMES.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
+          {groupedThemes().map(({ group, themes }) => (
+            <optgroup key={group} label={group}>
+              {themes.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>
@@ -204,6 +220,52 @@ export function ShortcutSettings({
             disabled={fontSize >= MAX_FONT_SIZE}
             onClick={() =>
               onFontSizeChange(snapFontSize(fontSize + FONT_SIZE_STEP))
+            }
+          >
+            +
+          </button>
+        </div>
+      </div>
+      <div className="chatlog-shortcut-row">
+        <span className="chatlog-shortcut-label">Font weight</span>
+        <div className="chatlog-font-size-stepper">
+          <button
+            type="button"
+            className="chatlog-font-size-btn"
+            aria-label="Decrease font weight"
+            disabled={fontWeight <= MIN_FONT_WEIGHT}
+            onClick={() =>
+              onFontWeightChange(snapFontWeight(fontWeight - FONT_WEIGHT_STEP))
+            }
+          >
+            −
+          </button>
+          <input
+            type="number"
+            className="chatlog-font-size-input"
+            inputMode="numeric"
+            min={MIN_FONT_WEIGHT}
+            max={MAX_FONT_WEIGHT}
+            step={FONT_WEIGHT_STEP}
+            value={fontWeight}
+            onChange={(e) => {
+              const raw = Number(e.target.value);
+              if (Number.isFinite(raw))
+                onFontWeightChange(clampFontWeight(raw));
+            }}
+            onBlur={(e) => {
+              // Snap to nearest step on blur to keep the displayed value tidy.
+              const raw = Number(e.target.value);
+              if (Number.isFinite(raw)) onFontWeightChange(snapFontWeight(raw));
+            }}
+          />
+          <button
+            type="button"
+            className="chatlog-font-size-btn"
+            aria-label="Increase font weight"
+            disabled={fontWeight >= MAX_FONT_WEIGHT}
+            onClick={() =>
+              onFontWeightChange(snapFontWeight(fontWeight + FONT_WEIGHT_STEP))
             }
           >
             +
