@@ -8,6 +8,7 @@ import { useBookmarks } from './hooks/useBookmarks';
 import { useDisplayMode } from './hooks/useDisplayMode';
 import { useFont } from './hooks/useFont';
 import { useFontSize } from './hooks/useFontSize';
+import { useFontWeight } from './hooks/useFontWeight';
 import { useMessages } from './hooks/useMessages';
 import { usePerfMode } from './hooks/usePerfMode';
 import { usePinned } from './hooks/usePinned';
@@ -38,6 +39,7 @@ export function App({ platform, shadowHost }: AppProps) {
   const { theme, setTheme, glass, setGlass } = useTheme(shadowHost, platform);
   const { font, setFont } = useFont(shadowHost, platform);
   const { fontSize, setFontSize } = useFontSize(shadowHost, platform);
+  const { fontWeight, setFontWeight } = useFontWeight(shadowHost, platform);
   const search = useSearch(messages, platform, lockActive);
 
   // Pause message reconciliation while search is active to avoid disrupting match positions
@@ -125,6 +127,8 @@ export function App({ platform, shadowHost }: AppProps) {
         onFontChange={setFont}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
+        fontWeight={fontWeight}
+        onFontWeightChange={setFontWeight}
       />
     </>
   );
